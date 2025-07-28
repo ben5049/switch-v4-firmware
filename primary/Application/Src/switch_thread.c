@@ -5,8 +5,9 @@
  *      Author: bens1
  */
 
-#include "switch.h"
+#include "switch_thread.h"
 #include "sja1105.h"
+#include "utils.h"
 
 
 uint8_t switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
@@ -16,7 +17,7 @@ SJA1105_HandleTypeDef hsja1105;
 
 
 static void sja1105_delay_ms(uint32_t ms){
-	tx_thread_sleep((ms * TX_TIMER_TICKS_PER_SECOND) / 1000);
+	tx_thread_sleep_ms(ms);
 }
 
 static SJA1105_StatusTypeDef sja1105_take_mutex(uint32_t timeout){
@@ -34,11 +35,21 @@ static const SJA1105_CallbacksTypeDef sja1105_callbacks = {
 };
 
 
-VOID switch_thread_entry(ULONG initial_input){
+void switch_thread_entry(uint32_t initial_input){
 
-	SJA1105_Init(&hsja1105, VARIANT_SJA1105Q, &sja1105_callbacks, &hspi2, SWCH_CS_GPIO_Port, SWCH_CS_Pin, SWCH_RST_GPIO_Port, SWCH_RST_Pin, 100);
+	if (SJA1105_Init(
+		&hsja1105,
+		VARIANT_SJA1105Q,
+		&sja1105_callbacks,
+		&hspi2,
+		SWCH_CS_GPIO_Port,
+		SWCH_CS_Pin,
+		SWCH_RST_GPIO_Port,
+		SWCH_RST_Pin,
+		100
+	) != SJA1105_OK) Error_Handler();
 
 	while (1){
-		tx_thread_sleep(100);
+		tx_thread_sleep_ms(100);
 	}
 }

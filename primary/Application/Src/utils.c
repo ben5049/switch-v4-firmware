@@ -1,0 +1,28 @@
+/*
+ * utils.c
+ *
+ *  Created on: Jul 28, 2025
+ *      Author: bens1
+ */
+
+#include "utils.h"
+#include "config.h"
+
+/* This function should be called in MX_ETH_Init */
+void write_mac_addr(uint8_t *buf){
+	buf[0] = MAC_ADDR_OCTET1;
+	buf[1] = MAC_ADDR_OCTET2;
+	buf[2] = MAC_ADDR_OCTET3;
+	buf[3] = MAC_ADDR_OCTET4;
+	buf[4] = MAC_ADDR_OCTET5;
+	buf[5] = MAC_ADDR_OCTET6;
+}
+
+
+uint32_t tx_thread_sleep_ms(uint32_t ms){
+	return tx_thread_sleep((ms * TX_TIMER_TICKS_PER_SECOND) / 1000);
+}
+
+uint32_t tx_time_get_ms(){
+	return (uint32_t) ((((uint64_t) tx_time_get()) * 1000) / TX_TIMER_TICKS_PER_SECOND);  /* Cast to 64-bit uint to prevent premature overflow */
+}

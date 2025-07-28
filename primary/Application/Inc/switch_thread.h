@@ -5,8 +5,13 @@
  *      Author: bens1
  */
 
-#ifndef INC_SWITCH_H_
-#define INC_SWITCH_H_
+#ifndef INC_SWITCH_THREAD_H_
+#define INC_SWITCH_THREAD_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #include "tx_api.h"
 #include "stdint.h"
@@ -19,8 +24,13 @@ extern uint8_t switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
 extern TX_THREAD switch_thread_ptr;
 
 /* Exported functions*/
-VOID switch_thread_entry(ULONG initial_input);
+void switch_thread_entry(uint32_t initial_input);
 
 extern SPI_HandleTypeDef hspi2;
 
-#endif /* INC_SWITCH_H_ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* INC_SWITCH_THREAD_H_ */
