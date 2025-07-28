@@ -1,0 +1,9 @@
+[submodule "primary/Libraries/sja1105"]
+	path = primary/Libraries/sja1105
+	url = https://github.com/ben5049/stm32-sja1105
+[submodule "primary/Libraries/mstp"]
+	path = primary/Libraries/mstp
+	url = https://github.com/adigostin/mstp-lib
+[submodule "primary/Libraries/88q211x"]
+	path = primary/Libraries/88q211x
+	url = https://github.com/ben5049/stm32-88q211x
