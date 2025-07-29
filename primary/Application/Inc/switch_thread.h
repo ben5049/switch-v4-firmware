@@ -27,9 +27,6 @@ extern TX_MUTEX sja1105_mutex_ptr;
 /* Exported functions*/
 void switch_thread_entry(uint32_t initial_input);
 
-/* Imported variables */
-extern SPI_HandleTypeDef hspi2;
-
 
 #ifdef __cplusplus
 }
