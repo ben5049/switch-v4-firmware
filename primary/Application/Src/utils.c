@@ -18,11 +18,10 @@ void write_mac_addr(uint8_t *buf){
 	buf[5] = MAC_ADDR_OCTET6;
 }
 
-
 uint32_t tx_thread_sleep_ms(uint32_t ms){
-	return tx_thread_sleep((ms * TX_TIMER_TICKS_PER_SECOND) / 1000);
+	return tx_thread_sleep((uint32_t) MS_TO_TICKS((uint64_t) ms));  /* Cast to 64-bit uint to prevent premature overflow */
 }
 
 uint32_t tx_time_get_ms(){
-	return (uint32_t) ((((uint64_t) tx_time_get()) * 1000) / TX_TIMER_TICKS_PER_SECOND);  /* Cast to 64-bit uint to prevent premature overflow */
+	return (uint32_t) TICKS_TO_MS((uint64_t) tx_time_get());  /* Cast to 64-bit uint to prevent premature overflow */
 }

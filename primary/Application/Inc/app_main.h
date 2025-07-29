@@ -19,7 +19,7 @@ extern "C" {
 #include "config.h"
 
 
-void create_threads(void);
+void tx_user_init(void);
 
 
 #ifdef __cplusplus
