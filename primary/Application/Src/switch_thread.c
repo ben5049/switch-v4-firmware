@@ -31,7 +31,7 @@ static void sja1105_delay_ms(uint32_t ms){
 static void sja1105_delay_ns(uint32_t ns){
 
 	/* CPU runs at 250MHz so one instruction is 4ns.
-	 * The loop contains a NOP, ADD, CMP and BHI instruction per cycle.
+	 * The loop contains a NOP, ADDS, CMP and branch instruction per cycle.
 	 * This means the loop delay is 4 * 4ns = 16ns.
 	 * This is true for O3 but will take longer for O0.
 	 */
@@ -79,19 +79,27 @@ static const SJA1105_CallbacksTypeDef sja1105_callbacks = {
 void switch_thread_entry(uint32_t initial_input){
 
 	static SJA1105_HandleTypeDef hsja1105;
-	static SJA1105_PortTypeDef ports[SJA1105_NUM_PORTS];
+    static SJA1105_ConfigTypeDef sja1105_conf;
+	static SJA1105_PortTypeDef   sja1105_ports[SJA1105_NUM_PORTS];
+
+    /* Set the general switch parameters */
+	sja1105_conf.variant    = VARIANT_SJA1105Q;
+    sja1105_conf.spi_handle = &hspi2;
+    sja1105_conf.cs_port    = SWCH_CS_GPIO_Port;
+    sja1105_conf.cs_pin     = SWCH_CS_Pin;
+    sja1105_conf.rst_port   = SWCH_RST_GPIO_Port;
+    sja1105_conf.rst_pin    = SWCH_RST_Pin;
+    sja1105_conf.timeout    = 100;
 
 	/* Configure port speeds and interfaces */
-	if (SJA1105_ConfigurePort(ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
-	if (SJA1105_ConfigurePort(ports, PORT_88Q2112_PHY1, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
-	if (SJA1105_ConfigurePort(ports, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
-	if (SJA1105_ConfigurePort(ports, PORT_LAN8671_PHY,  SJA1105_INTERFACE_RMII,  SJA1105_SPEED_10M,     SJA1105_IO_3V3) != SJA1105_OK) Error_Handler();
-	if (SJA1105_ConfigurePort(ports, PORT_HOST,         SJA1105_INTERFACE_RMII,  SJA1105_SPEED_100M,    SJA1105_IO_3V3) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY1, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(sja1105_ports, PORT_LAN8671_PHY,  SJA1105_INTERFACE_RMII,  SJA1105_SPEED_10M,     SJA1105_IO_3V3) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(sja1105_ports, PORT_HOST,         SJA1105_INTERFACE_RMII,  SJA1105_SPEED_100M,    SJA1105_IO_3V3) != SJA1105_OK) Error_Handler();
 
-	/* Initialise the switch */
-	if (SJA1105_Init(&hsja1105, VARIANT_SJA1105Q, &sja1105_callbacks, &hspi2, SWCH_CS_GPIO_Port, SWCH_CS_Pin,
-			SWCH_RST_GPIO_Port, SWCH_RST_Pin, 100, sja1105_static_conf, SJA1105_STATIC_CONF_SIZE, ports
-	) != SJA1105_OK) Error_Handler();
+    /* Initialise the switch */
+	if (SJA1105_Init(&hsja1105, &sja1105_conf, sja1105_ports, &sja1105_callbacks, sja1105_static_conf, SJA1105_STATIC_CONF_SIZE) != SJA1105_OK) Error_Handler();
 
 	while (1){
 		tx_thread_sleep_ms(100);

@@ -7,3 +7,6 @@
 [submodule "primary/Libraries/88q211x"]
 	path = primary/Libraries/88q211x
 	url = https://github.com/ben5049/stm32-88q211x
+[submodule "primary/Libraries/lan867x"]
+	path = primary/Libraries/lan867x
+	url = https://github.com/ben5049/stm32-lan867x
