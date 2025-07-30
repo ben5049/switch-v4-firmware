@@ -82,11 +82,11 @@ void switch_thread_entry(uint32_t initial_input){
 	static SJA1105_PortTypeDef ports[SJA1105_NUM_PORTS];
 
 	/* Configure port speeds and interfaces */
-	if (SJA1105_ConfigurePort(ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN) != SJA1105_OK) Error_Handler();
-	if (SJA1105_ConfigurePort(ports, PORT_88Q2112_PHY1, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN) != SJA1105_OK) Error_Handler();
-	if (SJA1105_ConfigurePort(ports, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN) != SJA1105_OK) Error_Handler();
-	if (SJA1105_ConfigurePort(ports, PORT_LAN8671_PHY,  SJA1105_INTERFACE_RMII,  SJA1105_SPEED_10M)     != SJA1105_OK) Error_Handler();
-	if (SJA1105_ConfigurePort(ports, PORT_HOST,         SJA1105_INTERFACE_RMII,  SJA1105_SPEED_100M)    != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(ports, PORT_88Q2112_PHY1, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(ports, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(ports, PORT_LAN8671_PHY,  SJA1105_INTERFACE_RMII,  SJA1105_SPEED_10M,     SJA1105_IO_3V3) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(ports, PORT_HOST,         SJA1105_INTERFACE_RMII,  SJA1105_SPEED_100M,    SJA1105_IO_3V3) != SJA1105_OK) Error_Handler();
 
 	/* Initialise the switch */
 	if (SJA1105_Init(&hsja1105, VARIANT_SJA1105Q, &sja1105_callbacks, &hspi2, SWCH_CS_GPIO_Port, SWCH_CS_Pin,
