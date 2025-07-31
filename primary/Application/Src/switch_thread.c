@@ -82,6 +82,8 @@ void switch_thread_entry(uint32_t initial_input){
     static SJA1105_ConfigTypeDef sja1105_conf;
 	static SJA1105_PortTypeDef   sja1105_ports[SJA1105_NUM_PORTS];
 
+	static int16_t temp_x10;
+
     /* Set the general switch parameters */
 	sja1105_conf.variant    = VARIANT_SJA1105Q;
     sja1105_conf.spi_handle = &hspi2;
@@ -92,16 +94,22 @@ void switch_thread_entry(uint32_t initial_input){
     sja1105_conf.timeout    = 100;
 
 	/* Configure port speeds and interfaces */
-	if (SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
-	if (SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY1, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
-	if (SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_UNKNOWN, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY1, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
+	if (SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8) != SJA1105_OK) Error_Handler();
 	if (SJA1105_ConfigurePort(sja1105_ports, PORT_LAN8671_PHY,  SJA1105_INTERFACE_RMII,  SJA1105_SPEED_10M,     SJA1105_IO_3V3) != SJA1105_OK) Error_Handler();
 	if (SJA1105_ConfigurePort(sja1105_ports, PORT_HOST,         SJA1105_INTERFACE_RMII,  SJA1105_SPEED_100M,    SJA1105_IO_3V3) != SJA1105_OK) Error_Handler();
 
     /* Initialise the switch */
 	if (SJA1105_Init(&hsja1105, &sja1105_conf, sja1105_ports, &sja1105_callbacks, sja1105_static_conf, SJA1105_STATIC_CONF_SIZE) != SJA1105_OK) Error_Handler();
 
+    /* Set the speed of the dynamic ports. TODO: This should be after PHY auto-negotiaion */
+    if (SJA1105_UpdatePortSpeed(&hsja1105, PORT_88Q2112_PHY0, SJA1105_SPEED_1G)) Error_Handler();
+    if (SJA1105_UpdatePortSpeed(&hsja1105, PORT_88Q2112_PHY1, SJA1105_SPEED_1G)) Error_Handler();
+    if (SJA1105_UpdatePortSpeed(&hsja1105, PORT_88Q2112_PHY2, SJA1105_SPEED_1G)) Error_Handler();
+
 	while (1){
-		tx_thread_sleep_ms(100);
+        tx_thread_sleep_ms(100);
+	    SJA1105_ReadTemperatureX10(&hsja1105, &temp_x10);
 	}
 }

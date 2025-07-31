@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "sja1105_conf.h": "c",
+        "sja1105.h": "c",
+        "stm32h5xx_hal.h": "c",
+        "sja1105_regs.h": "c",
+        "sja1105_io.h": "c"
+    }
+}
