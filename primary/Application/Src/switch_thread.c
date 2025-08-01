@@ -206,20 +206,22 @@ void switch_thread_entry(uint32_t initial_input){
     static int16_t               temp_x10;
 
     /* Set the general switch parameters */
-    sja1105_conf.variant    = VARIANT_SJA1105Q;
-    sja1105_conf.spi_handle = &hspi2;
-    sja1105_conf.cs_port    = SWCH_CS_GPIO_Port;
-    sja1105_conf.cs_pin     = SWCH_CS_Pin;
-    sja1105_conf.rst_port   = SWCH_RST_GPIO_Port;
-    sja1105_conf.rst_pin    = SWCH_RST_Pin;
-    sja1105_conf.timeout    = 100;
+    sja1105_conf.variant     = VARIANT_SJA1105Q;
+    sja1105_conf.spi_handle  = &hspi2;
+    sja1105_conf.cs_port     = SWCH_CS_GPIO_Port;
+    sja1105_conf.cs_pin      = SWCH_CS_Pin;
+    sja1105_conf.rst_port    = SWCH_RST_GPIO_Port;
+    sja1105_conf.rst_pin     = SWCH_RST_Pin;
+    sja1105_conf.timeout     = 100;
+    sja1105_conf.host_port   = PORT_HOST;
+    sja1105_conf.skew_clocks = true;
 
     /* Configure port speeds and interfaces */
-    CHECK(SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
-    CHECK(SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY1, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
-    CHECK(SJA1105_ConfigurePort(sja1105_ports, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
-    CHECK(SJA1105_ConfigurePort(sja1105_ports, PORT_LAN8671_PHY,  SJA1105_INTERFACE_RMII,  SJA1105_MODE_MAC, SJA1105_SPEED_10M,     SJA1105_IO_3V3));
-    CHECK(SJA1105_ConfigurePort(sja1105_ports, PORT_HOST,         SJA1105_INTERFACE_RMII,  SJA1105_MODE_PHY, SJA1105_SPEED_100M,    SJA1105_IO_3V3));
+    CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
+    CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_88Q2112_PHY1, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
+    CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
+    CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_LAN8671_PHY,  SJA1105_INTERFACE_RMII,  SJA1105_MODE_MAC, true,  SJA1105_SPEED_10M,     SJA1105_IO_3V3));
+    CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_HOST,         SJA1105_INTERFACE_RMII,  SJA1105_MODE_PHY, true,  SJA1105_SPEED_100M,    SJA1105_IO_3V3));
 
     /* Set the static config to the default */
     sja1105_static_conf      = swv4_sja1105_static_config_default;
@@ -229,9 +231,9 @@ void switch_thread_entry(uint32_t initial_input){
     CHECK(SJA1105_Init(&hsja1105, &sja1105_conf, sja1105_ports, &sja1105_callbacks, sja1105_static_conf, sja1105_static_conf_size));
 
     /* Set the speed of the dynamic ports. TODO: This should be after PHY auto-negotiaion */
-    CHECK(SJA1105_UpdatePortSpeed(&hsja1105, PORT_88Q2112_PHY0, SJA1105_SPEED_1G));
-    CHECK(SJA1105_UpdatePortSpeed(&hsja1105, PORT_88Q2112_PHY1, SJA1105_SPEED_1G));
-    CHECK(SJA1105_UpdatePortSpeed(&hsja1105, PORT_88Q2112_PHY2, SJA1105_SPEED_1G));
+    CHECK(SJA1105_PortUpdateSpeed(&hsja1105, PORT_88Q2112_PHY0, SJA1105_SPEED_1G));
+    CHECK(SJA1105_PortUpdateSpeed(&hsja1105, PORT_88Q2112_PHY1, SJA1105_SPEED_1G));
+    CHECK(SJA1105_PortUpdateSpeed(&hsja1105, PORT_88Q2112_PHY2, SJA1105_SPEED_1G));
 
     while (1){
         tx_thread_sleep_ms(200);
