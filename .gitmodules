@@ -10,3 +10,6 @@
 [submodule "primary/Libraries/lan867x"]
 	path = primary/Libraries/lan867x
 	url = https://github.com/ben5049/stm32-lan867x
+[submodule "primary/Libraries/zenoh-pico"]
+	path = primary/Libraries/zenoh-pico
+	url = https://github.com/eclipse-zenoh/zenoh-pico
