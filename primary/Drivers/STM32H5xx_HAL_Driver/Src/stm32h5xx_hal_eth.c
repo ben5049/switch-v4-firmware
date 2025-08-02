@@ -1484,7 +1484,7 @@ HAL_StatusTypeDef HAL_ETH_ReleaseTxPacket(ETH_HandleTypeDef *heth)
         /* Clear the entry in the in-use array.  */
         dmatxdesclist->PacketAddress[idx] = NULL;
 
-        /* Update the transmit relesae index and number of buffers in use.  */
+        /* Update the transmit release index and number of buffers in use.  */
         INCR_TX_DESC_INDEX(idx, 1U);
         dmatxdesclist->BuffersInUse = numOfBuf;
         dmatxdesclist->releaseIndex = idx;

@@ -5,6 +5,8 @@
         "stm32h5xx_hal.h": "c",
         "sja1105_regs.h": "c",
         "sja1105_io.h": "c",
-        "compare": "c"
-    }
+        "compare": "c",
+        "cstdint": "c"
+    },
+    "esbonio.server.enabled": false
 }
