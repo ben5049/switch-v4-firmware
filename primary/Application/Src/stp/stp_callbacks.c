@@ -6,7 +6,6 @@
  */
 
 #include "stdatomic.h"
-#include "assert.h"
 #include "hal.h"
 #include "main.h"
 #include "stp.h"
@@ -99,7 +98,7 @@ static void stp_enableBpduTrapping (const struct STP_BRIDGE* bridge, bool enable
         }
 
         /* If deinitialisation takes longer than 5 seconds (25 * 200ms) then call the error handler */
-        if (!hsja1105.initialised) Error_Handler();
+        if (hsja1105.initialised) Error_Handler();
     }
 }
 
@@ -110,7 +109,7 @@ void stp_enableLearning(const struct STP_BRIDGE* bridge, unsigned int portIndex,
 
     status = SJA1105_PortSetLearning(&hsja1105, portIndex, enable);
 
-    assert(status == SJA1105_OK);
+    if (status != SJA1105_OK) Error_Handler();
 }
 
 
@@ -120,7 +119,7 @@ void stp_enableForwarding(const struct STP_BRIDGE* bridge, unsigned int portInde
 
     status = SJA1105_PortSetForwarding(&hsja1105, portIndex, enable);
 
-    assert(status == SJA1105_OK);
+    if (status != SJA1105_OK) Error_Handler();
 }
 
 
@@ -129,8 +128,8 @@ static void* stp_transmitGetBuffer(const struct STP_BRIDGE* bridge, unsigned int
     uint8_t offset = 0;
     tx_bpdu_size = bpduSize;
 
-    assert(portIndex < SJA1105_NUM_PORTS);
-    assert(BPDU_HEADER_SIZE + bpduSize <= BPDU_MAX_BUFFER_SIZE);
+    if (portIndex >= SJA1105_NUM_PORTS) Error_Handler();
+    if (BPDU_HEADER_SIZE + bpduSize > BPDU_MAX_BUFFER_SIZE) Error_Handler();
 
     /* Write the destination MAC address */
     memcpy(&tx_bpdu_buffer[offset], bpdu_dest_address, BPDU_DST_ADDR_SIZE);
@@ -154,7 +153,12 @@ static void* stp_transmitGetBuffer(const struct STP_BRIDGE* bridge, unsigned int
 	memcpy(&tx_bpdu_buffer[offset], bpdu_llc, 3);
     offset += BPDU_LLC_SIZE;
 
-    assert(offset == BPDU_HEADER_SIZE);
+    /* Check the size of the header is correct */
+    if (offset != BPDU_HEADER_SIZE) Error_Handler();
+
+    /* Create the management route to send the BPDU from a certain port */
+    if (SJA1105_ManagementRouteCreate(&hsja1105, bpdu_dest_address, 1 << portIndex, false, false, tx_bpdu_buffer) != SJA1105_OK) Error_Handler();
+
 	return &tx_bpdu_buffer[BPDU_HEADER_SIZE];
 }
 
@@ -180,7 +184,9 @@ static void stp_transmitReleaseBuffer(const struct STP_BRIDGE* bridge, void* buf
 
     /* Transmit the packet (non-blocking) */
     bpdu_transmitted = true;
-    assert(HAL_ETH_Transmit_IT(&heth, &TxPacketCfg) == HAL_OK);
+    if (HAL_ETH_Transmit_IT(&heth, &TxPacketCfg) != HAL_OK) Error_Handler();
+
+
 }
 
 /* Called by HAL_ETH_TxCpltCallback() to free the packet TODO: Notify this thread */

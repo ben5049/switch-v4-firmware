@@ -240,12 +240,14 @@ void switch_thread_entry(uint32_t initial_input){
     CHECK(SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY2, SJA1105_SPEED_1G));
 
     while (1){
-        tx_thread_sleep_ms(200);
 
-        /* Perform a regular maintenance check */
+        /* Perform regular maintenance */
         CHECK(SJA1105_CheckStatusRegisters(&hsja1105));
+        CHECK(SJA1105_ManagementRouteFree(&hsja1105));
 
         /* Read the temperature */
         CHECK(SJA1105_ReadTemperatureX10(&hsja1105, &temp_x10));
+
+        tx_thread_sleep_ms(500);
     }
 }
