@@ -63,10 +63,6 @@ static void sja1105_delay_ns(SJA1105_HandleTypeDef *dev, uint32_t ns){
 static SJA1105_StatusTypeDef sja1105_take_mutex(SJA1105_HandleTypeDef *dev, uint32_t timeout){
 
     SJA1105_StatusTypeDef status = SJA1105_OK;
-    
-    /* Check the device is initialised */    
-    if (!dev->initialised) status = SJA1105_NOT_CONFIGURED_ERROR;
-    if (status != SJA1105_OK) return status;
 
     /* Take the mutex and work out the status */
     switch (tx_mutex_get(&sja1105_mutex_ptr, MS_TO_TICKS(timeout))){

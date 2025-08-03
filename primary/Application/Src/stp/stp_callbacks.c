@@ -57,15 +57,50 @@ void bpdu_packet_init(){
 
 static void stp_enableBpduTrapping (const struct STP_BRIDGE* bridge, bool enable, unsigned int timestamp){
 
-    bool trapped;
-    SJA1105_StatusTypeDef status;
+    SJA1105_StatusTypeDef status = SJA1105_OK;
+
+    if (enable){
+
+        /* Send a notification to switch_thread_entry() to tell it that it should start running */
+        for (uint_fast8_t attempt = 0; !hsja1105.initialised && attempt < 25; attempt++){
     
+            /* TODO: Send a notification */
+            
+            tx_thread_sleep_ms(200);
+        }
 
-    status = SJA1105_MACAddrTrapTest(&hsja1105, bpdu_dest_address, &trapped);
+        /* If initialisation takes longer than 5 seconds (25 * 200ms) then call the error handler */
+        if (!hsja1105.initialised) Error_Handler();
 
-    /* TODO: Handle this properly by requesting that the sja1105 be initialised and check that it's running */
-    if (status != SJA1105_OK) Error_Handler();
-    assert(trapped);
+        /* SJA1105 is now initialised, check the BPDU address is trapped by MAC filters */
+        bool trapped = false;
+        status = SJA1105_MACAddrTrapTest(&hsja1105, bpdu_dest_address, &trapped);
+        if (status != SJA1105_OK) Error_Handler(); /* TODO: Handle this properly */
+
+        /* Trapped by MAC filters: success */
+        if (trapped){
+            return;
+        }
+
+        /* Not trapped by MAC filters */
+        else {
+            /* TODO: add a static L2 lookup rule */
+        }
+    }
+
+    else {
+
+        /* Send a notification to switch_thread_entry() to tell it that it should stop running */
+        for (uint_fast8_t attempt = 0; hsja1105.initialised && attempt < 25; attempt++){
+    
+            /* TODO: Send a notification */
+            
+            tx_thread_sleep_ms(200);
+        }
+
+        /* If deinitialisation takes longer than 5 seconds (25 * 200ms) then call the error handler */
+        if (!hsja1105.initialised) Error_Handler();
+    }
 }
 
 
