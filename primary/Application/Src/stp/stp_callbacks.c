@@ -104,6 +104,26 @@ static void stp_enableBpduTrapping (const struct STP_BRIDGE* bridge, bool enable
 }
 
 
+void stp_enableLearning(const struct STP_BRIDGE* bridge, unsigned int portIndex, unsigned int treeIndex, bool enable, unsigned int timestamp){
+
+    SJA1105_StatusTypeDef status = SJA1105_OK;
+
+    status = SJA1105_PortSetLearning(&hsja1105, portIndex, enable);
+
+    assert(status == SJA1105_OK);
+}
+
+
+void stp_enableForwarding(const struct STP_BRIDGE* bridge, unsigned int portIndex, unsigned int treeIndex, bool enable, unsigned int timestamp){
+
+    SJA1105_StatusTypeDef status = SJA1105_OK;
+
+    status = SJA1105_PortSetForwarding(&hsja1105, portIndex, enable);
+
+    assert(status == SJA1105_OK);
+}
+
+
 static void* stp_transmitGetBuffer(const struct STP_BRIDGE* bridge, unsigned int portIndex, unsigned int bpduSize, unsigned int timestamp){
 
     uint8_t offset = 0;
@@ -214,8 +234,8 @@ bool stp_ReleaseTxPacket(ETH_HandleTypeDef *heth){
 
 const STP_CALLBACKS stp_callbacks = {
     .enableBpduTrapping    = &stp_enableBpduTrapping,
-    .enableLearning        = NULL,
-    .enableForwarding      = NULL,
+    .enableLearning        = &stp_enableLearning,
+    .enableForwarding      = &stp_enableForwarding,
     .transmitGetBuffer     = &stp_transmitGetBuffer,
     .transmitReleaseBuffer = &stp_transmitReleaseBuffer,
     .flushFdb              = NULL,

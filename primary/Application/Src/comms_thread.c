@@ -28,7 +28,7 @@
 
 #define NX_APP_CABLE_CONNECTION_CHECK_PERIOD  (1 * NX_IP_PERIODIC_RATE)
 
-#define NX_APP_DEFAULT_TIMEOUT               (10 * NX_IP_PERIODIC_RATE)
+#define NX_APP_DEFAULT_TIMEOUT                (10 * NX_IP_PERIODIC_RATE)
 
 ULONG IpAddress;
 NX_IP NetXDuoEthIpInstance;
