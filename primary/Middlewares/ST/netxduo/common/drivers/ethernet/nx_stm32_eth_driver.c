@@ -2072,7 +2072,7 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
 {
 
-    if (__atomic_load_n(&bpdu_transmitted, __ATOMIC_ACQUIRE)){
+    if (bpdu_transmitted){
         if (stp_ReleaseTxPacket(heth)){
             // TODO: Notify STP thread
             return;

@@ -5,9 +5,11 @@
  *      Author: bens1
  */
 
+#include "stdatomic.h"
 #include "assert.h"
 #include "hal.h"
 #include "main.h"
+#include "stp.h"
 
 #include "stp_callbacks.h"
 #include "stp_extra.h"
@@ -45,7 +47,7 @@ static const uint8_t bpdu_llc[BPDU_LLC_SIZE] = {0x42, 0x42, 0x03};
 static ETH_BufferTypeDef TxBuffer;
 static ETH_TxPacketConfigTypeDef TxPacketCfg;
 
-volatile bool bpdu_transmitted;
+atomic_bool bpdu_transmitted;
 
 
 void bpdu_packet_init(){
@@ -58,6 +60,7 @@ static void stp_enableBpduTrapping (const struct STP_BRIDGE* bridge, bool enable
     bool trapped;
     SJA1105_StatusTypeDef status;
     
+
     status = SJA1105_MACAddrTrapTest(&hsja1105, bpdu_dest_address, &trapped);
 
     /* TODO: Handle this properly by requesting that the sja1105 be initialised and check that it's running */
@@ -89,8 +92,8 @@ static void* stp_transmitGetBuffer(const struct STP_BRIDGE* bridge, unsigned int
 
 	/* Write the EtherType/Size, which specifies the size of the payload starting at the LLC field, so BPDU_LLC_SIZE (3) + bpduSize */
 	uint16_t etherTypeOrSize = BPDU_LLC_SIZE + bpduSize;
-	tx_bpdu_buffer[offset++] = uint8_t (etherTypeOrSize >> 8);
-	tx_bpdu_buffer[offset++] = uint8_t (etherTypeOrSize & 0xFF);
+	tx_bpdu_buffer[offset++] = (uint8_t) (etherTypeOrSize >> 8);
+	tx_bpdu_buffer[offset++] = (uint8_t) (etherTypeOrSize & 0xFF);
 
 	/* 3 bytes for the LLC field, which normally are 0x42, 0x42, 0x03 */
 	memcpy(&tx_bpdu_buffer[offset], bpdu_llc, 3);
@@ -121,7 +124,7 @@ static void stp_transmitReleaseBuffer(const struct STP_BRIDGE* bridge, void* buf
     TxPacketCfg.CRCPadCtrl   = ETH_DMATXNDESCRF_CPC_CRCPAD_INSERT;
 
     /* Transmit the packet (non-blocking) */
-    __atomic_store_n(&bpdu_transmitted, true, __ATOMIC_RELEASE);
+    bpdu_transmitted = true;
     assert(HAL_ETH_Transmit_IT(&heth, &TxPacketCfg) == HAL_OK);
 }
 
@@ -176,14 +179,14 @@ bool stp_ReleaseTxPacket(ETH_HandleTypeDef *heth){
 
 const STP_CALLBACKS stp_callbacks = {
     .enableBpduTrapping    = &stp_enableBpduTrapping,
-    .enableLearning        = nullptr,
-    .enableForwarding      = nullptr,
+    .enableLearning        = NULL,
+    .enableForwarding      = NULL,
     .transmitGetBuffer     = &stp_transmitGetBuffer,
     .transmitReleaseBuffer = &stp_transmitReleaseBuffer,
-    .flushFdb              = nullptr,
-    .debugStrOut           = nullptr,
-    .onTopologyChange      = nullptr,
-    .onPortRoleChanged     = nullptr,
-    .allocAndZeroMemory    = nullptr,
-    .freeMemory            = nullptr,
+    .flushFdb              = NULL,
+    .debugStrOut           = NULL,
+    .onTopologyChange      = NULL,
+    .onPortRoleChanged     = NULL,
+    .allocAndZeroMemory    = NULL,
+    .freeMemory            = NULL,
 };

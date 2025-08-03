@@ -19,6 +19,9 @@ extern "C" {
 #include "config.h"
 
 
+typedef struct STP_BRIDGE STP_BRIDGE;
+
+
 /* Exported variables */
 extern uint8_t stp_thread_stack[STP_THREAD_STACK_SIZE];
 extern TX_THREAD stp_thread_ptr;

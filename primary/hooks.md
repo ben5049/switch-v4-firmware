@@ -8,7 +8,7 @@ Almost all code is contained in the Application and Libraries folders, however c
 
 ## STP Release packet callback:
 
-In [`primary\Middlewares\ST\netxduo\common\drivers\ethernet\nx_stm32_eth_driver.c`](primary\Middlewares\ST\netxduo\common\drivers\ethernet\nx_stm32_eth_driver.c):
+In [`primary/Middlewares/ST/netxduo/common/drivers/ethernet/nx_stm32_eth_driver.c`](/primary/Middlewares//ST/netxduo/common/drivers/ethernet/nx_stm32_eth_driver.c#2072):
 
 ```C
 
@@ -18,7 +18,7 @@ In [`primary\Middlewares\ST\netxduo\common\drivers\ethernet\nx_stm32_eth_driver.
 
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth){
 
-    if (__atomic_load_n(&bpdu_transmitted, __ATOMIC_ACQUIRE)){
+    if (bpdu_transmitted){
         if (stp_ReleaseTxPacket(heth)){
             // TODO: Notify STP thread
             return;

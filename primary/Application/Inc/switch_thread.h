@@ -15,7 +15,8 @@ extern "C" {
 
 #include "tx_api.h"
 #include "stdint.h"
-#include "stm32h5xx_hal.h"
+#include "stdatomic.h"
+#include "hal.h"
 
 #include "app_main.h"
 
@@ -23,7 +24,7 @@ extern "C" {
 extern uint8_t switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
 extern TX_THREAD switch_thread_ptr;
 extern TX_MUTEX sja1105_mutex_ptr;
-
+extern atomic_uint_fast32_t sja1105_error_counter;
 
 /* Exported functions*/
 void switch_thread_entry(uint32_t initial_input);

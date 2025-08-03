@@ -13,11 +13,12 @@ extern "C" {
 #endif
 
 
+#include "stdatomic.h"
 #include "stdbool.h"
 #include "hal.h"
 
 
-extern volatile bool bpdu_transmitted;
+extern atomic_bool bpdu_transmitted;
 
 bool stp_ReleaseTxPacket(ETH_HandleTypeDef *heth);
 

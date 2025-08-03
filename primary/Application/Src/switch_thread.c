@@ -5,6 +5,8 @@
  *      Author: bens1
  */
 
+#include "stdatomic.h"
+
 #include "switch_thread.h"
 #include "sja1105.h"
 #include "sja1105q_default_conf.h"
@@ -17,7 +19,7 @@ TX_THREAD switch_thread_ptr;
 TX_MUTEX  sja1105_mutex_ptr;
 
 SJA1105_HandleTypeDef hsja1105;
-volatile uint32_t sja1105_error_counter = 0;
+atomic_uint_fast32_t sja1105_error_counter = 0;
 
 static const uint32_t *sja1105_static_conf;
 static       uint32_t  sja1105_static_conf_size;
@@ -63,7 +65,7 @@ static SJA1105_StatusTypeDef sja1105_take_mutex(SJA1105_HandleTypeDef *dev, uint
     SJA1105_StatusTypeDef status = SJA1105_OK;
     
     /* Check the device is initialised */    
-    if (!SJA1105_IsInitialised(dev)) status = SJA1105_NOT_CONFIGURED_ERROR;
+    if (!dev->initialised) status = SJA1105_NOT_CONFIGURED_ERROR;
     if (status != SJA1105_OK) return status;
 
     /* Take the mutex and work out the status */

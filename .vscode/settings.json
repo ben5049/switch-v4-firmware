@@ -24,7 +24,9 @@
         "functional": "cpp",
         "tuple": "cpp",
         "type_traits": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "hal.h": "c"
     },
-    "esbonio.server.enabled": false
+    "esbonio.server.enabled": false,
+    "cmake.ignoreCMakeListsMissing": true
 }

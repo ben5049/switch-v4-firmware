@@ -27,7 +27,7 @@ STP_BRIDGE* bridge;
 
 void stp_thread_entry(uint32_t initial_input){
 
-	static constexpr uint8_t mac_address[6] = {
+	static const uint8_t mac_address[6] = {
 		MAC_ADDR_OCTET1,
 		MAC_ADDR_OCTET2,
 		MAC_ADDR_OCTET3,
