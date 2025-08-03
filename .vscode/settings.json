@@ -6,7 +6,25 @@
         "sja1105_regs.h": "c",
         "sja1105_io.h": "c",
         "compare": "c",
-        "cstdint": "c"
+        "cstdint": "c",
+        "atomic": "cpp",
+        "stdbool.h": "c",
+        "stdatomic.h": "c",
+        "cstdlib": "c",
+        "memory_resource": "c",
+        "memory": "c",
+        "sja1105_tables.h": "c",
+        "stdlib.h": "c",
+        "cstddef": "c",
+        "charconv": "cpp",
+        "optional": "cpp",
+        "ranges": "cpp",
+        "system_error": "cpp",
+        "array": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp"
     },
     "esbonio.server.enabled": false
 }

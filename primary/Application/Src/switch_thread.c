@@ -10,12 +10,14 @@
 #include "sja1105q_default_conf.h"
 #include "utils.h"
 
-#define CHECK(func) {status = (func); sja1105_check_status_msg(&hsja1105, status, true);}
+#define CHECK(func) do {status = (func); sja1105_check_status_msg(&hsja1105, status, true);} while (0)
 
 uint8_t   switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
 TX_THREAD switch_thread_ptr;
 TX_MUTEX  sja1105_mutex_ptr;
-uint32_t  sja1105_error_counter = 0;
+
+SJA1105_HandleTypeDef hsja1105;
+volatile uint32_t sja1105_error_counter = 0;
 
 static const uint32_t *sja1105_static_conf;
 static       uint32_t  sja1105_static_conf_size;
@@ -24,10 +26,10 @@ static       uint32_t  sja1105_static_conf_size;
 extern SPI_HandleTypeDef hspi2;
 
 /* Private function prototype */
-static void sja1105_delay_ms(uint32_t ms);
-static void sja1105_delay_ns(uint32_t ns);
-static SJA1105_StatusTypeDef sja1105_take_mutex(uint32_t timeout);
-static SJA1105_StatusTypeDef sja1105_give_mutex(void);
+static void sja1105_delay_ms(SJA1105_HandleTypeDef *dev, uint32_t ms);
+static void sja1105_delay_ns(SJA1105_HandleTypeDef *dev, uint32_t ns);
+static SJA1105_StatusTypeDef sja1105_take_mutex(SJA1105_HandleTypeDef *dev, uint32_t timeout);
+static SJA1105_StatusTypeDef sja1105_give_mutex(SJA1105_HandleTypeDef *dev);
 static void sja1105_check_status_msg(SJA1105_HandleTypeDef *dev, SJA1105_StatusTypeDef to_check, bool recurse);
 
 /* Enums */
@@ -40,11 +42,11 @@ enum Port_Enum{
 };
 
 
-static void sja1105_delay_ms(uint32_t ms){
+static void sja1105_delay_ms(SJA1105_HandleTypeDef *dev, uint32_t ms){
     tx_thread_sleep_ms(ms);
 }
 
-static void sja1105_delay_ns(uint32_t ns){
+static void sja1105_delay_ns(SJA1105_HandleTypeDef *dev, uint32_t ns){
 
     /* CPU runs at 250MHz so one instruction is 4ns.
     * The loop contains a NOP, ADDS, CMP and branch instruction per cycle.
@@ -56,10 +58,15 @@ static void sja1105_delay_ns(uint32_t ns){
     }
 }
 
-static SJA1105_StatusTypeDef sja1105_take_mutex(uint32_t timeout){
+static SJA1105_StatusTypeDef sja1105_take_mutex(SJA1105_HandleTypeDef *dev, uint32_t timeout){
 
     SJA1105_StatusTypeDef status = SJA1105_OK;
+    
+    /* Check the device is initialised */    
+    if (!SJA1105_IsInitialised(dev)) status = SJA1105_NOT_CONFIGURED_ERROR;
+    if (status != SJA1105_OK) return status;
 
+    /* Take the mutex and work out the status */
     switch (tx_mutex_get(&sja1105_mutex_ptr, MS_TO_TICKS(timeout))){
     case TX_SUCCESS:
         status = SJA1105_OK;
@@ -68,18 +75,18 @@ static SJA1105_StatusTypeDef sja1105_take_mutex(uint32_t timeout){
         status = SJA1105_BUSY;
         break;
     default:
-        status = SJA1105_ERROR;
+        status = SJA1105_MUTEX_ERROR;
         break;
     }
 
     return status;
 }
 
-static SJA1105_StatusTypeDef sja1105_give_mutex(void){
+static SJA1105_StatusTypeDef sja1105_give_mutex(SJA1105_HandleTypeDef *dev){
 
     SJA1105_StatusTypeDef status = SJA1105_OK;
 
-    if (tx_mutex_put(&sja1105_mutex_ptr) != TX_SUCCESS) status = SJA1105_ERROR;
+    if (tx_mutex_put(&sja1105_mutex_ptr) != TX_SUCCESS) status = SJA1105_MUTEX_ERROR;
 
     return status;
 }
@@ -192,16 +199,14 @@ static void sja1105_check_status_msg(SJA1105_HandleTypeDef *dev, SJA1105_StatusT
     if (recurse) sja1105_check_status_msg(dev, status, false);
 
     /* An error occuring means the mutex could have been taken but not released. Release it now */
-    while (dev->callbacks->callback_give_mutex() == SJA1105_OK);
+    while (dev->callbacks->callback_give_mutex(dev) == SJA1105_OK);
 }
 
 
 void switch_thread_entry(uint32_t initial_input){
 
-    static SJA1105_HandleTypeDef hsja1105;
-    static SJA1105_ConfigTypeDef sja1105_conf;
     static SJA1105_PortTypeDef   sja1105_ports[SJA1105_NUM_PORTS];
-
+    static SJA1105_ConfigTypeDef sja1105_conf;
     static SJA1105_StatusTypeDef status;
     static int16_t               temp_x10;
 
@@ -215,6 +220,7 @@ void switch_thread_entry(uint32_t initial_input){
     sja1105_conf.timeout     = 100;
     sja1105_conf.host_port   = PORT_HOST;
     sja1105_conf.skew_clocks = true;
+    sja1105_conf.switch_id   = 0;
 
     /* Configure port speeds and interfaces */
     CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
@@ -231,9 +237,9 @@ void switch_thread_entry(uint32_t initial_input){
     CHECK(SJA1105_Init(&hsja1105, &sja1105_conf, sja1105_ports, &sja1105_callbacks, sja1105_static_conf, sja1105_static_conf_size));
 
     /* Set the speed of the dynamic ports. TODO: This should be after PHY auto-negotiaion */
-    CHECK(SJA1105_PortUpdateSpeed(&hsja1105, PORT_88Q2112_PHY0, SJA1105_SPEED_1G));
-    CHECK(SJA1105_PortUpdateSpeed(&hsja1105, PORT_88Q2112_PHY1, SJA1105_SPEED_1G));
-    CHECK(SJA1105_PortUpdateSpeed(&hsja1105, PORT_88Q2112_PHY2, SJA1105_SPEED_1G));
+    CHECK(SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY0, SJA1105_SPEED_1G));
+    CHECK(SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY1, SJA1105_SPEED_1G));
+    CHECK(SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY2, SJA1105_SPEED_1G));
 
     while (1){
         tx_thread_sleep_ms(200);

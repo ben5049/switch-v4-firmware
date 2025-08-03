@@ -7,8 +7,10 @@
 
 #include "assert.h"
 #include "hal.h"
+#include "main.h"
 
 #include "stp_callbacks.h"
+#include "stp_extra.h"
 #include "utils.h"
 #include "sja1105.h"
 
@@ -31,6 +33,7 @@
 
 /* Imported variables */
 extern ETH_HandleTypeDef heth;
+extern SJA1105_HandleTypeDef hsja1105;
 
 
 static uint8_t tx_bpdu_buffer[BPDU_MAX_BUFFER_SIZE] __attribute__((aligned(32)));
@@ -42,9 +45,24 @@ static const uint8_t bpdu_llc[BPDU_LLC_SIZE] = {0x42, 0x42, 0x03};
 static ETH_BufferTypeDef TxBuffer;
 static ETH_TxPacketConfigTypeDef TxPacketCfg;
 
+volatile bool bpdu_transmitted;
+
 
 void bpdu_packet_init(){
     memset(&TxPacketCfg, 0, sizeof(ETH_TxPacketConfigTypeDef)); /* Set the ethernet packet parameters to default */
+}
+
+
+static void stp_enableBpduTrapping (const struct STP_BRIDGE* bridge, bool enable, unsigned int timestamp){
+
+    bool trapped;
+    SJA1105_StatusTypeDef status;
+    
+    status = SJA1105_MACAddrTrapTest(&hsja1105, bpdu_dest_address, &trapped);
+
+    /* TODO: Handle this properly by requesting that the sja1105 be initialised and check that it's running */
+    if (status != SJA1105_OK) Error_Handler();
+    assert(trapped);
 }
 
 
@@ -103,9 +121,9 @@ static void stp_transmitReleaseBuffer(const struct STP_BRIDGE* bridge, void* buf
     TxPacketCfg.CRCPadCtrl   = ETH_DMATXNDESCRF_CPC_CRCPAD_INSERT;
 
     /* Transmit the packet (non-blocking) */
+    __atomic_store_n(&bpdu_transmitted, true, __ATOMIC_RELEASE);
     assert(HAL_ETH_Transmit_IT(&heth, &TxPacketCfg) == HAL_OK);
 }
-
 
 /* Called by HAL_ETH_TxCpltCallback() to free the packet TODO: Notify this thread */
 bool stp_ReleaseTxPacket(ETH_HandleTypeDef *heth){
@@ -157,7 +175,7 @@ bool stp_ReleaseTxPacket(ETH_HandleTypeDef *heth){
 
 
 const STP_CALLBACKS stp_callbacks = {
-    .enableBpduTrapping    = nullptr,
+    .enableBpduTrapping    = &stp_enableBpduTrapping,
     .enableLearning        = nullptr,
     .enableForwarding      = nullptr,
     .transmitGetBuffer     = &stp_transmitGetBuffer,

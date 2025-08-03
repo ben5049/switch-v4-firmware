@@ -10,6 +10,8 @@
 /**************************************************************************/
 
 
+#include "stp_extra.h"
+
 /* Indicate that driver source is being compiled.  */
 
 #define NX_DRIVER_SOURCE
@@ -2069,6 +2071,14 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
 
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
 {
+
+    if (__atomic_load_n(&bpdu_transmitted, __ATOMIC_ACQUIRE)){
+        if (stp_ReleaseTxPacket(heth)){
+            // TODO: Notify STP thread
+            return;
+        }
+    }
+
   ULONG deffered_events;
   deffered_events = nx_driver_information.nx_driver_information_deferred_events;
 

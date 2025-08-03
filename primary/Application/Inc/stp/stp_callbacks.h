@@ -22,7 +22,6 @@ extern "C" {
 extern const STP_CALLBACKS stp_callbacks;
 
 void bpdu_packet_init(void);
-bool stp_ReleaseTxPacket(ETH_HandleTypeDef *heth);
 
 
 #ifdef __cplusplus
