@@ -49,22 +49,22 @@ extern "C" {
 
 typedef struct {
     TX_THREAD threadx_thread;
-    uint8_t threadx_stack[Z_TASK_STACK_SIZE];
+    uint8_t   threadx_stack[Z_TASK_STACK_SIZE];
 } _z_task_t;
 
-typedef void *z_task_attr_t;  // Not used
+typedef void *z_task_attr_t; // Not used
 
 typedef TX_MUTEX _z_mutex_rec_t;
 typedef TX_MUTEX _z_mutex_t;
 typedef struct {
-    TX_MUTEX mutex;
+    TX_MUTEX     mutex;
     TX_SEMAPHORE sem;
-    UINT waiters;
+    UINT         waiters;
 } _z_condvar_t;
-#endif  // Z_FEATURE_MULTI_THREAD == 1
+#endif // Z_FEATURE_MULTI_THREAD == 1
 
 typedef struct timespec z_clock_t;
-typedef ULONG z_time_t;
+typedef ULONG           z_time_t;
 
 #if Z_FEATURE_LINK_SERIAL == 1
 #ifndef ZENOH_HUART

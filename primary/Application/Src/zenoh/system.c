@@ -26,16 +26,16 @@ uint16_t z_random_u16(void) { return z_random_u32(); }
 uint32_t z_random_u32(void) { return random(); }
 
 uint64_t z_random_u64(void) {
-    uint64_t ret = 0;
-    ret |= z_random_u32();
-    ret = ret << 32;
-    ret |= z_random_u32();
+    uint64_t ret  = 0;
+    ret          |= z_random_u32();
+    ret           = ret << 32;
+    ret          |= z_random_u32();
     return ret;
 }
 
 void z_random_fill(void *buf, size_t len) {
     for (size_t i = 0; i < len; i++) {
-        ((uint8_t *)buf)[i] = z_random_u8();
+        ((uint8_t *) buf)[i] = z_random_u8();
     }
 }
 
@@ -63,7 +63,7 @@ void z_free(void *ptr) { tx_byte_release(ptr); }
 z_result_t _z_task_init(_z_task_t *task, z_task_attr_t *attr, void *(*fun)(void *), void *arg) {
     _Z_DEBUG("Creating a new task!");
 
-    UINT status = tx_thread_create(&(task->threadx_thread), "ztask", (VOID(*)(ULONG))fun, (ULONG)arg,
+    UINT status = tx_thread_create(&(task->threadx_thread), "ztask", (VOID (*)(ULONG)) fun, (ULONG) arg,
                                    task->threadx_stack, Z_TASK_STACK_SIZE, Z_TASK_PRIORITY, Z_TASK_PREEMPT_THRESHOLD,
                                    Z_TASK_TIME_SLICE, TX_AUTO_START);
 
@@ -96,7 +96,7 @@ z_result_t _z_task_cancel(_z_task_t *task) {
     return _Z_ERR_GENERIC;
 }
 
-void _z_task_exit(void) {  // NEW with new vesion
+void _z_task_exit(void) { // NEW with new vesion
     // Not implemented
 }
 
@@ -126,7 +126,7 @@ z_result_t _z_mutex_lock(_z_mutex_t *m) {
     return (status == TX_SUCCESS) ? 0 : -1;
 }
 z_result_t _z_mutex_try_lock(_z_mutex_t *m) {
-    UINT status = tx_mutex_get(m, TX_NO_WAIT);  // Return immediately even if the mutex was not available
+    UINT status = tx_mutex_get(m, TX_NO_WAIT); // Return immediately even if the mutex was not available
     return (status == TX_SUCCESS) ? 0 : -1;
 }
 z_result_t _z_mutex_unlock(_z_mutex_t *m) {
@@ -148,7 +148,7 @@ z_result_t _z_condvar_init(_z_condvar_t *cv) {
     }
     UINT m_status = tx_mutex_create(&cv->mutex, TX_NULL, TX_INHERIT);
     UINT s_status = tx_semaphore_create(&cv->sem, TX_NULL, 0);
-    cv->waiters = 0;
+    cv->waiters   = 0;
 
     if (m_status != TX_SUCCESS || s_status != TX_SUCCESS) {
         return _Z_ERR_GENERIC;
@@ -217,8 +217,8 @@ z_result_t _z_condvar_wait_until(_z_condvar_t *cv, _z_mutex_t *m, const z_clock_
         return _Z_ERR_GENERIC;
     }
 
-    ULONG now = tx_time_get();
-    ULONG target_time = (abstime->tv_sec * 1000 + abstime->tv_nsec / 1000000) * (TX_TIMER_TICKS_PER_SECOND / 1000);
+    ULONG now            = tx_time_get();
+    ULONG target_time    = (abstime->tv_sec * 1000 + abstime->tv_nsec / 1000000) * (TX_TIMER_TICKS_PER_SECOND / 1000);
     ULONG block_duration = (target_time > now) ? (target_time - now) : 0;
 
     tx_mutex_get(&cv->mutex, TX_WAIT_FOREVER);
@@ -240,7 +240,7 @@ z_result_t _z_condvar_wait_until(_z_condvar_t *cv, _z_mutex_t *m, const z_clock_
 
     return _Z_RES_OK;
 }
-#endif  // Z_MULTI_THREAD == 1
+#endif // Z_MULTI_THREAD == 1
 
 /*------------------ Sleep ------------------*/
 z_result_t z_sleep_us(size_t time) {
@@ -262,8 +262,8 @@ z_result_t z_sleep_s(size_t time) {
 
 void __z_clock_gettime(z_clock_t *ts) {
     uint64_t ms = tx_time_get() * (TX_TIMER_TICKS_PER_SECOND / 1000);
-    ts->tv_sec = ms / (uint64_t)1000;
-    ts->tv_nsec = (ms % (uint64_t)1000) * (uint64_t)1000;
+    ts->tv_sec  = ms / (uint64_t) 1000;
+    ts->tv_nsec = (ms % (uint64_t) 1000) * (uint64_t) 1000;
 }
 
 z_clock_t z_clock_now(void) {
@@ -297,21 +297,21 @@ unsigned long z_clock_elapsed_s(z_clock_t *instant) {
 }
 
 void z_clock_advance_us(z_clock_t *clock, unsigned long duration) {
-    clock->tv_sec += duration / 1000000;
+    clock->tv_sec  += duration / 1000000;
     clock->tv_nsec += (duration % 1000000) * 1000;
 
     if (clock->tv_nsec >= 1000000000) {
-        clock->tv_sec += 1;
+        clock->tv_sec  += 1;
         clock->tv_nsec -= 1000000000;
     }
 }
 
 void z_clock_advance_ms(z_clock_t *clock, unsigned long duration) {
-    clock->tv_sec += duration / 1000;
+    clock->tv_sec  += duration / 1000;
     clock->tv_nsec += (duration % 1000) * 1000000;
 
     if (clock->tv_nsec >= 1000000000) {
-        clock->tv_sec += 1;
+        clock->tv_sec  += 1;
         clock->tv_nsec -= 1000000000;
     }
 }
@@ -321,7 +321,7 @@ void z_clock_advance_s(z_clock_t *clock, unsigned long duration) { clock->tv_sec
 /*------------------ Time ------------------*/
 z_time_t z_time_now(void) { return tx_time_get(); }
 
-const char *z_time_now_as_str(char *const buf, unsigned long buflen) {
+const char *z_time_now_as_str(char * const buf, unsigned long buflen) {
     snprintf(buf, buflen, "%lu", z_time_now());
     return buf;
 }
@@ -339,7 +339,7 @@ unsigned long z_time_elapsed_s(z_time_t *time) { return (tx_time_get() - *time) 
 z_result_t _z_get_time_since_epoch(_z_time_since_epoch *t) {
     ULONG64 time_ns = tx_time_get() * 1000000000ULL / TX_TIMER_TICKS_PER_SECOND;
 
-    t->secs = time_ns / 1000000000ULL;
+    t->secs  = time_ns / 1000000000ULL;
     t->nanos = time_ns % 1000000000ULL;
 
     return _Z_RES_OK;

@@ -12,30 +12,34 @@
 #include "sja1105q_default_conf.h"
 #include "utils.h"
 
-#define CHECK(func) do {status = (func); sja1105_check_status_msg(&hsja1105, status, true);} while (0)
+#define CHECK(func)                                        \
+    do {                                                   \
+        status = (func);                                   \
+        sja1105_check_status_msg(&hsja1105, status, true); \
+    } while (0)
 
 uint8_t   switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
 TX_THREAD switch_thread_ptr;
 TX_MUTEX  sja1105_mutex_ptr;
 
-SJA1105_HandleTypeDef hsja1105;
+sja1105_handle_t     hsja1105;
 atomic_uint_fast32_t sja1105_error_counter = 0;
 
 static const uint32_t *sja1105_static_conf;
-static       uint32_t  sja1105_static_conf_size;
+static uint32_t        sja1105_static_conf_size;
 
 /* Imported variables */
 extern SPI_HandleTypeDef hspi2;
 
 /* Private function prototype */
-static void sja1105_delay_ms(SJA1105_HandleTypeDef *dev, uint32_t ms);
-static void sja1105_delay_ns(SJA1105_HandleTypeDef *dev, uint32_t ns);
-static SJA1105_StatusTypeDef sja1105_take_mutex(SJA1105_HandleTypeDef *dev, uint32_t timeout);
-static SJA1105_StatusTypeDef sja1105_give_mutex(SJA1105_HandleTypeDef *dev);
-static void sja1105_check_status_msg(SJA1105_HandleTypeDef *dev, SJA1105_StatusTypeDef to_check, bool recurse);
+static void             sja1105_delay_ms(sja1105_handle_t *dev, uint32_t ms);
+static void             sja1105_delay_ns(sja1105_handle_t *dev, uint32_t ns);
+static sja1105_status_t sja1105_take_mutex(sja1105_handle_t *dev, uint32_t timeout);
+static sja1105_status_t sja1105_give_mutex(sja1105_handle_t *dev);
+static void             sja1105_check_status_msg(sja1105_handle_t *dev, sja1105_status_t to_check, bool recurse);
 
 /* Enums */
-enum Port_Enum{
+enum Port_Enum {
     PORT_88Q2112_PHY0 = 0x0,
     PORT_88Q2112_PHY1 = 0x1,
     PORT_88Q2112_PHY2 = 0x2,
@@ -44,72 +48,71 @@ enum Port_Enum{
 };
 
 
-static void sja1105_delay_ms(SJA1105_HandleTypeDef *dev, uint32_t ms){
+static void sja1105_delay_ms(sja1105_handle_t *dev, uint32_t ms) {
     tx_thread_sleep_ms(ms);
 }
 
-static void sja1105_delay_ns(SJA1105_HandleTypeDef *dev, uint32_t ns){
+static void sja1105_delay_ns(sja1105_handle_t *dev, uint32_t ns) {
 
     /* CPU runs at 250MHz so one instruction is 4ns.
-    * The loop contains a NOP, ADDS, CMP and branch instruction per cycle.
-    * This means the loop delay is 4 * 4ns = 16ns.
-    * This is true for O3 but will take longer for O0.
-    */
-    for (uint32_t t = 0; t < ns; t += 16){
+     * The loop contains a NOP, ADDS, CMP and branch instruction per cycle.
+     * This means the loop delay is 4 * 4ns = 16ns.
+     * This is true for O3 but will take longer for O0.
+     */
+    for (uint32_t t = 0; t < ns; t += 16) {
         __NOP();
     }
 }
 
-static SJA1105_StatusTypeDef sja1105_take_mutex(SJA1105_HandleTypeDef *dev, uint32_t timeout){
+static sja1105_status_t sja1105_take_mutex(sja1105_handle_t *dev, uint32_t timeout) {
 
-    SJA1105_StatusTypeDef status = SJA1105_OK;
+    sja1105_status_t status = SJA1105_OK;
 
     /* Take the mutex and work out the status */
-    switch (tx_mutex_get(&sja1105_mutex_ptr, MS_TO_TICKS(timeout))){
-    case TX_SUCCESS:
-        status = SJA1105_OK;
-        break;
-    case TX_NOT_AVAILABLE:
-        status = SJA1105_BUSY;
-        break;
-    default:
-        status = SJA1105_MUTEX_ERROR;
-        break;
+    switch (tx_mutex_get(&sja1105_mutex_ptr, MS_TO_TICKS(timeout))) {
+        case TX_SUCCESS:
+            status = SJA1105_OK;
+            break;
+        case TX_NOT_AVAILABLE:
+            status = SJA1105_BUSY;
+            break;
+        default:
+            status = SJA1105_MUTEX_ERROR;
+            break;
     }
 
     return status;
 }
 
-static SJA1105_StatusTypeDef sja1105_give_mutex(SJA1105_HandleTypeDef *dev){
+static sja1105_status_t sja1105_give_mutex(sja1105_handle_t *dev) {
 
-    SJA1105_StatusTypeDef status = SJA1105_OK;
+    sja1105_status_t status = SJA1105_OK;
 
     if (tx_mutex_put(&sja1105_mutex_ptr) != TX_SUCCESS) status = SJA1105_MUTEX_ERROR;
 
     return status;
 }
 
-static const SJA1105_CallbacksTypeDef sja1105_callbacks = {
+static const sja1105_callbacks_t sja1105_callbacks = {
     .callback_delay_ms   = &sja1105_delay_ms,
     .callback_delay_ns   = &sja1105_delay_ns,
     .callback_take_mutex = &sja1105_take_mutex,
-    .callback_give_mutex = &sja1105_give_mutex
-};
+    .callback_give_mutex = &sja1105_give_mutex};
 
 /* Attemt to handle errors resulting from SJA1105 user function calls
  * NOTE: When the system error handler is called, it is assumed that if it returns (as opposed to restarting the chip) then the error has been fixed.
  */
-static void sja1105_check_status_msg(SJA1105_HandleTypeDef *dev, SJA1105_StatusTypeDef to_check, bool recurse){
+static void sja1105_check_status_msg(sja1105_handle_t *dev, sja1105_status_t to_check, bool recurse) {
 
     /* Return immediately if everything is fine */
     if (to_check == SJA1105_OK) return;
 
-    SJA1105_StatusTypeDef status = SJA1105_OK;
-    bool error_solved = false;
+    sja1105_status_t status       = SJA1105_OK;
+    bool             error_solved = false;
 
     /* to_check is an error, increment the counter and check what to do */
     sja1105_error_counter++;
-    switch (to_check){
+    switch (to_check) {
 
         /* TODO: Log an error, but continue */
         case SJA1105_ALREADY_CONFIGURED_ERROR:
@@ -126,27 +129,26 @@ static void sja1105_check_status_msg(SJA1105_HandleTypeDef *dev, SJA1105_StatusT
         case SJA1105_CRC_ERROR:
             sja1105_static_conf      = swv4_sja1105_static_config_default;
             sja1105_static_conf_size = SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE;
-            status = SJA1105_ReInit(dev, sja1105_static_conf, sja1105_static_conf_size);
-            error_solved = true;
+            status                   = SJA1105_ReInit(dev, sja1105_static_conf, sja1105_static_conf_size);
+            error_solved             = true;
             break;
 
         /* If there is an error with the static configuration load the default config. If that is loaded already then call the system error handler */
         case SJA1105_STATIC_CONF_ERROR:
-            if ((dev->static_conf_crc32 == swv4_sja1105_static_config_default[SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE-1]) ||
-                (dev->static_conf_crc32 == 0)){
-                    Error_Handler();   
-                }
-            else {
+            if ((dev->static_conf_crc32 == swv4_sja1105_static_config_default[SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE - 1]) ||
+                (dev->static_conf_crc32 == 0)) {
+                Error_Handler();
+            } else {
                 sja1105_static_conf      = swv4_sja1105_static_config_default;
                 sja1105_static_conf_size = SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE;
-                status = SJA1105_ReInit(dev, sja1105_static_conf, sja1105_static_conf_size);
+                status                   = SJA1105_ReInit(dev, sja1105_static_conf, sja1105_static_conf_size);
             }
             error_solved = dev->initialised;
             break;
 
         /* If there is a RAM parity error the switch must be immediately reset */
         case SJA1105_RAM_PARITY_ERROR:
-            status = SJA1105_ReInit(dev, sja1105_static_conf, sja1105_static_conf_size);
+            status       = SJA1105_ReInit(dev, sja1105_static_conf, sja1105_static_conf_size);
             error_solved = dev->initialised;
             break;
 
@@ -158,33 +160,36 @@ static void sja1105_check_status_msg(SJA1105_HandleTypeDef *dev, SJA1105_StatusT
     }
 
     /* A NEW ERROR has occured during the handling of the previous error... */
-    if (status != SJA1105_OK){
+    if (status != SJA1105_OK) {
         sja1105_error_counter++;
 
         /* ...and the new error is the SAME as the previous error... */
-        if (status == to_check){
-            
+        if (status == to_check) {
+
             /* ...but the previous error was SOLVED: the new error is also solved */
-            if (error_solved);
+            if (error_solved)
+                ;
 
             /* ...and the previous error was NOT SOLVED: the problem is deeper, call the system error handler */
-            else Error_Handler();
+            else
+                Error_Handler();
         }
 
         /* ...and the new error is DIFFERENT from the previous error... */
-        else{
-            
+        else {
+
             /* ...but the previous error was SOLVED: check the new error (recursively) */
-            if (error_solved){
-                if (recurse){
-                    sja1105_error_counter--;  /* Don't double count the new error */
+            if (error_solved) {
+                if (recurse) {
+                    sja1105_error_counter--; /* Don't double count the new error */
                     sja1105_check_status_msg(dev, status, false);
-                }
-                else Error_Handler();  /* An error occured while checking an error that occured while checking an error. Yikes */
+                } else
+                    Error_Handler(); /* An error occured while checking an error that occured while checking an error. Yikes */
             }
-            
+
             /* ...and the previous error was NOT SOLVED: the problem is deeper, call the system error handler */
-            else Error_Handler();
+            else
+                Error_Handler();
         }
         error_solved = true;
     }
@@ -201,12 +206,12 @@ static void sja1105_check_status_msg(SJA1105_HandleTypeDef *dev, SJA1105_StatusT
 }
 
 
-void switch_thread_entry(uint32_t initial_input){
+void switch_thread_entry(uint32_t initial_input) {
 
-    static SJA1105_PortTypeDef   sja1105_ports[SJA1105_NUM_PORTS];
-    static SJA1105_ConfigTypeDef sja1105_conf;
-    static SJA1105_StatusTypeDef status;
-    static int16_t               temp_x10;
+    static sja1105_port_t   sja1105_ports[SJA1105_NUM_PORTS];
+    static sja1105_config_t sja1105_conf;
+    static sja1105_status_t status;
+    static int16_t          temp_x10;
 
     /* Set the general switch parameters */
     sja1105_conf.variant     = VARIANT_SJA1105Q;
@@ -224,8 +229,8 @@ void switch_thread_entry(uint32_t initial_input){
     CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
     CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_88Q2112_PHY1, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
     CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
-    CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_LAN8671_PHY,  SJA1105_INTERFACE_RMII,  SJA1105_MODE_MAC, true,  SJA1105_SPEED_10M,     SJA1105_IO_3V3));
-    CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_HOST,         SJA1105_INTERFACE_RMII,  SJA1105_MODE_PHY, true,  SJA1105_SPEED_100M,    SJA1105_IO_3V3));
+    CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_LAN8671_PHY, SJA1105_INTERFACE_RMII, SJA1105_MODE_MAC, true, SJA1105_SPEED_10M, SJA1105_IO_3V3));
+    CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_HOST, SJA1105_INTERFACE_RMII, SJA1105_MODE_PHY, true, SJA1105_SPEED_100M, SJA1105_IO_3V3));
 
     /* Set the static config to the default */
     sja1105_static_conf      = swv4_sja1105_static_config_default;
@@ -239,7 +244,7 @@ void switch_thread_entry(uint32_t initial_input){
     CHECK(SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY1, SJA1105_SPEED_1G));
     CHECK(SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY2, SJA1105_SPEED_1G));
 
-    while (1){
+    while (1) {
 
         /* Perform regular maintenance */
         CHECK(SJA1105_CheckStatusRegisters(&hsja1105));

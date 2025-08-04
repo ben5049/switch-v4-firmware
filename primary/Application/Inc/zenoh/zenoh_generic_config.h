@@ -13,42 +13,42 @@ extern "C" {
 #endif
 
 
-#define Z_FRAG_MAX_SIZE 4096
-#define Z_BATCH_UNICAST_SIZE 2048
-#define Z_BATCH_MULTICAST_SIZE 2048
-#define Z_CONFIG_SOCKET_TIMEOUT 100
-#define Z_TRANSPORT_LEASE 10000
+#define Z_FRAG_MAX_SIZE                  4096
+#define Z_BATCH_UNICAST_SIZE             2048
+#define Z_BATCH_MULTICAST_SIZE           2048
+#define Z_CONFIG_SOCKET_TIMEOUT          100
+#define Z_TRANSPORT_LEASE                10000
 
-#define Z_FEATURE_MULTI_THREAD 1
-#define Z_FEATURE_PUBLICATION 1
-#define Z_FEATURE_SUBSCRIPTION 1
-#define Z_FEATURE_QUERY 1
-#define Z_FEATURE_QUERYABLE 1
-#define Z_FEATURE_LIVELINESS 1
-#define Z_FEATURE_RAWETH_TRANSPORT 0
-#define Z_FEATURE_INTEREST 1
-#define Z_FEATURE_LINK_TCP 0
-#define Z_FEATURE_LINK_BLUETOOTH 0
-#define Z_FEATURE_LINK_WS 0
-#define Z_FEATURE_LINK_SERIAL 0
-#define Z_FEATURE_LINK_SERIAL_USB 0
-#define Z_FEATURE_SCOUTING 1
-#define Z_FEATURE_LINK_UDP_MULTICAST 1
-#define Z_FEATURE_LINK_UDP_UNICAST 1
-#define Z_FEATURE_MULTICAST_TRANSPORT 1
-#define Z_FEATURE_UNICAST_TRANSPORT 1
-#define Z_FEATURE_FRAGMENTATION 1
-#define Z_FEATURE_ENCODING_VALUES 1
-#define Z_FEATURE_TCP_NODELAY 1
-#define Z_FEATURE_LOCAL_SUBSCRIBER 0
-#define Z_FEATURE_SESSION_CHECK 1
-#define Z_FEATURE_BATCHING 1
-#define Z_FEATURE_BATCH_TX_MUTEX 0
-#define Z_FEATURE_BATCH_PEER_MUTEX 0
-#define Z_FEATURE_MATCHING 0
-#define Z_FEATURE_RX_CACHE 0
-#define Z_FEATURE_UNICAST_PEER 1
-#define Z_FEATURE_AUTO_RECONNECT 1
+#define Z_FEATURE_MULTI_THREAD           1
+#define Z_FEATURE_PUBLICATION            1
+#define Z_FEATURE_SUBSCRIPTION           1
+#define Z_FEATURE_QUERY                  1
+#define Z_FEATURE_QUERYABLE              1
+#define Z_FEATURE_LIVELINESS             1
+#define Z_FEATURE_RAWETH_TRANSPORT       0
+#define Z_FEATURE_INTEREST               1
+#define Z_FEATURE_LINK_TCP               0
+#define Z_FEATURE_LINK_BLUETOOTH         0
+#define Z_FEATURE_LINK_WS                0
+#define Z_FEATURE_LINK_SERIAL            0
+#define Z_FEATURE_LINK_SERIAL_USB        0
+#define Z_FEATURE_SCOUTING               1
+#define Z_FEATURE_LINK_UDP_MULTICAST     1
+#define Z_FEATURE_LINK_UDP_UNICAST       1
+#define Z_FEATURE_MULTICAST_TRANSPORT    1
+#define Z_FEATURE_UNICAST_TRANSPORT      1
+#define Z_FEATURE_FRAGMENTATION          1
+#define Z_FEATURE_ENCODING_VALUES        1
+#define Z_FEATURE_TCP_NODELAY            1
+#define Z_FEATURE_LOCAL_SUBSCRIBER       0
+#define Z_FEATURE_SESSION_CHECK          1
+#define Z_FEATURE_BATCHING               1
+#define Z_FEATURE_BATCH_TX_MUTEX         0
+#define Z_FEATURE_BATCH_PEER_MUTEX       0
+#define Z_FEATURE_MATCHING               0
+#define Z_FEATURE_RX_CACHE               0
+#define Z_FEATURE_UNICAST_PEER           1
+#define Z_FEATURE_AUTO_RECONNECT         1
 #define Z_FEATURE_MULTICAST_DECLARATIONS 0
 
 
@@ -58,9 +58,9 @@ extern "C" {
  * Accepted values : `"client"`, `"peer"`.
  * Default value : `"client"`.
  */
-#define Z_CONFIG_MODE_KEY 0x40
-#define Z_CONFIG_MODE_CLIENT "client"
-#define Z_CONFIG_MODE_PEER "peer"
+#define Z_CONFIG_MODE_KEY     0x40
+#define Z_CONFIG_MODE_CLIENT  "client"
+#define Z_CONFIG_MODE_PEER    "peer"
 #define Z_CONFIG_MODE_DEFAULT Z_CONFIG_MODE_CLIENT
 
 /**
@@ -98,7 +98,7 @@ extern "C" {
  * Accepted values : `false`, `true`.
  * Default value : `true`.
  */
-#define Z_CONFIG_MULTICAST_SCOUTING_KEY 0x45
+#define Z_CONFIG_MULTICAST_SCOUTING_KEY     0x45
 #define Z_CONFIG_MULTICAST_SCOUTING_DEFAULT "true"
 
 /**
@@ -106,7 +106,7 @@ extern "C" {
  * Accepted values : `<ip address>:<port>`.
  * Default value : `"224.0.0.224:7446"`.
  */
-#define Z_CONFIG_MULTICAST_LOCATOR_KEY 0x46
+#define Z_CONFIG_MULTICAST_LOCATOR_KEY     0x46
 #define Z_CONFIG_MULTICAST_LOCATOR_DEFAULT "udp/224.0.0.224:7446"
 
 /**
@@ -114,7 +114,7 @@ extern "C" {
  * Accepted values : `<int in milliseconds>`.
  * Default value : `"1000"`.
  */
-#define Z_CONFIG_SCOUTING_TIMEOUT_KEY 0x47
+#define Z_CONFIG_SCOUTING_TIMEOUT_KEY     0x47
 #define Z_CONFIG_SCOUTING_TIMEOUT_DEFAULT "1000"
 
 /**
@@ -122,7 +122,7 @@ extern "C" {
  * Accepted values : [0-7]. Bitwise value are defined in :c:enum:`z_whatami_t`.
  * Default value : `3`.
  */
-#define Z_CONFIG_SCOUTING_WHAT_KEY 0x48
+#define Z_CONFIG_SCOUTING_WHAT_KEY     0x48
 #define Z_CONFIG_SCOUTING_WHAT_DEFAULT "3"
 
 /**
@@ -136,7 +136,7 @@ extern "C" {
  * Accepted values : `false`, `true`.
  * Default value : `false`.
  */
-#define Z_CONFIG_ADD_TIMESTAMP_KEY 0x4A
+#define Z_CONFIG_ADD_TIMESTAMP_KEY     0x4A
 #define Z_CONFIG_ADD_TIMESTAMP_DEFAULT "false"
 
 /*------------------ Compile-time configuration properties ------------------*/
@@ -160,9 +160,9 @@ extern "C" {
 /**
  * Default multicast session join interval in milliseconds.
  */
-#define Z_JOIN_INTERVAL 2500
+#define Z_JOIN_INTERVAL  2500
 
-#define Z_SN_RESOLUTION 0x02
+#define Z_SN_RESOLUTION  0x02
 #define Z_REQ_RESOLUTION 0x02
 
 /**

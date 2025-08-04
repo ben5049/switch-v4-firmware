@@ -28,5 +28,20 @@
         "hal.h": "c"
     },
     "esbonio.server.enabled": false,
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "C_Cpp.autocompleteAddParentheses": true,
+    "C_Cpp.default.cppStandard": "c++20",
+    "C_Cpp.default.cStandard": "c17",
+    "C_Cpp.default.defines": [
+        "SJA1105_ENABLE_NX_DRIVER"
+    ],
+    "C_Cpp.errorSquiggles": "enabled",
+    "C_Cpp.files.exclude": {
+        "primary/Libraries/mstp/TestApp*": true,
+        "**/.vscode": true,
+        "**/.vs": true
+    },
+    "C_Cpp.clang_format_fallbackStyle": "none",
+    "C_Cpp.clang_format_sortIncludes": false,
+    "C_Cpp.clang_format_style": "file"
 }

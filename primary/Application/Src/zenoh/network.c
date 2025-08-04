@@ -25,14 +25,14 @@
 #error "Z_FEATURE_LINK_TCP is not supported"
 
 z_result_t _z_create_endpoint_tcp(_z_sys_net_endpoint_t *ep, const char *s_address, const char *s_port);
-void _z_free_endpoint_tcp(_z_sys_net_endpoint_t *ep);
+void       _z_free_endpoint_tcp(_z_sys_net_endpoint_t *ep);
 
 z_result_t _z_open_tcp(_z_sys_net_socket_t *sock, const _z_sys_net_endpoint_t rep, uint32_t tout);
 z_result_t _z_listen_tcp(_z_sys_net_socket_t *sock, const _z_sys_net_endpoint_t rep);
-void _z_close_tcp(_z_sys_net_socket_t *sock);
-size_t _z_read_exact_tcp(const _z_sys_net_socket_t sock, uint8_t *ptr, size_t len);
-size_t _z_read_tcp(const _z_sys_net_socket_t sock, uint8_t *ptr, size_t len);
-size_t _z_send_tcp(const _z_sys_net_socket_t sock, const uint8_t *ptr, size_t len);
+void       _z_close_tcp(_z_sys_net_socket_t *sock);
+size_t     _z_read_exact_tcp(const _z_sys_net_socket_t sock, uint8_t *ptr, size_t len);
+size_t     _z_read_tcp(const _z_sys_net_socket_t sock, uint8_t *ptr, size_t len);
+size_t     _z_send_tcp(const _z_sys_net_socket_t sock, const uint8_t *ptr, size_t len);
 #endif
 
 #if Z_FEATURE_LINK_BLUETOOTH == 1
@@ -45,21 +45,21 @@ size_t _z_send_tcp(const _z_sys_net_socket_t sock, const uint8_t *ptr, size_t le
 
 #if Z_FEATURE_LINK_SERIAL == 1
 
-#define RX_DMA_BUFFER_SIZE \
-    (_Z_SERIAL_MAX_COBS_BUF_SIZE * 2 + 2)  // for 2 max sized COBS frames + something little extra
-static uint8_t dma_buffer[RX_DMA_BUFFER_SIZE];
-static uint16_t delimiter_offset = 0;
-static TX_SEMAPHORE data_ready_semaphore, data_processing_semaphore;
+#define RX_DMA_BUFFER_SIZE                                                                        \
+    (_Z_SERIAL_MAX_COBS_BUF_SIZE * 2 + 2) // for 2 max sized COBS frames + something little extra
+static uint8_t            dma_buffer[RX_DMA_BUFFER_SIZE];
+static uint16_t           delimiter_offset = 0;
+static TX_SEMAPHORE       data_ready_semaphore, data_processing_semaphore;
 extern UART_HandleTypeDef ZENOH_HUART;
 /*------------------ Serial sockets ------------------*/
 void _z_socket_close(_z_sys_net_socket_t *sock) { _ZP_UNUSED(sock); }
 
 z_result_t _z_open_serial_from_pins(_z_sys_net_socket_t *sock, uint32_t txpin, uint32_t rxpin, uint32_t baudrate) {
     z_result_t ret = _Z_RES_OK;
-    (void)(sock);
-    (void)(txpin);
-    (void)(rxpin);
-    (void)(baudrate);
+    (void) (sock);
+    (void) (txpin);
+    (void) (rxpin);
+    (void) (baudrate);
 
     // Not implemented
     ret = _Z_ERR_GENERIC;
@@ -68,22 +68,22 @@ z_result_t _z_open_serial_from_pins(_z_sys_net_socket_t *sock, uint32_t txpin, u
 }
 
 z_result_t _z_open_serial_from_dev(_z_sys_net_socket_t *sock, char *dev, uint32_t baudrate) {
-    (void)(dev);
-    (void)(baudrate);
+    (void) (dev);
+    (void) (baudrate);
 
     tx_semaphore_create(&data_ready_semaphore, "Data Ready", 0);
     tx_semaphore_create(&data_processing_semaphore, "Data Processing",
-                        1);  // get is 1 step signal ahead, 0-still processing, 1-ready to process new data
-    HAL_UARTEx_ReceiveToIdle_DMA(&ZENOH_HUART, (uint8_t *)dma_buffer, RX_DMA_BUFFER_SIZE);
+                        1); // get is 1 step signal ahead, 0-still processing, 1-ready to process new data
+    HAL_UARTEx_ReceiveToIdle_DMA(&ZENOH_HUART, (uint8_t *) dma_buffer, RX_DMA_BUFFER_SIZE);
     return _z_connect_serial(*sock);
 }
 
 z_result_t _z_listen_serial_from_pins(_z_sys_net_socket_t *sock, uint32_t txpin, uint32_t rxpin, uint32_t baudrate) {
     z_result_t ret = _Z_RES_OK;
-    (void)(sock);
-    (void)(txpin);
-    (void)(rxpin);
-    (void)(baudrate);
+    (void) (sock);
+    (void) (txpin);
+    (void) (rxpin);
+    (void) (baudrate);
 
     // Not implemented
     ret = _Z_ERR_GENERIC;
@@ -93,9 +93,9 @@ z_result_t _z_listen_serial_from_pins(_z_sys_net_socket_t *sock, uint32_t txpin,
 
 z_result_t _z_listen_serial_from_dev(_z_sys_net_socket_t *sock, char *dev, uint32_t baudrate) {
     z_result_t ret = _Z_RES_OK;
-    (void)(sock);
-    (void)(dev);
-    (void)(baudrate);
+    (void) (sock);
+    (void) (dev);
+    (void) (baudrate);
 
     // Not implemented
     ret = _Z_ERR_GENERIC;
@@ -165,11 +165,11 @@ size_t _z_read_serial_internal(const _z_sys_net_socket_t sock, uint8_t *header, 
 }
 
 size_t _z_send_serial_internal(const _z_sys_net_socket_t sock, uint8_t header, const uint8_t *ptr, size_t len) {
-    uint8_t *tmp_buf = (uint8_t *)z_malloc(_Z_SERIAL_MFS_SIZE);
+    uint8_t *tmp_buf = (uint8_t *) z_malloc(_Z_SERIAL_MFS_SIZE);
     if (tmp_buf == NULL) {
         return SIZE_MAX;
     }
-    uint8_t *raw_buf = (uint8_t *)z_malloc(_Z_SERIAL_MAX_COBS_BUF_SIZE);
+    uint8_t *raw_buf = (uint8_t *) z_malloc(_Z_SERIAL_MAX_COBS_BUF_SIZE);
     if (raw_buf == NULL) {
         z_free(tmp_buf);
         return SIZE_MAX;
@@ -209,10 +209,10 @@ void zptxstm32_rx_event_cb(UART_HandleTypeDef *huart, uint16_t offset) {
         last_offset = 0;
 
     while (last_offset < offset) {
-        if (dma_buffer[last_offset] == (uint8_t)0x00) {
-            tx_semaphore_get(&data_processing_semaphore, TX_WAIT_FOREVER);  // Block if data isnt processed yet
+        if (dma_buffer[last_offset] == (uint8_t) 0x00) {
+            tx_semaphore_get(&data_processing_semaphore, TX_WAIT_FOREVER); // Block if data isnt processed yet
             delimiter_offset = last_offset + 1;
-            tx_semaphore_put(&data_ready_semaphore);  // Notify waiting task
+            tx_semaphore_put(&data_ready_semaphore);                       // Notify waiting task
         }
         ++last_offset;
     }
@@ -225,7 +225,7 @@ void zptxstm32_error_event_cb(UART_HandleTypeDef *huart) {
     }
     _Z_ERROR("UART error!");
     // restart UART DMA after error
-    HAL_UARTEx_ReceiveToIdle_DMA(&ZENOH_HUART, (uint8_t *)dma_buffer, RX_DMA_BUFFER_SIZE);
+    HAL_UARTEx_ReceiveToIdle_DMA(&ZENOH_HUART, (uint8_t *) dma_buffer, RX_DMA_BUFFER_SIZE);
 }
 
 #if ZENOH_THREADX_STM32_GEN_IRQ == 1
@@ -245,4 +245,4 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 }
 #endif
 
-#endif  // Z_FEATURE_LINK_SERIAL
+#endif // Z_FEATURE_LINK_SERIAL
