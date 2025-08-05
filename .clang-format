@@ -50,3 +50,4 @@ SpacesInContainerLiterals: false
 SpacesInSquareBrackets: false
 UseTab: Never
 AlignArrayOfStructures: Right
+IndentGotoLabels: true

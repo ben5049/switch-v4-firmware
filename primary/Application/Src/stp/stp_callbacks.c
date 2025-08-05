@@ -5,6 +5,8 @@
  *      Author: bens1
  */
 
+// TODO: Add parameter checks to all functions (see examples, especially STM32)
+
 #include "stdatomic.h"
 #include "hal.h"
 #include "main.h"
@@ -235,13 +237,18 @@ bool stp_ReleaseTxPacket(ETH_HandleTypeDef* heth) {
 }
 
 
+static void stp_flushFdb(const struct STP_BRIDGE* bridge, unsigned int portIndex, unsigned int treeIndex, enum STP_FLUSH_FDB_TYPE flushType, unsigned int timestamp) {
+    SJA1105_FlushTCAM(&hsja1105); // TODO: This needs to per port
+}
+
+
 const STP_CALLBACKS stp_callbacks = {
     .enableBpduTrapping    = &stp_enableBpduTrapping,
     .enableLearning        = &stp_enableLearning,
     .enableForwarding      = &stp_enableForwarding,
     .transmitGetBuffer     = &stp_transmitGetBuffer,
     .transmitReleaseBuffer = &stp_transmitReleaseBuffer,
-    .flushFdb              = NULL,
+    .flushFdb              = &stp_flushFdb,
     .debugStrOut           = NULL,
     .onTopologyChange      = NULL,
     .onPortRoleChanged     = NULL,

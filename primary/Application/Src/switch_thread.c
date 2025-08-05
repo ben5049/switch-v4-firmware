@@ -47,6 +47,9 @@ enum Port_Enum {
     PORT_HOST         = 0x4,
 };
 
+static uint32_t sja1105_callback_get_time_ms(sja1105_handle_t *dev) {
+    return tx_time_get_ms();
+}
 
 static void sja1105_delay_ms(sja1105_handle_t *dev, uint32_t ms) {
     tx_thread_sleep_ms(ms);
@@ -94,10 +97,11 @@ static sja1105_status_t sja1105_give_mutex(sja1105_handle_t *dev) {
 }
 
 static const sja1105_callbacks_t sja1105_callbacks = {
-    .callback_delay_ms   = &sja1105_delay_ms,
-    .callback_delay_ns   = &sja1105_delay_ns,
-    .callback_take_mutex = &sja1105_take_mutex,
-    .callback_give_mutex = &sja1105_give_mutex};
+    .callback_get_time_ms = &sja1105_callback_get_time_ms,
+    .callback_delay_ms    = &sja1105_delay_ms,
+    .callback_delay_ns    = &sja1105_delay_ns,
+    .callback_take_mutex  = &sja1105_take_mutex,
+    .callback_give_mutex  = &sja1105_give_mutex};
 
 /* Attemt to handle errors resulting from SJA1105 user function calls
  * NOTE: When the system error handler is called, it is assumed that if it returns (as opposed to restarting the chip) then the error has been fixed.
@@ -214,16 +218,17 @@ void switch_thread_entry(uint32_t initial_input) {
     static int16_t          temp_x10;
 
     /* Set the general switch parameters */
-    sja1105_conf.variant     = VARIANT_SJA1105Q;
-    sja1105_conf.spi_handle  = &hspi2;
-    sja1105_conf.cs_port     = SWCH_CS_GPIO_Port;
-    sja1105_conf.cs_pin      = SWCH_CS_Pin;
-    sja1105_conf.rst_port    = SWCH_RST_GPIO_Port;
-    sja1105_conf.rst_pin     = SWCH_RST_Pin;
-    sja1105_conf.timeout     = 100;
-    sja1105_conf.host_port   = PORT_HOST;
-    sja1105_conf.skew_clocks = true;
-    sja1105_conf.switch_id   = 0;
+    sja1105_conf.variant      = VARIANT_SJA1105Q;
+    sja1105_conf.spi_handle   = &hspi2;
+    sja1105_conf.cs_port      = SWCH_CS_GPIO_Port;
+    sja1105_conf.cs_pin       = SWCH_CS_Pin;
+    sja1105_conf.rst_port     = SWCH_RST_GPIO_Port;
+    sja1105_conf.rst_pin      = SWCH_RST_Pin;
+    sja1105_conf.timeout      = 100;
+    sja1105_conf.mgmt_timeout = 1000;
+    sja1105_conf.host_port    = PORT_HOST;
+    sja1105_conf.skew_clocks  = true;
+    sja1105_conf.switch_id    = 0;
 
     /* Configure port speeds and interfaces */
     CHECK(SJA1105_PortConfigure(sja1105_ports, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
