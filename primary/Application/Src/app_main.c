@@ -7,6 +7,7 @@
 
 #include "app_main.h"
 #include "switch_thread.h"
+#include "switch_callbacks.h"
 #include "stp_thread.h"
 #include "comms_thread.h"
 
