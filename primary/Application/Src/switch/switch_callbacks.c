@@ -83,11 +83,11 @@ static sja1105_status_t sja1105_give_mutex(sja1105_handle_t *dev) {
     return status;
 }
 
-static sja1105_status_t sja1105_allocate(sja1105_handle_t *dev, uint32_t *memory_ptr, uint32_t size) {
+static sja1105_status_t sja1105_allocate(sja1105_handle_t *dev, uint32_t **memory_ptr, uint32_t size) {
 
     sja1105_status_t status = SJA1105_OK;
 
-    if (tx_byte_allocate(&switch_byte_pool, (void **) &memory_ptr, size * sizeof(uint32_t), TX_NO_WAIT) != TX_SUCCESS) {
+    if (tx_byte_allocate(&switch_byte_pool, (void **) memory_ptr, size * sizeof(uint32_t), TX_NO_WAIT) != TX_SUCCESS) {
         status = SJA1105_DYNAMIC_MEMORY_ERROR;
     }
 
