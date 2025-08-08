@@ -250,8 +250,7 @@ static void stp_flushFdb(const struct STP_BRIDGE* bridge, unsigned int portIndex
 }
 
 
-static void stp_onTopologyChange(const struct STP_BRIDGE* bridge, unsigned int treeIndex, unsigned int timestamp);
-{
+static void stp_onTopologyChange(const struct STP_BRIDGE* bridge, unsigned int treeIndex, unsigned int timestamp) {
     /* TODO: Implement */
 }
 

@@ -19,6 +19,8 @@ extern "C" {
 #include "hal.h"
 
 #include "app_main.h"
+#include "sja1105.h"
+
 
 /* Exported variables */
 extern uint8_t              switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
