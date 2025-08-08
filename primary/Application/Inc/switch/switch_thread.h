@@ -24,6 +24,7 @@ extern "C" {
 extern uint8_t              switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
 extern TX_THREAD            switch_thread_ptr;
 extern atomic_uint_fast32_t sja1105_error_counter;
+extern sja1105_handle_t     hsja1105;
 
 /* Exported functions*/
 void switch_thread_entry(uint32_t initial_input);

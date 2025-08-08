@@ -11,11 +11,13 @@
 #include "hal.h"
 #include "main.h"
 #include "stp.h"
+#include "tx_api.h"
 
 #include "stp_callbacks.h"
 #include "stp_extra.h"
 #include "utils.h"
 #include "sja1105.h"
+#include "switch_thread.h"
 
 
 #define BPDU_BPDU_MAX_BUFFER_SIZE   (128)
@@ -38,8 +40,6 @@
 
 /* Imported variables */
 extern ETH_HandleTypeDef heth;
-extern sja1105_handle_t  hsja1105;
-
 
 static uint8_t tx_bpdu_buffer[BPDU_MAX_BUFFER_SIZE] __attribute__((aligned(32)));
 static uint8_t tx_bpdu_size;
@@ -52,9 +52,17 @@ static ETH_TxPacketConfigTypeDef TxPacketCfg;
 
 atomic_bool bpdu_transmitted;
 
+static UCHAR        stp_byte_pool_buffer[STP_MEM_POOL_SIZE] __ALIGNED(32);
+static TX_BYTE_POOL stp_byte_pool;
+
 
 void bpdu_packet_init() {
     memset(&TxPacketCfg, 0, sizeof(ETH_TxPacketConfigTypeDef)); /* Set the ethernet packet parameters to default */
+}
+
+
+UINT stp_byte_pool_init() {
+    return tx_byte_pool_create(&stp_byte_pool, "STP memory pool", stp_byte_pool_buffer, STP_MEM_POOL_SIZE);
 }
 
 
@@ -238,7 +246,39 @@ bool stp_ReleaseTxPacket(ETH_HandleTypeDef* heth) {
 
 
 static void stp_flushFdb(const struct STP_BRIDGE* bridge, unsigned int portIndex, unsigned int treeIndex, enum STP_FLUSH_FDB_TYPE flushType, unsigned int timestamp) {
-    SJA1105_FlushTCAM(&hsja1105); // TODO: This needs to per port
+    SJA1105_FlushTCAM(&hsja1105); // TODO: check return value
+}
+
+
+static void stp_onTopologyChange(const struct STP_BRIDGE* bridge, unsigned int treeIndex, unsigned int timestamp);
+{
+    /* TODO: Implement */
+}
+
+static void stp_onPortRoleChanged(const struct STP_BRIDGE* bridge, unsigned int portIndex, unsigned int treeIndex, enum STP_PORT_ROLE role, unsigned int timestamp) {
+    /* TODO: Implement */
+}
+
+
+static void* stp_allocAndZeroMemory(unsigned int size) {
+
+    void* memory_ptr;
+
+    if (tx_byte_allocate(&stp_byte_pool, &memory_ptr, size, TX_NO_WAIT) != TX_SUCCESS) {
+        Error_Handler();
+    }
+
+    memset(memory_ptr, 0, size);
+
+    return memory_ptr;
+}
+
+
+static void stp_freeMemory(void* p) {
+
+    if (tx_byte_release(p) != TX_SUCCESS) {
+        Error_Handler();
+    }
 }
 
 
@@ -250,8 +290,8 @@ const STP_CALLBACKS stp_callbacks = {
     .transmitReleaseBuffer = &stp_transmitReleaseBuffer,
     .flushFdb              = &stp_flushFdb,
     .debugStrOut           = NULL,
-    .onTopologyChange      = NULL,
-    .onPortRoleChanged     = NULL,
-    .allocAndZeroMemory    = NULL,
-    .freeMemory            = NULL,
+    .onTopologyChange      = &stp_onTopologyChange,
+    .onPortRoleChanged     = &stp_onPortRoleChanged,
+    .allocAndZeroMemory    = &stp_allocAndZeroMemory,
+    .freeMemory            = &stp_freeMemory,
 };

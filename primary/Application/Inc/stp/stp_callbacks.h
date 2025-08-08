@@ -24,6 +24,7 @@ typedef struct STP_CALLBACKS STP_CALLBACKS;
 extern const STP_CALLBACKS stp_callbacks;
 
 void bpdu_packet_init(void);
+UINT stp_byte_pool_init(void);
 
 
 #ifdef __cplusplus

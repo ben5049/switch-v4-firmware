@@ -38,6 +38,9 @@ void stp_thread_entry(uint32_t initial_input) {
     /* Set the ethernet packet parameters to default */
     bpdu_packet_init();
 
+    /* Initialise the STP ThreadX byte pool */
+    stp_byte_pool_init();
+
     bridge = STP_CreateBridge(5, 0, 16, &stp_callbacks, mac_address, 100);
     STP_StartBridge(bridge, tx_time_get_ms());
 

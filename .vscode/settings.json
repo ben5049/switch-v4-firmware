@@ -27,7 +27,9 @@
         "utility": "cpp",
         "hal.h": "c",
         "sja1105q_default_conf.h": "c",
-        "sja1105_callbacks.h": "c"
+        "sja1105_callbacks.h": "c",
+        "switch_thread.h": "c",
+        "stp_callbacks.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,

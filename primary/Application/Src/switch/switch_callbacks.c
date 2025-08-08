@@ -14,7 +14,6 @@
 #include "utils.h"
 #include "sja1105q_default_conf.h"
 
-#define SWITCH_MEM_POOL_SIZE (1024 * sizeof(uint32_t)) /* 1024 Words should be enough for most variable length tables. TODO Check */
 
 TX_MUTEX            sja1105_mutex_ptr;
 static UCHAR        switch_byte_pool_buffer[SWITCH_MEM_POOL_SIZE] __ALIGNED(32);
