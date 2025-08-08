@@ -187,8 +187,8 @@ void switch_thread_entry(uint32_t initial_input) {
 
         /* Perform regular maintenance */
         CHECK(SJA1105_CheckStatusRegisters(&hsja1105));
-        CHECK(SJA1105_ManagementRouteFree(&hsja1105));
-        /* TODO: Add byte pool maintainance */
+        CHECK(SJA1105_ManagementRouteFree(&hsja1105, false));
+        /* TODO: Add byte pool maintenance */
 
         /* Read the temperature */
         CHECK(SJA1105_ReadTemperatureX10(&hsja1105, &temp_x10));
