@@ -28,7 +28,7 @@
 #define DEFAULT_MESSAGE    "TCP Client on STM32H573-DK"
 
 
-NX_TCP_SOCKET TCPSocket;
+NX_TCP_SOCKET tcp_socket;
 
 uint8_t   comms_thread_stack[COMMS_THREAD_STACK_SIZE];
 TX_THREAD comms_thread_ptr;
@@ -49,20 +49,20 @@ void comms_thread_entry(uint32_t initial_input) {
     NX_PACKET *data_packet;
 
     /* create the TCP socket */
-    ret = nx_tcp_socket_create(&nx_ip_instance, &TCPSocket, "TCP Server Socket", NX_IP_NORMAL, NX_FRAGMENT_OKAY, NX_IP_TIME_TO_LIVE, WINDOW_SIZE, NX_NULL, NX_NULL);
+    ret = nx_tcp_socket_create(&nx_ip_instance, &tcp_socket, "TCP Server Socket", NX_IP_NORMAL, NX_FRAGMENT_OKAY, NX_IP_TIME_TO_LIVE, WINDOW_SIZE, NX_NULL, NX_NULL);
     if (ret != NX_SUCCESS) {
         Error_Handler();
     }
 
     /* bind the client socket for the DEFAULT_PORT */
-    ret = nx_tcp_client_socket_bind(&TCPSocket, DEFAULT_PORT, NX_WAIT_FOREVER);
+    ret = nx_tcp_client_socket_bind(&tcp_socket, DEFAULT_PORT, NX_WAIT_FOREVER);
 
     if (ret != NX_SUCCESS) {
         Error_Handler();
     }
 
     /* connect to the remote server on the specified port */
-    ret = nx_tcp_client_socket_connect(&TCPSocket, TCP_SERVER_ADDRESS, TCP_SERVER_PORT, NX_WAIT_FOREVER);
+    ret = nx_tcp_client_socket_connect(&tcp_socket, TCP_SERVER_ADDRESS, TCP_SERVER_PORT, NX_WAIT_FOREVER);
 
     if (ret != NX_SUCCESS) {
         Error_Handler();
@@ -87,14 +87,14 @@ void comms_thread_entry(uint32_t initial_input) {
         }
 
         /* send the packet over the TCP socket */
-        ret = nx_tcp_socket_send(&TCPSocket, data_packet, NX_APP_DEFAULT_TIMEOUT);
+        ret = nx_tcp_socket_send(&tcp_socket, data_packet, NX_APP_DEFAULT_TIMEOUT);
 
         if (ret != NX_SUCCESS) {
             break;
         }
 
         /* wait for the server response */
-        ret = nx_tcp_socket_receive(&TCPSocket, &server_packet, NX_APP_DEFAULT_TIMEOUT);
+        ret = nx_tcp_socket_receive(&tcp_socket, &server_packet, NX_APP_DEFAULT_TIMEOUT);
 
         if (ret == NX_SUCCESS) {
             /* get the server IP address and  port */
@@ -110,7 +110,7 @@ void comms_thread_entry(uint32_t initial_input) {
             nx_packet_release(server_packet);
 
             /* toggle the green led on success */
-//            HAL_GPIO_WritePin(GPIOI, GPIO_PIN_9, GPIO_PIN_SET);
+            //            HAL_GPIO_WritePin(GPIOI, GPIO_PIN_9, GPIO_PIN_SET);
         } else {
             /* no message received exit the loop */
             break;
@@ -121,20 +121,20 @@ void comms_thread_entry(uint32_t initial_input) {
     nx_packet_release(server_packet);
 
     /* disconnect the socket */
-    nx_tcp_socket_disconnect(&TCPSocket, NX_APP_DEFAULT_TIMEOUT);
+    nx_tcp_socket_disconnect(&tcp_socket, NX_APP_DEFAULT_TIMEOUT);
 
     /* unbind the socket */
-    nx_tcp_client_socket_unbind(&TCPSocket);
+    nx_tcp_client_socket_unbind(&tcp_socket);
 
     /* delete the socket */
-    nx_tcp_socket_delete(&TCPSocket);
+    nx_tcp_socket_delete(&tcp_socket);
 
     /* print test summary on the UART */
     if (count == MAX_PACKET_COUNT + 1) {
-//        printf("\n-------------------------------------\n\tSUCCESS : %u / %u packets sent\n-------------------------------------\n", count - 1, MAX_PACKET_COUNT);
+        //        printf("\n-------------------------------------\n\tSUCCESS : %u / %u packets sent\n-------------------------------------\n", count - 1, MAX_PACKET_COUNT);
         //        Success_Handler();
     } else {
-//        printf("\n-------------------------------------\n\tFAIL : %u / %u packets sent\n-------------------------------------\n", count - 1, MAX_PACKET_COUNT);
+        //        printf("\n-------------------------------------\n\tFAIL : %u / %u packets sent\n-------------------------------------\n", count - 1, MAX_PACKET_COUNT);
         Error_Handler();
     }
 }

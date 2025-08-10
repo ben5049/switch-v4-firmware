@@ -5,11 +5,13 @@
  *      Author: bens1
  */
 
-#include "utils.h"
 #include "config.h"
+#include "utils.h"
+#include "sja1105.h"
+
 
 /* This function should be called in MX_ETH_Init */
-void write_mac_addr(uint8_t *buf) {
+void write_mac_addr(uint8_t* buf) {
     buf[0] = MAC_ADDR_OCTET1;
     buf[1] = MAC_ADDR_OCTET2;
     buf[2] = MAC_ADDR_OCTET3;
@@ -18,9 +20,17 @@ void write_mac_addr(uint8_t *buf) {
     buf[5] = MAC_ADDR_OCTET6;
 }
 
+bool compare_mac_addrs_with_mask(const uint8_t* addr1, const uint8_t* addr2, const uint8_t* mask) {
+    for (uint_fast8_t i = 0; i < MAC_ADDR_SIZE; i++) {
+        if ((addr1[i] & mask[i]) != (addr2[i] & mask[i])) return false;
+    }
+    return true;
+}
+
 uint32_t tx_thread_sleep_ms(uint32_t ms) {
     return tx_thread_sleep((uint32_t) MS_TO_TICKS((uint64_t) ms)); /* Cast to 64-bit uint to prevent premature overflow */
 }
+
 
 uint32_t tx_time_get_ms() {
     return (uint32_t) TICKS_TO_MS((uint64_t) tx_time_get()); /* Cast to 64-bit uint to prevent premature overflow */

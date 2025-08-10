@@ -102,13 +102,13 @@ typedef enum {
 } nx_ip_status_t;
 
 
-extern NX_IP        nx_ip_instance;
+extern NX_IP          nx_ip_instance;
 extern NX_PACKET_POOL nx_packet_pool;
-extern TX_SEMAPHORE dhcp_semaphore;
-extern TX_THREAD    nx_app_thread_ptr;
-extern uint8_t      nx_app_thread_stack[NX_APP_THREAD_STACK_SIZE];
-extern TX_THREAD    nx_link_thread_ptr;
-extern uint8_t      nx_link_thread_stack[NX_LINK_THREAD_STACK_SIZE];
+extern TX_SEMAPHORE   dhcp_semaphore_ptr;
+extern TX_THREAD      nx_app_thread_ptr;
+extern uint8_t        nx_app_thread_stack[NX_APP_THREAD_STACK_SIZE];
+extern TX_THREAD      nx_link_thread_ptr;
+extern uint8_t        nx_link_thread_stack[NX_LINK_THREAD_STACK_SIZE];
 
 void nx_app_thread_entry(uint32_t initial_input);
 void nx_link_thread_entry(uint32_t initial_input);

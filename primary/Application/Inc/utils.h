@@ -13,8 +13,9 @@ extern "C" {
 #endif
 
 
-#include "tx_api.h"
 #include "stdint.h"
+#include "stdbool.h"
+#include "tx_api.h"
 
 
 /* Because of the multiply, care should be taken when putting large values into these functions (>4,000,000) to make sure the don't overflow */
@@ -24,6 +25,7 @@ extern "C" {
 #define CONSTRAIN(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
 
 void write_mac_addr(uint8_t *buf);
+bool compare_mac_addrs_with_mask(const uint8_t* addr1, const uint8_t* addr2, const uint8_t* mask);
 
 uint32_t tx_thread_sleep_ms(uint32_t ms);
 uint32_t tx_time_get_ms();

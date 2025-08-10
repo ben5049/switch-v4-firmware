@@ -13,15 +13,20 @@ extern "C" {
 #endif
 
 
-#include "hal.h"
+#include "stdint.h"
 #include "stdbool.h"
-
+#include "hal.h"
 #include "stp.h"
+
+#include "nx_stp.h"
 
 
 typedef struct STP_CALLBACKS STP_CALLBACKS;
 
 extern const STP_CALLBACKS stp_callbacks;
+extern const uint8_t       bpdu_dest_address[BPDU_DST_ADDR_SIZE];
+extern const uint8_t       bpdu_dest_address_mask[BPDU_DST_ADDR_SIZE];
+extern const uint8_t       bpdu_llc[BPDU_LLC_SIZE];
 
 void bpdu_packet_init(void);
 UINT stp_byte_pool_init(void);

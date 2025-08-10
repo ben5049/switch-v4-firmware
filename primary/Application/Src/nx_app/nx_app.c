@@ -27,7 +27,7 @@ uint32_t net_mask;
 NX_PACKET_POOL nx_packet_pool;
 
 NX_DHCP      dhcp_client;
-TX_SEMAPHORE dhcp_semaphore;
+TX_SEMAPHORE dhcp_semaphore_ptr;
 
 TX_THREAD nx_app_thread_ptr;
 uint8_t   nx_app_thread_stack[NX_APP_THREAD_STACK_SIZE];
@@ -121,7 +121,7 @@ static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
         Error_Handler();
     }
     if (ip_address != NULL_ADDRESS) {
-        tx_semaphore_put(&dhcp_semaphore);
+        tx_semaphore_put(&dhcp_semaphore_ptr);
     }
 }
 
@@ -143,7 +143,7 @@ void nx_app_thread_entry(uint32_t initial_input) {
     }
 
     /* Wait until an IP address is ready */
-    if (tx_semaphore_get(&dhcp_semaphore, TX_WAIT_FOREVER) != TX_SUCCESS) {
+    if (tx_semaphore_get(&dhcp_semaphore_ptr, TX_WAIT_FOREVER) != TX_SUCCESS) {
         Error_Handler();
     }
 
@@ -193,7 +193,7 @@ void nx_link_thread_entry(uint32_t thread_input) {
                     nx_dhcp_start(&dhcp_client);
 
                     /* Wait until an IP address is ready */
-                    if (tx_semaphore_get(&dhcp_semaphore, TX_WAIT_FOREVER) != TX_SUCCESS) {
+                    if (tx_semaphore_get(&dhcp_semaphore_ptr, TX_WAIT_FOREVER) != TX_SUCCESS) {
                         Error_Handler();
                     }
 
