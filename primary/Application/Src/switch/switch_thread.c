@@ -7,6 +7,7 @@
 
 #include "stdatomic.h"
 
+#include "main.h"
 #include "switch_thread.h"
 #include "switch_callbacks.h"
 #include "sja1105.h"
@@ -33,15 +34,6 @@ extern SPI_HandleTypeDef hspi2;
 
 /* Private function prototypes */
 static void sja1105_check_status_msg(sja1105_handle_t *dev, sja1105_status_t to_check, bool recurse);
-
-/* Enums */
-enum Port_Enum {
-    PORT_88Q2112_PHY0 = 0x0,
-    PORT_88Q2112_PHY1 = 0x1,
-    PORT_88Q2112_PHY2 = 0x2,
-    PORT_LAN8671_PHY  = 0x3,
-    PORT_HOST         = 0x4,
-};
 
 /* Attemt to handle errors resulting from SJA1105 user function calls
  * NOTE: When the system error handler is called, it is assumed that if it returns (as opposed to restarting the chip) then the error has been fixed.

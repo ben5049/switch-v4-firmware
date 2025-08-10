@@ -191,7 +191,7 @@
    code in-line. This results in a larger image, but improves the performance of the thread
    resume and suspend services.  */
 
-/*#define TX_INLINE_THREAD_RESUME_SUSPEND*/
+#define TX_INLINE_THREAD_RESUME_SUSPEND
 
 /* Determine if the internal ThreadX code is non-interruptable. This results in smaller code
    size and less processing overhead, but increases the interrupt lockout time.  */

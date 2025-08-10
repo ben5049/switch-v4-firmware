@@ -296,7 +296,13 @@
 
 /* This defines specifies the number of ThreadX timer ticks in one second.
    The default value is based on ThreadX timer interrupt. */
-#define NX_IP_PERIODIC_RATE                     100
+/*
+#ifdef TX_TIMER_TICKS_PER_SECOND
+#define NX_IP_PERIODIC_RATE         			TX_TIMER_TICKS_PER_SECOND
+#else
+#define NX_IP_PERIODIC_RATE         			100
+#endif
+*/
 
 /* Defined, NX_ENABLE_IP_RAW_PACKET_FILTER allows an application to install a
    filter for incoming raw packets. This feature is disabled by default. */
@@ -924,9 +930,7 @@
    license 'state' including time remaining on the lease, and restore this
    state between DHCP Client application reboots.
    The default value is disabled. */
-/*
 #define NX_DHCP_CLIENT_RESTORE_STATE
-*/
 
 /* If set, the DHCP Client will not create its own packet pool. The host
    application must use the nx_dhcp_packet_pool_set service to set the DHCP
@@ -938,9 +942,7 @@
 /* Defined, this enables the DHCP Client to send an ARP probe after IP
    address assignment to verify the assigned DHCP address is not owned by
    another host. By default, this option is disabled. */
-/*
 #define NX_DHCP_CLIENT_SEND_ARP_PROBE
-*/
 
 /* Defines the length of time the DHCP Client waits for a response after
    sending an ARP probe. The default value is one second
@@ -992,9 +994,7 @@
 /* Defined, this enables the DHCP Client to check the input host name in the
    nx_dhcp_create call for invalid characters or length. By default, this
    option is disabled. */
-/*
 #define NX_DHCP_CLIENT_ENABLE_HOST_NAME_CHECK
-*/
 
 /* Priority of the DHCP thread. By default, this value specifies that the DHCP
    thread runs at priority 3. */

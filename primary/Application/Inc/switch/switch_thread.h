@@ -18,9 +18,18 @@ extern "C" {
 #include "stdatomic.h"
 #include "hal.h"
 
-#include "app_main.h"
+#include "config.h"
 #include "sja1105.h"
 
+
+/* Enums */
+enum Port_Enum {
+    PORT_88Q2112_PHY0 = 0x0,
+    PORT_88Q2112_PHY1 = 0x1,
+    PORT_88Q2112_PHY2 = 0x2,
+    PORT_LAN8671_PHY  = 0x3,
+    PORT_HOST         = 0x4,
+};
 
 /* Exported variables */
 extern uint8_t              switch_thread_stack[SWITCH_THREAD_STACK_SIZE];

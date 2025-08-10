@@ -1,5 +1,5 @@
 /*
- * stp_callbacks.cpp
+ * stp_callbacks.c
  *
  *  Created on: Aug 1, 2025
  *      Author: bens1
@@ -7,6 +7,7 @@
 
 // TODO: Add parameter checks to all functions (see examples, especially STM32)
 
+#include "nx_stp.h"
 #include "stdatomic.h"
 #include "hal.h"
 #include "main.h"
@@ -14,7 +15,6 @@
 #include "tx_api.h"
 
 #include "stp_callbacks.h"
-#include "stp_extra.h"
 #include "utils.h"
 #include "sja1105.h"
 #include "switch_thread.h"
@@ -134,6 +134,11 @@ void stp_enableForwarding(const struct STP_BRIDGE* bridge, unsigned int portInde
 
 
 static void* stp_transmitGetBuffer(const struct STP_BRIDGE* bridge, unsigned int portIndex, unsigned int bpduSize, unsigned int timestamp) {
+
+    /* Don't send BPDUs to 10BASE-T1S bus since this should only contain devices, not switches */
+    if (portIndex == PORT_LAN8671_PHY) {
+        return NULL;
+    }
 
     uint8_t offset = 0;
     tx_bpdu_size   = bpduSize;

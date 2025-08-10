@@ -6,12 +6,32 @@ Almost all code is contained in the Application and Libraries folders, however c
 
 ## ThreadX init
 
+## NetX init
+
+```C
+#include "nx_app.h"
+
+...
+
+UINT MX_NetXDuo_Init(VOID *memory_ptr) {
+
+    ...
+
+    /* USER CODE BEGIN 0 */
+    ret = nx_user_init(memory_ptr);
+    /* USER CODE END 0 */
+
+    ...
+
+    return ret;
+}
+```
+
 ## STP Release packet callback:
 
 In [`primary/Middlewares/ST/netxduo/common/drivers/ethernet/nx_stm32_eth_driver.c`](/primary/Middlewares//ST/netxduo/common/drivers/ethernet/nx_stm32_eth_driver.c#2072):
 
 ```C
-
 #include "stp_extra.h"
 
 ...

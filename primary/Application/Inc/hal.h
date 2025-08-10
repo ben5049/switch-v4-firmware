@@ -17,6 +17,9 @@ extern "C" {
 #include "stm32h573xx.h"
 
 
+typedef HAL_StatusTypeDef hal_status_t;
+
+
 #ifdef __cplusplus
 }
 #endif
