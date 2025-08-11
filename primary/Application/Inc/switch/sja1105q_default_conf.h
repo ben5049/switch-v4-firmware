@@ -1,7 +1,7 @@
 /*
  * swv4_sja1105_static_config_default.h
  *
- *  Created on: Aug 1, 2025
+ *  Created on: Aug 11, 2025
  *      Author: SJA1105X_CONFIG-GENTOOL
  *
  */
@@ -15,39 +15,40 @@ extern "C" {
 
 #include "stdint.h"
 
-#define SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE 920
+#define SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE 948
 
 static const uint32_t swv4_sja1105_static_config_default[SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE] = {
 
-    0xae00030e, 0x05000000, 0x00000005, 0x9a1ca02b, 0x26420000, 0x04250000, 0xfff80000, 0xffffffff,
-    0x0000ffff, 0x00f1ab13, 0x06000000, 0x0000005a, 0x4ed2c50f, 0xfefb0000, 0x03ffffff, 0xfefb0000,
-    0x03ffffff, 0xfefb0000, 0x03ffffff, 0xfefb0000, 0x03ffffff, 0xfefb0000, 0x03ffffff, 0xfefb0000,
-    0x03ffffff, 0xfefb0000, 0x03ffffff, 0xfefb0000, 0x03ffffff, 0xfefb0000, 0x07ffffff, 0xfefb0000,
-    0x07ffffff, 0xfefb0000, 0x07ffffff, 0xfefb0000, 0x07ffffff, 0xfefb0000, 0x07ffffff, 0xfefb0000,
-    0x07ffffff, 0xfefb0000, 0x07ffffff, 0xfefb0000, 0x07ffffff, 0xfefb0000, 0x0bffffff, 0xfefb0000,
-    0x0bffffff, 0xfefb0000, 0x0bffffff, 0xfefb0000, 0x0bffffff, 0xfefb0000, 0x0bffffff, 0xfefb0000,
-    0x0bffffff, 0xfefb0000, 0x0bffffff, 0xfefb0000, 0x0bffffff, 0xfefb0000, 0x0fffffff, 0xfefb0000,
-    0x0fffffff, 0xfefb0000, 0x0fffffff, 0xfefb0000, 0x0fffffff, 0xfefb0000, 0x0fffffff, 0xfefb0000,
-    0x0fffffff, 0xfefb0000, 0x0fffffff, 0xfefb0000, 0x0fffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000,
-    0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000,
-    0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0xa3ffffff, 0xfefb0000,
-    0xa7ffffff, 0xfefb0000, 0xabffffff, 0xfefb0000, 0xafffffff, 0xfefb0000, 0xb3ffffff, 0x99ce35dc,
-    0x07000000, 0x00000002, 0x7d0bcbf2, 0x00000000, 0x003ff000, 0x88388685, 0x08000000, 0x0000001a,
-    0x6af62353, 0x10000000, 0xf7bdf58d, 0x10000000, 0xef7bf58d, 0x10000000, 0xdef7f58d, 0x10000000,
-    0xbdeff58d, 0x10000000, 0x7bdff58d, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0xc004a606, 0x09000000, 0x00000028, 0x0db43ac9, 0x80000000,
-    0xfe000003, 0x00000001, 0x07fc0100, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x80000000,
-    0xfe000003, 0x00000001, 0x07fc0100, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x80000000,
-    0xfe000003, 0x00000001, 0x07fc0100, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x80000000,
-    0xfe000003, 0x00000001, 0x07fc0106, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x80000000,
-    0xfe000003, 0x00000001, 0x07fc0104, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x57829e01,
-    0x0d000000, 0x00000004, 0x12d08c8f, 0x02000000, 0x00000000, 0x04008010, 0x00010020, 0x34e31d78,
-    0x0e000000, 0x00000003, 0xc8a7cee6, 0x0071c000, 0x00000000, 0x00000000, 0xc3f704b9, 0x10000000,
-    0x00000004, 0x8aa0dfbc, 0x80000000, 0x0df03ffb, 0xb2b78098, 0x40980df7, 0xe6c9318c, 0x11000000,
-    0x0000000b, 0xefa3e65a, 0x01c00000, 0x42040000, 0xfffffc45, 0xffffffff, 0xffdd37ff, 0xffff0000,
-    0x0000ffff, 0x0effffff, 0x80c20000, 0x00000301, 0x450180c2, 0xd7c68c8d, 0x4e000000, 0x00000001,
-    0x3a5d5e24, 0x25240000, 0x9ba8eafd, 0x00000000, 0x00000000, 0xa035ebf9};
+    0xae00030e, 0x06000000, 0x0000005a, 0x4ed2c50f, 0xfefb0000, 0x03ffffff, 0xfefb0000, 0x03ffffff,
+    0xfefb0000, 0x03ffffff, 0xfefb0000, 0x03ffffff, 0xfefb0000, 0x03ffffff, 0xfefb0000, 0x03ffffff,
+    0xfefb0000, 0x03ffffff, 0xfefb0000, 0x03ffffff, 0xfefb0000, 0x07ffffff, 0xfefb0000, 0x07ffffff,
+    0xfefb0000, 0x07ffffff, 0xfefb0000, 0x07ffffff, 0xfefb0000, 0x07ffffff, 0xfefb0000, 0x07ffffff,
+    0xfefb0000, 0x07ffffff, 0xfefb0000, 0x07ffffff, 0xfefb0000, 0x0bffffff, 0xfefb0000, 0x0bffffff,
+    0xfefb0000, 0x0bffffff, 0xfefb0000, 0x0bffffff, 0xfefb0000, 0x0bffffff, 0xfefb0000, 0x0bffffff,
+    0xfefb0000, 0x0bffffff, 0xfefb0000, 0x0bffffff, 0xfefb0000, 0x0fffffff, 0xfefb0000, 0x0fffffff,
+    0xfefb0000, 0x0fffffff, 0xfefb0000, 0x0fffffff, 0xfefb0000, 0x0fffffff, 0xfefb0000, 0x0fffffff,
+    0xfefb0000, 0x0fffffff, 0xfefb0000, 0x0fffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff,
+    0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff,
+    0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0xa3ffffff, 0xfefb0000, 0xa7ffffff,
+    0xfefb0000, 0xabffffff, 0xfefb0000, 0xafffffff, 0xfefb0000, 0xb3ffffff, 0x99ce35dc, 0x07000000,
+    0x00000012, 0x2d129c6d, 0x00000000, 0x003ff000, 0x00000000, 0x003fff80, 0x08000000, 0x003fff80,
+    0x10000000, 0x003fff80, 0x18000000, 0x003fff80, 0x20000000, 0x003fff80, 0x28000000, 0x003fff80,
+    0x30000000, 0x003fff80, 0x38000000, 0x003fff80, 0xcf47cb6b, 0x08000000, 0x0000001a, 0x6af62353,
+    0x10000000, 0xf7bdf58d, 0x10000000, 0xef7bf58d, 0x10000000, 0xdef7f58d, 0x10000000, 0xbdeff58d,
+    0x10000000, 0x7fdff58d, 0x00000000, 0x00000000, 0x92000000, 0x00000024, 0x24000000, 0x00000049,
+    0xb6000000, 0x0000006d, 0x48000000, 0x00000092, 0xda000000, 0x000000b6, 0x6c000000, 0x000000db,
+    0xfe000000, 0x000000ff, 0x0978a15d, 0x09000000, 0x00000028, 0x0db43ac9, 0x80000000, 0xfe000003,
+    0x00000001, 0x08fc0100, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000003,
+    0x00000001, 0x08fc0100, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000003,
+    0x00000001, 0x08fc0100, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000003,
+    0x00000001, 0x08fc0106, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000003,
+    0x00000001, 0x08fc0104, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x6c3cf923, 0x0d000000,
+    0x00000004, 0x12d08c8f, 0x0a000000, 0x00000020, 0x02004008, 0x00000401, 0x9c4e049e, 0x0e000000,
+    0x00000003, 0xc8a7cee6, 0x2c18c000, 0x0b02c0b0, 0x02c0b02c, 0xa07ddb76, 0x10000000, 0x00000004,
+    0x8aa0dfbc, 0x80000000, 0x0df03ffb, 0xb2b78098, 0x40980df7, 0xe6c9318c, 0x11000000, 0x0000000b,
+    0xefa3e65a, 0x01c00000, 0x42040000, 0xfffffc45, 0xffffffff, 0xffdd37ff, 0xffff0000, 0x0000ffff,
+    0x0effffff, 0x80c20000, 0x00000001, 0x470180c2, 0x0820f73c, 0x4e000000, 0x00000001, 0x3a5d5e24,
+    0x25240000, 0x9ba8eafd, 0x00000000, 0x00000000, 0xc55dc025};
 
 #ifdef __cplusplus
 }
@@ -57,26 +58,6 @@ static const uint32_t swv4_sja1105_static_config_default[SWV4_SJA1105_STATIC_CON
 
 /*
 Configuration for switch device id: AE00030E
-Table ID: 5 #entries: 1
-======= entry #0 =======
-+--------------+-----------------+-----+--------+
-|     Name     |      Value      | Len | Offset |
-+--------------+-----------------+-----+--------+
-|    TSREG     |        0        |  1  |  159   |
-|   MIRRVLAN   |        0        |  12 |  147   |
-|    TAKETS    |        0        |  1  |  146   |
-|     MIRR     |        0        |  1  |  145   |
-|    RETAG     |        0        |  1  |  144   |
-|  MASK_IOTAG  |        1        |  1  |  143   |
-| MASK_VLANID  |       4095      |  12 |  131   |
-| MASK_MACADDR | 281474976710655 |  48 |   83   |
-|    IOTAG     |        0        |  1  |   82   |
-|    VLANID    |        0        |  12 |   70   |
-|   MACADDR    |   71202504857   |  48 |   22   |
-|  DESTPORTS   |        1        |  5  |   17   |
-|   ENFPORT    |        0        |  1  |   16   |
-|    INDEX     |        0        |  10 |   6    |
-+--------------+-----------------+-----+--------+
 Table ID: 6 #entries: 45
 ======= entry #0 =======
 +-----------+-------+-----+--------+
@@ -528,7 +509,7 @@ Table ID: 6 #entries: 45
 |   MAXLEN  |  1526 |  11 |   15   |
 | PARTITION |   0   |  3  |   12   |
 +-----------+-------+-----+--------+
-Table ID: 7 #entries: 1
+Table ID: 7 #entries: 9
 ======= entry #0 =======
 +------------+-------+-----+--------+
 |    Name    | Value | Len | Offset |
@@ -539,6 +520,94 @@ Table ID: 7 #entries: 1
 |  VLAN_BC   |   31  |  5  |   44   |
 |  TAG_PORT  |   0   |  5  |   39   |
 |   VLANID   |   0   |  12 |   27   |
++------------+-------+-----+--------+
+======= entry #1 =======
++------------+-------+-----+--------+
+|    Name    | Value | Len | Offset |
++------------+-------+-----+--------+
+| VING_MIRR  |   0   |  5  |   59   |
+| VEGR_MIRR  |   0   |  5  |   54   |
+| VMEMB_PORT |   31  |  5  |   49   |
+|  VLAN_BC   |   31  |  5  |   44   |
+|  TAG_PORT  |   31  |  5  |   39   |
+|   VLANID   |   0   |  12 |   27   |
++------------+-------+-----+--------+
+======= entry #2 =======
++------------+-------+-----+--------+
+|    Name    | Value | Len | Offset |
++------------+-------+-----+--------+
+| VING_MIRR  |   0   |  5  |   59   |
+| VEGR_MIRR  |   0   |  5  |   54   |
+| VMEMB_PORT |   31  |  5  |   49   |
+|  VLAN_BC   |   31  |  5  |   44   |
+|  TAG_PORT  |   31  |  5  |   39   |
+|   VLANID   |   1   |  12 |   27   |
++------------+-------+-----+--------+
+======= entry #3 =======
++------------+-------+-----+--------+
+|    Name    | Value | Len | Offset |
++------------+-------+-----+--------+
+| VING_MIRR  |   0   |  5  |   59   |
+| VEGR_MIRR  |   0   |  5  |   54   |
+| VMEMB_PORT |   31  |  5  |   49   |
+|  VLAN_BC   |   31  |  5  |   44   |
+|  TAG_PORT  |   31  |  5  |   39   |
+|   VLANID   |   2   |  12 |   27   |
++------------+-------+-----+--------+
+======= entry #4 =======
++------------+-------+-----+--------+
+|    Name    | Value | Len | Offset |
++------------+-------+-----+--------+
+| VING_MIRR  |   0   |  5  |   59   |
+| VEGR_MIRR  |   0   |  5  |   54   |
+| VMEMB_PORT |   31  |  5  |   49   |
+|  VLAN_BC   |   31  |  5  |   44   |
+|  TAG_PORT  |   31  |  5  |   39   |
+|   VLANID   |   3   |  12 |   27   |
++------------+-------+-----+--------+
+======= entry #5 =======
++------------+-------+-----+--------+
+|    Name    | Value | Len | Offset |
++------------+-------+-----+--------+
+| VING_MIRR  |   0   |  5  |   59   |
+| VEGR_MIRR  |   0   |  5  |   54   |
+| VMEMB_PORT |   31  |  5  |   49   |
+|  VLAN_BC   |   31  |  5  |   44   |
+|  TAG_PORT  |   31  |  5  |   39   |
+|   VLANID   |   4   |  12 |   27   |
++------------+-------+-----+--------+
+======= entry #6 =======
++------------+-------+-----+--------+
+|    Name    | Value | Len | Offset |
++------------+-------+-----+--------+
+| VING_MIRR  |   0   |  5  |   59   |
+| VEGR_MIRR  |   0   |  5  |   54   |
+| VMEMB_PORT |   31  |  5  |   49   |
+|  VLAN_BC   |   31  |  5  |   44   |
+|  TAG_PORT  |   31  |  5  |   39   |
+|   VLANID   |   5   |  12 |   27   |
++------------+-------+-----+--------+
+======= entry #7 =======
++------------+-------+-----+--------+
+|    Name    | Value | Len | Offset |
++------------+-------+-----+--------+
+| VING_MIRR  |   0   |  5  |   59   |
+| VEGR_MIRR  |   0   |  5  |   54   |
+| VMEMB_PORT |   31  |  5  |   49   |
+|  VLAN_BC   |   31  |  5  |   44   |
+|  TAG_PORT  |   31  |  5  |   39   |
+|   VLANID   |   6   |  12 |   27   |
++------------+-------+-----+--------+
+======= entry #8 =======
++------------+-------+-----+--------+
+|    Name    | Value | Len | Offset |
++------------+-------+-----+--------+
+| VING_MIRR  |   0   |  5  |   59   |
+| VEGR_MIRR  |   0   |  5  |   54   |
+| VMEMB_PORT |   31  |  5  |   49   |
+|  VLAN_BC   |   31  |  5  |   44   |
+|  TAG_PORT  |   31  |  5  |   39   |
+|   VLANID   |   7   |  12 |   27   |
 +------------+-------+-----+--------+
 Table ID: 8 #entries: 13
 ======= entry #0 =======
@@ -610,7 +679,7 @@ Table ID: 8 #entries: 13
 |     Name     | Value | Len | Offset |
 +--------------+-------+-----+--------+
 |  BC_DOMAIN   |   15  |  5  |   59   |
-|  REACH_PORT  |   15  |  5  |   54   |
+|  REACH_PORT  |   31  |  5  |   54   |
 |  FL_DOMAIN   |   15  |  5  |   49   |
 | VLAN_PMAP[7] |   7   |  3  |   46   |
 | VLAN_PMAP[6] |   6   |  3  |   43   |
@@ -647,11 +716,11 @@ Table ID: 8 #entries: 13
 | VLAN_PMAP[7] |   0   |  3  |   46   |
 | VLAN_PMAP[6] |   0   |  3  |   43   |
 | VLAN_PMAP[5] |   0   |  3  |   40   |
-| VLAN_PMAP[4] |   0   |  3  |   37   |
-| VLAN_PMAP[3] |   0   |  3  |   34   |
-| VLAN_PMAP[2] |   0   |  3  |   31   |
-| VLAN_PMAP[1] |   0   |  3  |   28   |
-| VLAN_PMAP[0] |   0   |  3  |   25   |
+| VLAN_PMAP[4] |   1   |  3  |   37   |
+| VLAN_PMAP[3] |   1   |  3  |   34   |
+| VLAN_PMAP[2] |   1   |  3  |   31   |
+| VLAN_PMAP[1] |   1   |  3  |   28   |
+| VLAN_PMAP[0] |   1   |  3  |   25   |
 +--------------+-------+-----+--------+
 ======= entry #7 =======
 +--------------+-------+-----+--------+
@@ -663,11 +732,11 @@ Table ID: 8 #entries: 13
 | VLAN_PMAP[7] |   0   |  3  |   46   |
 | VLAN_PMAP[6] |   0   |  3  |   43   |
 | VLAN_PMAP[5] |   0   |  3  |   40   |
-| VLAN_PMAP[4] |   0   |  3  |   37   |
-| VLAN_PMAP[3] |   0   |  3  |   34   |
-| VLAN_PMAP[2] |   0   |  3  |   31   |
-| VLAN_PMAP[1] |   0   |  3  |   28   |
-| VLAN_PMAP[0] |   0   |  3  |   25   |
+| VLAN_PMAP[4] |   2   |  3  |   37   |
+| VLAN_PMAP[3] |   2   |  3  |   34   |
+| VLAN_PMAP[2] |   2   |  3  |   31   |
+| VLAN_PMAP[1] |   2   |  3  |   28   |
+| VLAN_PMAP[0] |   2   |  3  |   25   |
 +--------------+-------+-----+--------+
 ======= entry #8 =======
 +--------------+-------+-----+--------+
@@ -679,11 +748,11 @@ Table ID: 8 #entries: 13
 | VLAN_PMAP[7] |   0   |  3  |   46   |
 | VLAN_PMAP[6] |   0   |  3  |   43   |
 | VLAN_PMAP[5] |   0   |  3  |   40   |
-| VLAN_PMAP[4] |   0   |  3  |   37   |
-| VLAN_PMAP[3] |   0   |  3  |   34   |
-| VLAN_PMAP[2] |   0   |  3  |   31   |
-| VLAN_PMAP[1] |   0   |  3  |   28   |
-| VLAN_PMAP[0] |   0   |  3  |   25   |
+| VLAN_PMAP[4] |   3   |  3  |   37   |
+| VLAN_PMAP[3] |   3   |  3  |   34   |
+| VLAN_PMAP[2] |   3   |  3  |   31   |
+| VLAN_PMAP[1] |   3   |  3  |   28   |
+| VLAN_PMAP[0] |   3   |  3  |   25   |
 +--------------+-------+-----+--------+
 ======= entry #9 =======
 +--------------+-------+-----+--------+
@@ -695,11 +764,11 @@ Table ID: 8 #entries: 13
 | VLAN_PMAP[7] |   0   |  3  |   46   |
 | VLAN_PMAP[6] |   0   |  3  |   43   |
 | VLAN_PMAP[5] |   0   |  3  |   40   |
-| VLAN_PMAP[4] |   0   |  3  |   37   |
-| VLAN_PMAP[3] |   0   |  3  |   34   |
-| VLAN_PMAP[2] |   0   |  3  |   31   |
-| VLAN_PMAP[1] |   0   |  3  |   28   |
-| VLAN_PMAP[0] |   0   |  3  |   25   |
+| VLAN_PMAP[4] |   4   |  3  |   37   |
+| VLAN_PMAP[3] |   4   |  3  |   34   |
+| VLAN_PMAP[2] |   4   |  3  |   31   |
+| VLAN_PMAP[1] |   4   |  3  |   28   |
+| VLAN_PMAP[0] |   4   |  3  |   25   |
 +--------------+-------+-----+--------+
 ======= entry #10 =======
 +--------------+-------+-----+--------+
@@ -711,11 +780,11 @@ Table ID: 8 #entries: 13
 | VLAN_PMAP[7] |   0   |  3  |   46   |
 | VLAN_PMAP[6] |   0   |  3  |   43   |
 | VLAN_PMAP[5] |   0   |  3  |   40   |
-| VLAN_PMAP[4] |   0   |  3  |   37   |
-| VLAN_PMAP[3] |   0   |  3  |   34   |
-| VLAN_PMAP[2] |   0   |  3  |   31   |
-| VLAN_PMAP[1] |   0   |  3  |   28   |
-| VLAN_PMAP[0] |   0   |  3  |   25   |
+| VLAN_PMAP[4] |   5   |  3  |   37   |
+| VLAN_PMAP[3] |   5   |  3  |   34   |
+| VLAN_PMAP[2] |   5   |  3  |   31   |
+| VLAN_PMAP[1] |   5   |  3  |   28   |
+| VLAN_PMAP[0] |   5   |  3  |   25   |
 +--------------+-------+-----+--------+
 ======= entry #11 =======
 +--------------+-------+-----+--------+
@@ -727,11 +796,11 @@ Table ID: 8 #entries: 13
 | VLAN_PMAP[7] |   0   |  3  |   46   |
 | VLAN_PMAP[6] |   0   |  3  |   43   |
 | VLAN_PMAP[5] |   0   |  3  |   40   |
-| VLAN_PMAP[4] |   0   |  3  |   37   |
-| VLAN_PMAP[3] |   0   |  3  |   34   |
-| VLAN_PMAP[2] |   0   |  3  |   31   |
-| VLAN_PMAP[1] |   0   |  3  |   28   |
-| VLAN_PMAP[0] |   0   |  3  |   25   |
+| VLAN_PMAP[4] |   6   |  3  |   37   |
+| VLAN_PMAP[3] |   6   |  3  |   34   |
+| VLAN_PMAP[2] |   6   |  3  |   31   |
+| VLAN_PMAP[1] |   6   |  3  |   28   |
+| VLAN_PMAP[0] |   6   |  3  |   25   |
 +--------------+-------+-----+--------+
 ======= entry #12 =======
 +--------------+-------+-----+--------+
@@ -743,39 +812,39 @@ Table ID: 8 #entries: 13
 | VLAN_PMAP[7] |   0   |  3  |   46   |
 | VLAN_PMAP[6] |   0   |  3  |   43   |
 | VLAN_PMAP[5] |   0   |  3  |   40   |
-| VLAN_PMAP[4] |   0   |  3  |   37   |
-| VLAN_PMAP[3] |   0   |  3  |   34   |
-| VLAN_PMAP[2] |   0   |  3  |   31   |
-| VLAN_PMAP[1] |   0   |  3  |   28   |
-| VLAN_PMAP[0] |   0   |  3  |   25   |
+| VLAN_PMAP[4] |   7   |  3  |   37   |
+| VLAN_PMAP[3] |   7   |  3  |   34   |
+| VLAN_PMAP[2] |   7   |  3  |   31   |
+| VLAN_PMAP[1] |   7   |  3  |   28   |
+| VLAN_PMAP[0] |   7   |  3  |   25   |
 +--------------+-------+-----+--------+
 Table ID: 9 #entries: 5
 ======= entry #0 =======
 +------------+-------+-----+--------+
 |    Name    | Value | Len | Offset |
 +------------+-------+-----+--------+
-|   TOP[7]   |   0   |  9  |  247   |
-|  BASE[7]   |   0   |  9  |  238   |
-| ENABLED[7] |   0   |  1  |  237   |
-|   TOP[6]   |   0   |  9  |  228   |
-|  BASE[6]   |   0   |  9  |  219   |
-| ENABLED[6] |   0   |  1  |  218   |
-|   TOP[5]   |   0   |  9  |  209   |
-|  BASE[5]   |   0   |  9  |  200   |
-| ENABLED[5] |   0   |  1  |  199   |
-|   TOP[4]   |   0   |  9  |  190   |
-|  BASE[4]   |   0   |  9  |  181   |
-| ENABLED[4] |   0   |  1  |  180   |
-|   TOP[3]   |   0   |  9  |  171   |
-|  BASE[3]   |   0   |  9  |  162   |
-| ENABLED[3] |   0   |  1  |  161   |
-|   TOP[2]   |   0   |  9  |  152   |
-|  BASE[2]   |   0   |  9  |  143   |
-| ENABLED[2] |   0   |  1  |  142   |
-|   TOP[1]   |   0   |  9  |  133   |
-|  BASE[1]   |   0   |  9  |  124   |
-| ENABLED[1] |   0   |  1  |  123   |
-|   TOP[0]   |  511  |  9  |  114   |
+|   TOP[7]   |  511  |  9  |  247   |
+|  BASE[7]   |  448  |  9  |  238   |
+| ENABLED[7] |   1   |  1  |  237   |
+|   TOP[6]   |  447  |  9  |  228   |
+|  BASE[6]   |  384  |  9  |  219   |
+| ENABLED[6] |   1   |  1  |  218   |
+|   TOP[5]   |  383  |  9  |  209   |
+|  BASE[5]   |  320  |  9  |  200   |
+| ENABLED[5] |   1   |  1  |  199   |
+|   TOP[4]   |  319  |  9  |  190   |
+|  BASE[4]   |  256  |  9  |  181   |
+| ENABLED[4] |   1   |  1  |  180   |
+|   TOP[3]   |  255  |  9  |  171   |
+|  BASE[3]   |  192  |  9  |  162   |
+| ENABLED[3] |   1   |  1  |  161   |
+|   TOP[2]   |  191  |  9  |  152   |
+|  BASE[2]   |  128  |  9  |  143   |
+| ENABLED[2] |   1   |  1  |  142   |
+|   TOP[1]   |  127  |  9  |  133   |
+|  BASE[1]   |   64  |  9  |  124   |
+| ENABLED[1] |   1   |  1  |  123   |
+|   TOP[0]   |   63  |  9  |  114   |
 |  BASE[0]   |   0   |  9  |  105   |
 | ENABLED[0] |   1   |  1  |  104   |
 |    IFG     |   0   |  5  |   99   |
@@ -806,28 +875,28 @@ Table ID: 9 #entries: 5
 +------------+-------+-----+--------+
 |    Name    | Value | Len | Offset |
 +------------+-------+-----+--------+
-|   TOP[7]   |   0   |  9  |  247   |
-|  BASE[7]   |   0   |  9  |  238   |
-| ENABLED[7] |   0   |  1  |  237   |
-|   TOP[6]   |   0   |  9  |  228   |
-|  BASE[6]   |   0   |  9  |  219   |
-| ENABLED[6] |   0   |  1  |  218   |
-|   TOP[5]   |   0   |  9  |  209   |
-|  BASE[5]   |   0   |  9  |  200   |
-| ENABLED[5] |   0   |  1  |  199   |
-|   TOP[4]   |   0   |  9  |  190   |
-|  BASE[4]   |   0   |  9  |  181   |
-| ENABLED[4] |   0   |  1  |  180   |
-|   TOP[3]   |   0   |  9  |  171   |
-|  BASE[3]   |   0   |  9  |  162   |
-| ENABLED[3] |   0   |  1  |  161   |
-|   TOP[2]   |   0   |  9  |  152   |
-|  BASE[2]   |   0   |  9  |  143   |
-| ENABLED[2] |   0   |  1  |  142   |
-|   TOP[1]   |   0   |  9  |  133   |
-|  BASE[1]   |   0   |  9  |  124   |
-| ENABLED[1] |   0   |  1  |  123   |
-|   TOP[0]   |  511  |  9  |  114   |
+|   TOP[7]   |  511  |  9  |  247   |
+|  BASE[7]   |  448  |  9  |  238   |
+| ENABLED[7] |   1   |  1  |  237   |
+|   TOP[6]   |  447  |  9  |  228   |
+|  BASE[6]   |  384  |  9  |  219   |
+| ENABLED[6] |   1   |  1  |  218   |
+|   TOP[5]   |  383  |  9  |  209   |
+|  BASE[5]   |  320  |  9  |  200   |
+| ENABLED[5] |   1   |  1  |  199   |
+|   TOP[4]   |  319  |  9  |  190   |
+|  BASE[4]   |  256  |  9  |  181   |
+| ENABLED[4] |   1   |  1  |  180   |
+|   TOP[3]   |  255  |  9  |  171   |
+|  BASE[3]   |  192  |  9  |  162   |
+| ENABLED[3] |   1   |  1  |  161   |
+|   TOP[2]   |  191  |  9  |  152   |
+|  BASE[2]   |  128  |  9  |  143   |
+| ENABLED[2] |   1   |  1  |  142   |
+|   TOP[1]   |  127  |  9  |  133   |
+|  BASE[1]   |   64  |  9  |  124   |
+| ENABLED[1] |   1   |  1  |  123   |
+|   TOP[0]   |   63  |  9  |  114   |
 |  BASE[0]   |   0   |  9  |  105   |
 | ENABLED[0] |   1   |  1  |  104   |
 |    IFG     |   0   |  5  |   99   |
@@ -858,28 +927,28 @@ Table ID: 9 #entries: 5
 +------------+-------+-----+--------+
 |    Name    | Value | Len | Offset |
 +------------+-------+-----+--------+
-|   TOP[7]   |   0   |  9  |  247   |
-|  BASE[7]   |   0   |  9  |  238   |
-| ENABLED[7] |   0   |  1  |  237   |
-|   TOP[6]   |   0   |  9  |  228   |
-|  BASE[6]   |   0   |  9  |  219   |
-| ENABLED[6] |   0   |  1  |  218   |
-|   TOP[5]   |   0   |  9  |  209   |
-|  BASE[5]   |   0   |  9  |  200   |
-| ENABLED[5] |   0   |  1  |  199   |
-|   TOP[4]   |   0   |  9  |  190   |
-|  BASE[4]   |   0   |  9  |  181   |
-| ENABLED[4] |   0   |  1  |  180   |
-|   TOP[3]   |   0   |  9  |  171   |
-|  BASE[3]   |   0   |  9  |  162   |
-| ENABLED[3] |   0   |  1  |  161   |
-|   TOP[2]   |   0   |  9  |  152   |
-|  BASE[2]   |   0   |  9  |  143   |
-| ENABLED[2] |   0   |  1  |  142   |
-|   TOP[1]   |   0   |  9  |  133   |
-|  BASE[1]   |   0   |  9  |  124   |
-| ENABLED[1] |   0   |  1  |  123   |
-|   TOP[0]   |  511  |  9  |  114   |
+|   TOP[7]   |  511  |  9  |  247   |
+|  BASE[7]   |  448  |  9  |  238   |
+| ENABLED[7] |   1   |  1  |  237   |
+|   TOP[6]   |  447  |  9  |  228   |
+|  BASE[6]   |  384  |  9  |  219   |
+| ENABLED[6] |   1   |  1  |  218   |
+|   TOP[5]   |  383  |  9  |  209   |
+|  BASE[5]   |  320  |  9  |  200   |
+| ENABLED[5] |   1   |  1  |  199   |
+|   TOP[4]   |  319  |  9  |  190   |
+|  BASE[4]   |  256  |  9  |  181   |
+| ENABLED[4] |   1   |  1  |  180   |
+|   TOP[3]   |  255  |  9  |  171   |
+|  BASE[3]   |  192  |  9  |  162   |
+| ENABLED[3] |   1   |  1  |  161   |
+|   TOP[2]   |  191  |  9  |  152   |
+|  BASE[2]   |  128  |  9  |  143   |
+| ENABLED[2] |   1   |  1  |  142   |
+|   TOP[1]   |  127  |  9  |  133   |
+|  BASE[1]   |   64  |  9  |  124   |
+| ENABLED[1] |   1   |  1  |  123   |
+|   TOP[0]   |   63  |  9  |  114   |
 |  BASE[0]   |   0   |  9  |  105   |
 | ENABLED[0] |   1   |  1  |  104   |
 |    IFG     |   0   |  5  |   99   |
@@ -910,28 +979,28 @@ Table ID: 9 #entries: 5
 +------------+-------+-----+--------+
 |    Name    | Value | Len | Offset |
 +------------+-------+-----+--------+
-|   TOP[7]   |   0   |  9  |  247   |
-|  BASE[7]   |   0   |  9  |  238   |
-| ENABLED[7] |   0   |  1  |  237   |
-|   TOP[6]   |   0   |  9  |  228   |
-|  BASE[6]   |   0   |  9  |  219   |
-| ENABLED[6] |   0   |  1  |  218   |
-|   TOP[5]   |   0   |  9  |  209   |
-|  BASE[5]   |   0   |  9  |  200   |
-| ENABLED[5] |   0   |  1  |  199   |
-|   TOP[4]   |   0   |  9  |  190   |
-|  BASE[4]   |   0   |  9  |  181   |
-| ENABLED[4] |   0   |  1  |  180   |
-|   TOP[3]   |   0   |  9  |  171   |
-|  BASE[3]   |   0   |  9  |  162   |
-| ENABLED[3] |   0   |  1  |  161   |
-|   TOP[2]   |   0   |  9  |  152   |
-|  BASE[2]   |   0   |  9  |  143   |
-| ENABLED[2] |   0   |  1  |  142   |
-|   TOP[1]   |   0   |  9  |  133   |
-|  BASE[1]   |   0   |  9  |  124   |
-| ENABLED[1] |   0   |  1  |  123   |
-|   TOP[0]   |  511  |  9  |  114   |
+|   TOP[7]   |  511  |  9  |  247   |
+|  BASE[7]   |  448  |  9  |  238   |
+| ENABLED[7] |   1   |  1  |  237   |
+|   TOP[6]   |  447  |  9  |  228   |
+|  BASE[6]   |  384  |  9  |  219   |
+| ENABLED[6] |   1   |  1  |  218   |
+|   TOP[5]   |  383  |  9  |  209   |
+|  BASE[5]   |  320  |  9  |  200   |
+| ENABLED[5] |   1   |  1  |  199   |
+|   TOP[4]   |  319  |  9  |  190   |
+|  BASE[4]   |  256  |  9  |  181   |
+| ENABLED[4] |   1   |  1  |  180   |
+|   TOP[3]   |  255  |  9  |  171   |
+|  BASE[3]   |  192  |  9  |  162   |
+| ENABLED[3] |   1   |  1  |  161   |
+|   TOP[2]   |  191  |  9  |  152   |
+|  BASE[2]   |  128  |  9  |  143   |
+| ENABLED[2] |   1   |  1  |  142   |
+|   TOP[1]   |  127  |  9  |  133   |
+|  BASE[1]   |   64  |  9  |  124   |
+| ENABLED[1] |   1   |  1  |  123   |
+|   TOP[0]   |   63  |  9  |  114   |
 |  BASE[0]   |   0   |  9  |  105   |
 | ENABLED[0] |   1   |  1  |  104   |
 |    IFG     |   0   |  5  |   99   |
@@ -962,28 +1031,28 @@ Table ID: 9 #entries: 5
 +------------+-------+-----+--------+
 |    Name    | Value | Len | Offset |
 +------------+-------+-----+--------+
-|   TOP[7]   |   0   |  9  |  247   |
-|  BASE[7]   |   0   |  9  |  238   |
-| ENABLED[7] |   0   |  1  |  237   |
-|   TOP[6]   |   0   |  9  |  228   |
-|  BASE[6]   |   0   |  9  |  219   |
-| ENABLED[6] |   0   |  1  |  218   |
-|   TOP[5]   |   0   |  9  |  209   |
-|  BASE[5]   |   0   |  9  |  200   |
-| ENABLED[5] |   0   |  1  |  199   |
-|   TOP[4]   |   0   |  9  |  190   |
-|  BASE[4]   |   0   |  9  |  181   |
-| ENABLED[4] |   0   |  1  |  180   |
-|   TOP[3]   |   0   |  9  |  171   |
-|  BASE[3]   |   0   |  9  |  162   |
-| ENABLED[3] |   0   |  1  |  161   |
-|   TOP[2]   |   0   |  9  |  152   |
-|  BASE[2]   |   0   |  9  |  143   |
-| ENABLED[2] |   0   |  1  |  142   |
-|   TOP[1]   |   0   |  9  |  133   |
-|  BASE[1]   |   0   |  9  |  124   |
-| ENABLED[1] |   0   |  1  |  123   |
-|   TOP[0]   |  511  |  9  |  114   |
+|   TOP[7]   |  511  |  9  |  247   |
+|  BASE[7]   |  448  |  9  |  238   |
+| ENABLED[7] |   1   |  1  |  237   |
+|   TOP[6]   |  447  |  9  |  228   |
+|  BASE[6]   |  384  |  9  |  219   |
+| ENABLED[6] |   1   |  1  |  218   |
+|   TOP[5]   |  383  |  9  |  209   |
+|  BASE[5]   |  320  |  9  |  200   |
+| ENABLED[5] |   1   |  1  |  199   |
+|   TOP[4]   |  319  |  9  |  190   |
+|  BASE[4]   |  256  |  9  |  181   |
+| ENABLED[4] |   1   |  1  |  180   |
+|   TOP[3]   |  255  |  9  |  171   |
+|  BASE[3]   |  192  |  9  |  162   |
+| ENABLED[3] |   1   |  1  |  161   |
+|   TOP[2]   |  191  |  9  |  152   |
+|  BASE[2]   |  128  |  9  |  143   |
+| ENABLED[2] |   1   |  1  |  142   |
+|   TOP[1]   |  127  |  9  |  133   |
+|  BASE[1]   |   64  |  9  |  124   |
+| ENABLED[1] |   1   |  1  |  123   |
+|   TOP[0]   |   63  |  9  |  114   |
 |  BASE[0]   |   0   |  9  |  105   |
 | ENABLED[0] |   1   |  1  |  104   |
 |    IFG     |   0   |  5  |   99   |
@@ -1018,15 +1087,15 @@ Table ID: 13 #entries: 1
 |     DRPBC      |   0   |  5  |  123   |
 |     DRPMC      |   0   |  5  |  118   |
 |     DRPUNI     |   0   |  5  |  113   |
-|  MAXADDRP[4]   |  1024 |  11 |  102   |
-|  MAXADDRP[3]   |  1024 |  11 |   91   |
-|  MAXADDRP[2]   |  1024 |  11 |   80   |
-|  MAXADDRP[1]   |  1024 |  11 |   69   |
-|  MAXADDRP[0]   |  1024 |  11 |   58   |
+|  MAXADDRP[4]   |   16  |  11 |  102   |
+|  MAXADDRP[3]   |   32  |  11 |   91   |
+|  MAXADDRP[2]   |  512  |  11 |   80   |
+|  MAXADDRP[1]   |  512  |  11 |   69   |
+|  MAXADDRP[0]   |  512  |  11 |   58   |
 |     MAXAGE     |   0   |  15 |   43   |
-|  START_DYNSPC  |   0   |  10 |   33   |
+|  START_DYNSPC  |   16  |  10 |   33   |
 |   DRPNOLEARN   |   0   |  5  |   28   |
-|  SHARED_LEARN  |   0   |  1  |   27   |
+|  SHARED_LEARN  |   1   |  1  |   27   |
 | NO_ENF_HOSTPRT |   0   |  1  |   26   |
 | NO_MGMT_LEARN  |   1   |  1  |   25   |
 |   USE_STATIC   |   0   |  1  |   24   |
@@ -1039,14 +1108,14 @@ Table ID: 14 #entries: 1
 |     Name    | Value | Len | Offset |
 +-------------+-------+-----+--------+
 |   MAX_DYNP  |   0   |  3  |   93   |
-| PART_SPC[7] |   0   |  10 |   83   |
-| PART_SPC[6] |   0   |  10 |   73   |
-| PART_SPC[5] |   0   |  10 |   63   |
-| PART_SPC[4] |   0   |  10 |   53   |
-| PART_SPC[3] |   0   |  10 |   43   |
-| PART_SPC[2] |   0   |  10 |   33   |
-| PART_SPC[1] |   0   |  10 |   23   |
-| PART_SPC[0] |  910  |  10 |   13   |
+| PART_SPC[7] |   88  |  10 |   83   |
+| PART_SPC[6] |   88  |  10 |   73   |
+| PART_SPC[5] |   88  |  10 |   63   |
+| PART_SPC[4] |   88  |  10 |   53   |
+| PART_SPC[3] |   88  |  10 |   43   |
+| PART_SPC[2] |   88  |  10 |   33   |
+| PART_SPC[1] |   88  |  10 |   23   |
+| PART_SPC[0] |  198  |  10 |   13   |
 +-------------+-------+-----+--------+
 Table ID: 16 #entries: 1
 ======= entry #0 =======
@@ -1066,8 +1135,8 @@ Table ID: 17 #entries: 1
 |  VLLUPFORMAT  |        0        |  1  |  351   |
 |   MIRR_PTACU  |        1        |  1  |  350   |
 |    SWITCHID   |        0        |  3  |  347   |
-|    HOSTPRIO   |        5        |  3  |  344   |
-| MAC_FLTRES[1] |  1652522221571  |  48 |  296   |
+|    HOSTPRIO   |        7        |  3  |  344   |
+| MAC_FLTRES[1] |  1652522221568  |  48 |  296   |
 | MAC_FLTRES[0] |  1652522221582  |  48 |  248   |
 |   MAC_FLT[1]  | 281474959933695 |  48 |  200   |
 |   MAC_FLT[0]  | 281474959933695 |  48 |  152   |

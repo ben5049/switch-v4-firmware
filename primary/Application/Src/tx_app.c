@@ -14,7 +14,7 @@
 
 
 /* This function should be called once in App_ThreadX_Init */
-void tx_user_init() {
+void tx_user_init(void *memory_ptr) {
     tx_mutex_create(&sja1105_mutex_ptr, "sja1105_mutex", TX_INHERIT);
 
     tx_semaphore_create(&dhcp_semaphore_ptr, "dhcp_semaphore", 0);

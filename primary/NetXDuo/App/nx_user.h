@@ -92,9 +92,7 @@
 
 /* NX_PHYSICAL_HEADER Specifies the size in bytes of the physical header of
    the frame. */
-/*
-#define NX_PHYSICAL_HEADER						16
-*/
+#define NX_PHYSICAL_HEADER                      20
 
 /* NX_PHYSICAL_TRAILER specifies the size in bytes of the physical packet
    trailer and is typically used to reserve storage for things like Ethernet
@@ -2407,9 +2405,7 @@
    Note: Require driver support to use APIs from this file.
          A quick check in driver is to search for
          NX_LINK_RAW_PACKET_SEND. VLAN APIs are not supported if not found. */
-/*
 #define NX_ENABLE_VLAN
-*/
 
 #ifdef NX_DISABLE_IPV6
 #ifdef NX_DISABLE_IPV4

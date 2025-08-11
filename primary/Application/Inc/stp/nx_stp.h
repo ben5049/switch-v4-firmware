@@ -35,8 +35,6 @@ extern "C" {
 
 typedef struct {
     NX_PACKET            *tx_packet_ptr;
-    uint8_t              *tx_packet_header_ptr;
-    uint8_t              *tx_packet_payload_ptr;
     NX_IP                *ip_ptr;
     NX_PACKET            *rx_packet_queue_head;
     NX_PACKET            *rx_packet_queue_tail;

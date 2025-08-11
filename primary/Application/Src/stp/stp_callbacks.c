@@ -21,17 +21,8 @@
 #include "switch_thread.h"
 
 
-#define INCR_TX_DESC_INDEX(inx, offset)                   \
-    do {                                                  \
-        (inx) += (offset);                                \
-        if ((inx) >= (uint32_t) ETH_TX_DESC_CNT) {        \
-            (inx) = ((inx) - (uint32_t) ETH_TX_DESC_CNT); \
-        }                                                 \
-    } while (0)
-
-
 const uint8_t bpdu_dest_address[BPDU_DST_ADDR_SIZE]      = {0x01, 0x80, 0xC2, 0x00, 0x00, 0x00};
-const uint8_t bpdu_dest_address_mask[BPDU_DST_ADDR_SIZE] = {0xff, 0xff, 0xff, 0x00, 0x00, 0xff}; /* Bytes 1 and 2 are masked out because the switch puts the source port tag there */
+const uint8_t bpdu_dest_address_mask[BPDU_DST_ADDR_SIZE] = {0xff, 0xff, 0xff, 0x00, 0x00, 0xff}; /* Bytes 1 and 2 are masked because the SJA1105 switch puts the source port tag there */
 const uint8_t bpdu_llc[BPDU_LLC_SIZE]                    = {0x42, 0x42, 0x03};
 
 static UCHAR        stp_byte_pool_buffer[STP_MEM_POOL_SIZE] __ALIGNED(32);
@@ -61,12 +52,14 @@ static void stp_enableBpduTrapping(const struct STP_BRIDGE* bridge, bool enable,
         if (!hsja1105.initialised) Error_Handler();
 
         /* SJA1105 is now initialised, check the BPDU address is trapped by MAC filters */
-        bool trapped = false;
-        status       = SJA1105_MACAddrTrapTest(&hsja1105, bpdu_dest_address, &trapped);
+        bool trapped    = false;
+        bool send_meta  = false;
+        bool incl_srcpt = false;
+        status          = SJA1105_MACAddrTrapTest(&hsja1105, bpdu_dest_address, &trapped, &send_meta, &incl_srcpt);
         if (status != SJA1105_OK) Error_Handler(); /* TODO: Handle this properly */
 
         /* Trapped by MAC filters: success */
-        if (trapped) {
+        if (trapped && incl_srcpt) {
             return;
         }
 
@@ -129,49 +122,60 @@ static void* stp_transmitGetBuffer(const struct STP_BRIDGE* bridge, unsigned int
     if (SJA1105_ManagementRouteCreate(&hsja1105, bpdu_dest_address, 1 << portIndex, false, false, &nx_stp) != SJA1105_OK) Error_Handler();
 
     /* Allocate the packet */
-    nx_stp_allocate_packet();
-    uint8_t offset = 0;
+    if (nx_stp_allocate_packet() != NX_SUCCESS) Error_Handler();
+    NX_PACKET* packet_ptr = packet_ptr;
+    uint8_t    offset     = 0;
+
+    /* Take the mutex while building the packet (this is released in transmitReleaseBuffer()) */
+    tx_mutex_get(&(nx_stp.ip_ptr->nx_ip_protection), TX_WAIT_FOREVER);
+
+    /* Adjust prepend pointer and lengths */
+    packet_ptr->nx_packet_length      += BPDU_HEADER_SIZE - BPDU_LLC_SIZE;
+    packet_ptr->nx_packet_prepend_ptr -= BPDU_HEADER_SIZE - BPDU_LLC_SIZE;
 
     /* Write the destination MAC address */
-    memcpy(nx_stp.tx_packet_header_ptr + offset, bpdu_dest_address, BPDU_DST_ADDR_SIZE);
+    memcpy(packet_ptr->nx_packet_prepend_ptr + offset, bpdu_dest_address, BPDU_DST_ADDR_SIZE);
     offset += BPDU_DST_ADDR_SIZE;
 
     /* Write the source MAC address */
-    write_mac_addr(nx_stp.tx_packet_header_ptr + offset);
+    write_mac_addr(packet_ptr->nx_packet_prepend_ptr + offset);
     offset += BPDU_SRC_ADDR_SIZE;
 
     /* Generate the port address from the bridge address by adding (1 + portIndex) to the last byte */
-    bool wrap                                    = (((uint16_t) *(nx_stp.tx_packet_header_ptr + offset - 1)) + 1 + portIndex) > UINT8_MAX;
-    *(nx_stp.tx_packet_header_ptr + offset - 1) += (1 + portIndex);
-    if (wrap) (*(nx_stp.tx_packet_header_ptr + offset - 2))++;
+    bool wrap                                          = (((uint16_t) *(packet_ptr->nx_packet_prepend_ptr + offset - 1)) + 1 + portIndex) > UINT8_MAX;
+    *(packet_ptr->nx_packet_prepend_ptr + offset - 1) += (1 + portIndex);
+    if (wrap) (*(packet_ptr->nx_packet_prepend_ptr + offset - 2))++;
 
     /* Write the EtherType/Size, which specifies the size of the payload starting at the LLC field, so BPDU_LLC_SIZE (3) + bpduSize */
-    uint16_t etherTypeOrSize                = BPDU_LLC_SIZE + bpduSize;
-    *(nx_stp.tx_packet_header_ptr + offset) = (uint8_t) (etherTypeOrSize >> 8);
-    offset++;
-    *(nx_stp.tx_packet_header_ptr + offset) = (uint8_t) (etherTypeOrSize & 0xff);
-    offset++;
+    uint16_t etherTypeOrSize                        = BPDU_LLC_SIZE + bpduSize;
+    *(packet_ptr->nx_packet_prepend_ptr + offset++) = (uint8_t) (etherTypeOrSize >> 8);
+    *(packet_ptr->nx_packet_prepend_ptr + offset++) = (uint8_t) (etherTypeOrSize & 0xff);
 
     /* Check the size of the header is correct */
     if (offset != (BPDU_HEADER_SIZE - BPDU_LLC_SIZE)) Error_Handler();
 
-    /* 3 bytes for the LLC field, which normally are 0x42, 0x42, 0x03 */
-    memcpy(nx_stp.tx_packet_payload_ptr, bpdu_llc, 3);
-    nx_stp.tx_packet_ptr->nx_packet_length     += BPDU_LLC_SIZE;
-    nx_stp.tx_packet_ptr->nx_packet_append_ptr += BPDU_LLC_SIZE;
+    /* 3 bytes for the LLC field, which is normally 0x42, 0x42, 0x03 */
+    memcpy(packet_ptr->nx_packet_append_ptr, bpdu_llc, 3);
+    packet_ptr->nx_packet_length     += BPDU_LLC_SIZE;
+    packet_ptr->nx_packet_append_ptr += BPDU_LLC_SIZE;
 
-    /* Update the size and append pointer */
-    nx_stp.tx_packet_ptr->nx_packet_length     += bpduSize;
-    nx_stp.tx_packet_ptr->nx_packet_append_ptr += bpduSize;
+    /* Preemptively update the size and append pointer for the BPDU buffer */
+    uint8_t* bpdu_buf = packet_ptr->nx_packet_append_ptr;
+    if ((packet_ptr->nx_packet_data_end - packet_ptr->nx_packet_append_ptr) < bpduSize) Error_Handler();
+    packet_ptr->nx_packet_length     += bpduSize;
+    packet_ptr->nx_packet_append_ptr += bpduSize;
 
     /* Return the pointer to after the LLC where the BPDU should be written */
-    return nx_stp.tx_packet_payload_ptr + BPDU_LLC_SIZE;
+    return bpdu_buf;
 }
 
 
 static void stp_transmitReleaseBuffer(const struct STP_BRIDGE* bridge, void* bufferReturnedByGetBuffer) {
 
     nx_status_t status = NX_STATUS_SUCCESS;
+
+    /* Release the protection (this was taken while building the packet in stp_transmitGetBuffer())*/
+    tx_mutex_put(&(nx_stp.ip_ptr->nx_ip_protection));
 
     status = nx_stp_send_packet();
     if (status != NX_STATUS_SUCCESS) Error_Handler();

@@ -127,7 +127,7 @@ void stp_thread_entry(uint32_t initial_input) {
     if (stp_byte_pool_init() != TX_SUCCESS) Error_Handler();
 
     /* Create and start the bridge */
-    bridge = STP_CreateBridge(5, 0, 16, &stp_callbacks, mac_address, 100);
+    bridge = STP_CreateBridge(5, 0, NUM_VLANS, &stp_callbacks, mac_address, 100);
     STP_StartBridge(bridge, tx_time_get_ms());
 
     /* Setup timing control variables */

@@ -54,7 +54,13 @@
     "C_Cpp.default.cppStandard": "c++20",
     "C_Cpp.default.cStandard": "c17",
     "C_Cpp.default.defines": [
-        "SJA1105_ENABLE_NX_DRIVER"
+        "USE_HAL_DRIVER",
+        "STM32H573xx",
+        "TX_SINGLE_MODE_NON_SECURE=1",
+        "TX_INCLUDE_USER_DEFINE_FILE",
+        "NX_INCLUDE_USER_DEFINE_FILE",
+        "ZENOH_GENERIC",
+        "DEBUG"
     ],
     "C_Cpp.errorSquiggles": "enabled",
     "C_Cpp.files.exclude": {

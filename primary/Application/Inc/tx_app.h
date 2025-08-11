@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 
-void tx_user_init(void);
+void tx_user_init(void *memory_ptr);
 
 
 #ifdef __cplusplus

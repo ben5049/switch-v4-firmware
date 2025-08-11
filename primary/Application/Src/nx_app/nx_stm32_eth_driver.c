@@ -29,7 +29,6 @@
 #include "nx_stm32_phy_driver.h"
 
 /* Include layer 2 protocol functions */
-#include "nx_l2_protocol.h"
 #include "nx_stp.h"
 #include "stp_callbacks.h"
 #include "utils.h"
@@ -66,7 +65,7 @@ static VOID _nx_driver_initialize(NX_IP_DRIVER *driver_req_ptr);
 static VOID _nx_driver_enable(NX_IP_DRIVER *driver_req_ptr);
 static VOID _nx_driver_disable(NX_IP_DRIVER *driver_req_ptr);
 static VOID _nx_driver_packet_send(NX_IP_DRIVER *driver_req_ptr);
-static VOID _nx_driver_l2_packet_send(NX_IP_DRIVER *driver_req_ptr);
+static VOID _nx_driver_raw_packet_send(NX_IP_DRIVER *driver_req_ptr);
 static VOID _nx_driver_multicast_join(NX_IP_DRIVER *driver_req_ptr);
 static VOID _nx_driver_multicast_leave(NX_IP_DRIVER *driver_req_ptr);
 static VOID _nx_driver_get_status(NX_IP_DRIVER *driver_req_ptr);
@@ -210,13 +209,12 @@ VOID nx_stm32_eth_driver(NX_IP_DRIVER *driver_req_ptr)
             break;
         }
 
-        case NX_LINK_L2_PACKET_SEND: {
+        case NX_LINK_RAW_PACKET_SEND: {
 
             /* Process packet send requests.  */
-            _nx_driver_l2_packet_send(driver_req_ptr);
+            _nx_driver_raw_packet_send(driver_req_ptr);
             break;
         }
-
 
         case NX_LINK_MULTICAST_JOIN: {
 
@@ -846,7 +844,7 @@ static VOID _nx_driver_packet_send(NX_IP_DRIVER *driver_req_ptr) {
 /*                                                                        */
 /*  FUNCTION                                               RELEASE        */
 /*                                                                        */
-/*    _nx_driver_l2_packet_send                                           */
+/*    _nx_driver_raw_packet_send                                          */
 /*                                                           N/A          */
 /*  AUTHOR                                                                */
 /*                                                                        */
@@ -854,8 +852,8 @@ static VOID _nx_driver_packet_send(NX_IP_DRIVER *driver_req_ptr) {
 /*                                                                        */
 /*  DESCRIPTION                                                           */
 /*                                                                        */
-/*    This function processes the packet send request for layer 2         */
-/*    packets. The processing in this function is generic. All ethernet   */
+/*    This function processes the packet send request for raw packets.    */
+/*    The processing in this function is generic. All ethernet            */
 /*    controller packet send logic is to be placed in                     */
 /*    _nx_driver_hardware_packet_send.                                    */
 /*                                                                        */
@@ -876,82 +874,73 @@ static VOID _nx_driver_packet_send(NX_IP_DRIVER *driver_req_ptr) {
 /*    Driver entry function                                               */
 /*                                                                        */
 /**************************************************************************/
-static VOID _nx_driver_l2_packet_send(NX_IP_DRIVER *driver_req_ptr) {
+static VOID _nx_driver_raw_packet_send(NX_IP_DRIVER *driver_req_ptr) {
 
     NX_PACKET *packet_ptr;
     ULONG     *ethernet_frame_ptr;
     UINT       status;
+    uint8_t    header_size;
 
     /* Check to make sure the link is up.  */
     if (nx_driver_information.nx_driver_information_state != NX_DRIVER_STATE_LINK_ENABLED) {
 
+        /* Remove the Ethernet header */
+        nx_link_ethernet_header_parse(packet_ptr, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &header_size);
+        packet_ptr->nx_packet_prepend_ptr = packet_ptr->nx_packet_prepend_ptr + header_size;
+        packet_ptr->nx_packet_length      = packet_ptr->nx_packet_length - header_size;
+
         /* Indicate an unsuccessful packet send.  */
         driver_req_ptr->nx_ip_driver_status = NX_DRIVER_ERROR;
 
-        /* Link is not up, simply free the packet.  */
+        /* Link is not up, free the packet.  */
         nx_packet_transmit_release(driver_req_ptr->nx_ip_driver_packet);
         return;
     }
 
-    /* Process driver send packet.  */
-
     /* Place the ethernet frame at the front of the packet.  */
     packet_ptr = driver_req_ptr->nx_ip_driver_packet;
-
-    /* Adjust the prepend pointer.  */
-    packet_ptr->nx_packet_prepend_ptr =
-        packet_ptr->nx_packet_prepend_ptr - NX_DRIVER_ETHERNET_FRAME_SIZE;
-
-    /* Adjust the packet length.  */
-    packet_ptr->nx_packet_length = packet_ptr->nx_packet_length + NX_DRIVER_ETHERNET_FRAME_SIZE;
-
-    /* Setup the ethernet frame pointer to build the ethernet frame.  Backup another 2
-     * bytes to get 32-bit word alignment.  */
-    ethernet_frame_ptr = (ULONG *) (packet_ptr->nx_packet_prepend_ptr - 2);
-
-    /* DO NOT set up the hardware addresses in the Ethernet header since the caller will have done this already */
-
-    /* Endian swapping if NX_LITTLE_ENDIAN is defined.  */
-    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr));
-    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr + 1));
-    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr + 2));
-    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr + 3));
 
     /* Determine if the packet exceeds the driver's MTU.  */
     if (packet_ptr->nx_packet_length > NX_DRIVER_ETHERNET_MTU) {
 
-        /* This packet exceeds the size of the driver's MTU. Simply throw it away! */
+        /* This packet exceeds the size of the driver's MTU. Throw it away */
 
-        /* Remove the Ethernet header.  */
-        NX_DRIVER_ETHERNET_HEADER_REMOVE(packet_ptr);
+        /* Remove the Ethernet header */
+        nx_link_ethernet_header_parse(packet_ptr, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &header_size);
+        packet_ptr->nx_packet_prepend_ptr = packet_ptr->nx_packet_prepend_ptr + header_size;
+        packet_ptr->nx_packet_length      = packet_ptr->nx_packet_length - header_size;
 
-        /* Indicate an unsuccessful packet send.  */
+        /* Indicate an unsuccessful packet send */
         driver_req_ptr->nx_ip_driver_status = NX_DRIVER_ERROR;
 
-        /* Free the packet.  */
+        /* Free the packet */
         nx_packet_transmit_release(packet_ptr);
         return;
     }
 
-    /* Transmit the packet through the Ethernet controller low level access routine. */
+    /* Transmit the packet through the Ethernet controller low level access routine */
     status = _nx_driver_hardware_packet_send(packet_ptr);
 
-    /* Determine if there was an error.  */
+    /* Determine if there was an error */
     if (status != NX_SUCCESS) {
 
-        /* Driver's hardware send packet routine failed to send the packet.  */
+        /* Driver's hardware send packet routine failed to send the packet */
 
-        /* Remove the Ethernet header.  */
-        NX_DRIVER_ETHERNET_HEADER_REMOVE(packet_ptr);
+        /* Remove the Ethernet header */
+        nx_link_ethernet_header_parse(packet_ptr, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &header_size);
+        packet_ptr->nx_packet_prepend_ptr = packet_ptr->nx_packet_prepend_ptr + header_size;
+        packet_ptr->nx_packet_length      = packet_ptr->nx_packet_length - header_size;
 
-        /* Indicate an unsuccessful packet send.  */
+        /* Indicate an unsuccessful packet send */
         driver_req_ptr->nx_ip_driver_status = NX_DRIVER_ERROR;
 
-        /* Free the packet.  */
+        /* Free the packet */
         nx_packet_transmit_release(packet_ptr);
+        return;
+
     } else {
 
-        /* Set the status of the request.  */
+        /* Set the status of the request */
         driver_req_ptr->nx_ip_driver_status = NX_SUCCESS;
     }
 }
@@ -1341,14 +1330,14 @@ static VOID _nx_driver_deferred_processing(NX_IP_DRIVER *driver_req_ptr) {
 /*  FUNCTION                                               RELEASE        */
 /*                                                                        */
 /*    _nx_driver_transfer_to_netx                                         */
-/*                                                           6.1          */
+/*                                                           6.x          */
 /*  AUTHOR                                                                */
 /*                                                                        */
-/*    Yuxin Zhou, Microsoft Corporation                                   */
+/*    Ben Smith                                                           */
 /*                                                                        */
 /*  DESCRIPTION                                                           */
 /*                                                                        */
-/*    This function processing incoming packets.  This routine would      */
+/*    This function processing incoming packets. This routine would       */
 /*    be called from the driver-specific receive packet processing        */
 /*    function _nx_driver_hardware.                                       */
 /*                                                                        */
@@ -1359,15 +1348,12 @@ static VOID _nx_driver_deferred_processing(NX_IP_DRIVER *driver_req_ptr) {
 /*                                                                        */
 /*  OUTPUT                                                                */
 /*                                                                        */
-/*    Error indication                                                    */
+/*    None                                                                */
 /*                                                                        */
 /*  CALLS                                                                 */
 /*                                                                        */
-/*    _nx_ip_packet_receive                 NetX IP packet receive        */
-/*    _nx_ip_packet_deferred_receive        NetX IP packet receive        */
-/*    _nx_arp_packet_deferred_receive       NetX ARP packet receive       */
-/*    _nx_rarp_packet_deferred_receive      NetX RARP packet receive      */
-/*    _nx_packet_release                    Release packet                */
+/*    nx_stp_packet_deferred_receive        User STP packet receive       */
+/*    nx_link_ethernet_packet_received      NetX ethernet packet receive  */
 /*                                                                        */
 /*  CALLED BY                                                             */
 /*                                                                        */
@@ -1380,70 +1366,25 @@ static VOID _nx_driver_deferred_processing(NX_IP_DRIVER *driver_req_ptr) {
 /*  05-19-2020     Yuxin Zhou               Initial Version 6.0           */
 /*  xx-xx-xxxx     Yuxin Zhou               Modified comment(s),          */
 /*                                            resulting in version 6.1    */
+/*  11-08-2025     Ben Smith                Added STP and VLAN support    */
+/*                                            resulting in version 6.x    */
 /*                                                                        */
 /**************************************************************************/
 static VOID _nx_driver_transfer_to_netx(NX_IP *ip_ptr, NX_PACKET *packet_ptr) {
 
-    USHORT   packet_type;
-    uint8_t *packet_destination_address;
-
-
     /* Set the interface for the incoming packet.  */
     packet_ptr->nx_packet_ip_interface = nx_driver_information.nx_driver_information_interface;
 
-    /* Pickup the packet header to determine where the packet needs to be
-    sent.  */
-    packet_type = (USHORT) (((UINT) (*(packet_ptr->nx_packet_prepend_ptr + 12))) << 8) |
-                  ((UINT) (*(packet_ptr->nx_packet_prepend_ptr + 13)));
-
-    /* Get the pointer to the destination address */
-    packet_destination_address = packet_ptr->nx_packet_prepend_ptr;
-
-    /* Route the incoming packet according to its ethernet type.  */
-    if (packet_type == NX_DRIVER_ETHERNET_IP || packet_type == NX_DRIVER_ETHERNET_IPV6) {
-        /* Note:  The length reported by some Ethernet hardware includes
-        bytes after the packet as well as the Ethernet header.  In some
-        cases, the actual packet length after the Ethernet header should
-        be derived from the length in the IP header (lower 16 bits of
-        the first 32-bit word).  */
-
-        /* Clean off the Ethernet header.  */
-        packet_ptr->nx_packet_prepend_ptr += NX_DRIVER_ETHERNET_FRAME_SIZE;
-
-        /* Adjust the packet length.  */
-        packet_ptr->nx_packet_length -= NX_DRIVER_ETHERNET_FRAME_SIZE;
-
-        /* Route to the ip receive function.  */
-        _nx_ip_packet_deferred_receive(ip_ptr, packet_ptr);
-    } else if (packet_type == NX_DRIVER_ETHERNET_ARP) {
-
-        /* Clean off the Ethernet header.  */
-        packet_ptr->nx_packet_prepend_ptr += NX_DRIVER_ETHERNET_FRAME_SIZE;
-
-        /* Adjust the packet length.  */
-        packet_ptr->nx_packet_length -= NX_DRIVER_ETHERNET_FRAME_SIZE;
-
-        /* Route to the ARP receive function.  */
-        _nx_arp_packet_deferred_receive(ip_ptr, packet_ptr);
-    } else if (packet_type == NX_DRIVER_ETHERNET_RARP) {
-
-        /* Clean off the Ethernet header.  */
-        packet_ptr->nx_packet_prepend_ptr += NX_DRIVER_ETHERNET_FRAME_SIZE;
-
-        /* Adjust the packet length.  */
-        packet_ptr->nx_packet_length -= NX_DRIVER_ETHERNET_FRAME_SIZE;
-
-        /* Route to the RARP receive function.  */
-        _nx_rarp_packet_deferred_receive(ip_ptr, packet_ptr);
-    } else if (compare_mac_addrs_with_mask(packet_destination_address, bpdu_dest_address, bpdu_dest_address_mask)) {
+    /* Check the destination address to see if this is an STP BPDU */
+    if (compare_mac_addrs_with_mask(packet_ptr->nx_packet_prepend_ptr, bpdu_dest_address, bpdu_dest_address_mask)) {
 
         /* Route to the STP receive function */
         nx_stp_packet_deferred_receive(ip_ptr, packet_ptr);
     }
 
-    /* Invalid ethernet header... release the packet.  */
+    /* Otherwise check for VLAN tags and send to the correct interface */
     else {
-        nx_packet_release(packet_ptr);
+        nx_link_ethernet_packet_received(ip_ptr, 1, packet_ptr, );
     }
 }
 
