@@ -9,6 +9,7 @@
 #include "stdbool.h"
 #include "nx_api.h"
 #include "nxd_dhcp_client.h"
+#include "nxd_ptp_client.h"
 #include "nx_stm32_eth_driver.h"
 #include "main.h"
 
@@ -17,7 +18,8 @@
 #include "comms_thread.h"
 
 
-#define NULL_ADDRESS 0
+#define NULL_ADDRESS   0
+#define CLOCK_CALLBACK nx_ptp_client_soft_clock_callback
 
 
 NX_IP    nx_ip_instance;
@@ -26,14 +28,22 @@ uint32_t net_mask;
 
 NX_PACKET_POOL nx_packet_pool;
 
-NX_DHCP      dhcp_client;
-TX_SEMAPHORE dhcp_semaphore_ptr;
+static NX_DHCP dhcp_client;
+TX_SEMAPHORE   dhcp_semaphore_ptr;
+
+static NX_PTP_CLIENT ptp_client;
+static SHORT         ptp_utc_offset = 0; /* Define ptp utc offset.  */
+static ULONG         ptp_stack[NX_PTP_THREAD_STACK_SIZE];
 
 TX_THREAD nx_app_thread_ptr;
 uint8_t   nx_app_thread_stack[NX_APP_THREAD_STACK_SIZE];
 
 TX_THREAD nx_link_thread_ptr;
 uint8_t   nx_link_thread_stack[NX_LINK_THREAD_STACK_SIZE];
+
+
+static UINT ptp_event_callback(NX_PTP_CLIENT *ptp_client_ptr, UINT event, VOID *event_data, VOID *callback_data);
+
 
 /* This function should be called once in MX_NetXDuo_Init */
 nx_status_t nx_user_init(TX_BYTE_POOL *byte_pool) {
@@ -45,72 +55,50 @@ nx_status_t nx_user_init(TX_BYTE_POOL *byte_pool) {
     nx_system_initialize();
 
     /* Allocate the memory for packet_pool.  */
-    if (tx_byte_allocate(byte_pool, (void **) &pointer, NX_APP_PACKET_POOL_SIZE, TX_NO_WAIT) != TX_SUCCESS) {
-        return TX_POOL_ERROR;
-    }
+    status = (tx_byte_allocate(byte_pool, (void **) &pointer, NX_APP_PACKET_POOL_SIZE, TX_NO_WAIT) != TX_SUCCESS);
+    if (status != NX_SUCCESS) return status;
 
     /* Create the Packet pool to be used for packet allocation,
      * If extra NX_PACKET are to be used the NX_APP_PACKET_POOL_SIZE should be increased
      */
     status = nx_packet_pool_create(&nx_packet_pool, "NetXDuo App Pool", DEFAULT_PAYLOAD_SIZE, pointer, NX_APP_PACKET_POOL_SIZE);
-
-    if (status != NX_SUCCESS) {
-        return NX_POOL_ERROR;
-    }
+    if (status != NX_SUCCESS) return status;
 
     /* Allocate the memory for nx_ip_instance */
-    if (tx_byte_allocate(byte_pool, (void **) &pointer, NX_IP_INSTANCE_THREAD_SIZE, TX_NO_WAIT) != TX_SUCCESS) {
-        return TX_POOL_ERROR;
-    }
+    status = (tx_byte_allocate(byte_pool, (void **) &pointer, NX_IP_INSTANCE_THREAD_SIZE, TX_NO_WAIT) != TX_SUCCESS);
+    if (status != NX_SUCCESS) return status;
 
     /* Create the main NX_IP instance */
     status = nx_ip_create(&nx_ip_instance, "NetX Ip instance", NX_APP_DEFAULT_IP_ADDRESS, NX_APP_DEFAULT_NET_MASK, &nx_packet_pool, nx_stm32_eth_driver, pointer, NX_IP_INSTANCE_THREAD_SIZE, NX_APP_INSTANCE_PRIORITY);
-
-    if (status != NX_SUCCESS) {
-        return NX_NOT_SUCCESSFUL;
-    }
+    if (status != NX_SUCCESS) return status;
 
     /* Allocate the memory for ARP */
-    if (tx_byte_allocate(byte_pool, (void **) &pointer, DEFAULT_ARP_CACHE_SIZE, TX_NO_WAIT) != TX_SUCCESS) {
-        return TX_POOL_ERROR;
-    }
+    status = (tx_byte_allocate(byte_pool, (void **) &pointer, DEFAULT_ARP_CACHE_SIZE, TX_NO_WAIT) != TX_SUCCESS);
+    if (status != NX_SUCCESS) return status;
 
     /* Enable ARP and provide the ARP cache size for the IP instance */
     status = nx_arp_enable(&nx_ip_instance, (void *) pointer, DEFAULT_ARP_CACHE_SIZE);
-
-    if (status != NX_SUCCESS) {
-        return NX_NOT_SUCCESSFUL;
-    }
+    if (status != NX_SUCCESS) return status;
 
     /* Enable the ICMP */
     status = nx_icmp_enable(&nx_ip_instance);
-
-    if (status != NX_SUCCESS) {
-        return NX_NOT_SUCCESSFUL;
-    }
+    if (status != NX_SUCCESS) return status;
 
     /* Enable TCP */
     status = nx_tcp_enable(&nx_ip_instance);
-
-    if (status != NX_SUCCESS) {
-        return NX_NOT_SUCCESSFUL;
-    }
+    if (status != NX_SUCCESS) return status;
 
     /* Enable UDP required for DHCP communication */
     status = nx_udp_enable(&nx_ip_instance);
-
-    if (status != NX_SUCCESS) {
-        return NX_NOT_SUCCESSFUL;
-    }
+    if (status != NX_SUCCESS) return status;
 
     /* Create the DHCP client */
     status = nx_dhcp_create(&dhcp_client, &nx_ip_instance, "DHCP Client");
+    if (status != NX_SUCCESS) return status;
 
-    if (status != NX_SUCCESS) {
-        return NX_DHCP_ERROR;
-    }
-
-    /* TODO: Enable STP */
+    /* Create the PTP client */
+    status = nx_ptp_client_create(&ptp_client, &nx_ip_instance, 0, &nx_packet_pool, NX_PTP_THREAD_PRIORITY, (UCHAR *) ptp_stack, sizeof(ptp_stack), CLOCK_CALLBACK, NX_NULL);
+    if (status != NX_SUCCESS) return status;
 
     return status;
 }
@@ -129,6 +117,8 @@ static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
 void nx_app_thread_entry(uint32_t initial_input) {
 
     nx_status_t status = NX_SUCCESS;
+    // NX_PTP_TIME      tm;
+    // NX_PTP_DATE_TIME date;
 
     /* Register the IP address change callback */
     status = nx_ip_address_change_notify(&nx_ip_instance, ip_address_change_notify_callback, NULL);
@@ -152,9 +142,24 @@ void nx_app_thread_entry(uint32_t initial_input) {
     /* the network is correctly initialized, start the TCP thread */
     tx_thread_resume(&comms_thread_ptr);
 
-    /* this thread is not needed any more, relinquish it */
-    tx_thread_relinquish();
+    /* start the PTP client */
+    nx_ptp_client_start(&ptp_client, NX_NULL, 0, 0, 0, ptp_event_callback, NX_NULL);
 
+    // while (1) {
+
+    //     /* read the PTP clock */
+    //     nx_ptp_client_time_get(&ptp_client, &tm);
+
+    //     /* convert PTP time to UTC date and time */
+    //     nx_ptp_client_utility_convert_time_to_date(&tm, -ptp_utc_offset, &date);
+
+    //     /* display the current time */
+    //     printf("%2u/%02u/%u %02u:%02u:%02u.%09lu\r\n", date.day, date.month, date.year, date.hour, date.minute, date.second, date.nanosecond);
+
+    //     tx_thread_sleep(NX_IP_PERIODIC_RATE);
+    // }
+
+    tx_thread_relinquish();
     return;
 }
 
@@ -212,4 +217,32 @@ void nx_link_thread_entry(uint32_t thread_input) {
 
         tx_thread_sleep(NX_APP_CABLE_CONNECTION_CHECK_PERIOD);
     }
+}
+
+
+static UINT ptp_event_callback(NX_PTP_CLIENT *ptp_client_ptr, UINT event, VOID *event_data, VOID *callback_data) {
+    NX_PARAMETER_NOT_USED(callback_data);
+
+    switch (event) {
+        case NX_PTP_CLIENT_EVENT_MASTER: {
+            printf("new MASTER clock!\r\n");
+            break;
+        }
+
+        case NX_PTP_CLIENT_EVENT_SYNC: {
+            nx_ptp_client_sync_info_get((NX_PTP_CLIENT_SYNC *) event_data, NX_NULL, &ptp_utc_offset);
+            printf("SYNC event: utc offset=%d\r\n", ptp_utc_offset);
+            break;
+        }
+
+        case NX_PTP_CLIENT_EVENT_TIMEOUT: {
+            printf("Master clock TIMEOUT!\r\n");
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+
+    return 0;
 }

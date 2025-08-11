@@ -876,10 +876,9 @@ static VOID _nx_driver_packet_send(NX_IP_DRIVER *driver_req_ptr) {
 /**************************************************************************/
 static VOID _nx_driver_raw_packet_send(NX_IP_DRIVER *driver_req_ptr) {
 
-    NX_PACKET *packet_ptr;
-    ULONG     *ethernet_frame_ptr;
-    UINT       status;
-    uint8_t    header_size;
+    NX_PACKET *packet_ptr = driver_req_ptr->nx_ip_driver_packet;
+    UINT       status = NX_SUCCESS;
+    UINT       header_size;
 
     /* Check to make sure the link is up.  */
     if (nx_driver_information.nx_driver_information_state != NX_DRIVER_STATE_LINK_ENABLED) {
@@ -1384,7 +1383,7 @@ static VOID _nx_driver_transfer_to_netx(NX_IP *ip_ptr, NX_PACKET *packet_ptr) {
 
     /* Otherwise check for VLAN tags and send to the correct interface */
     else {
-        nx_link_ethernet_packet_received(ip_ptr, 1, packet_ptr, );
+        nx_link_ethernet_packet_received(ip_ptr, 1, packet_ptr, NULL); // TODO: Get timestamp
     }
 }
 

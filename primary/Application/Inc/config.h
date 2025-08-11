@@ -29,7 +29,7 @@ extern "C" {
 
 #define NX_APP_CABLE_CONNECTION_CHECK_PERIOD (1 * TX_TIMER_TICKS_PER_SECOND)  /* Check every second if the link is up */
 #define NX_APP_DEFAULT_TIMEOUT               (10 * TX_TIMER_TICKS_PER_SECOND) /* Timeout after 10 seconds */
-#define NX_APP_PACKET_POOL_SIZE              ((DEFAULT_PAYLOAD_SIZE + sizeof(NX_PACKET)) * 10)
+#define NX_APP_PACKET_POOL_SIZE              ((DEFAULT_PAYLOAD_SIZE + sizeof(NX_PACKET)) * 32)
 #define NX_IP_INSTANCE_THREAD_SIZE           (2 * 1024)
 #define NX_APP_INSTANCE_PRIORITY             (NX_APP_THREAD_PRIORITY)
 #define NX_APP_DEFAULT_IP_ADDRESS            (0)
@@ -44,7 +44,10 @@ extern "C" {
 #define NX_LINK_THREAD_STACK_SIZE            (2 * 1024)
 #define NX_LINK_THREAD_PRIORITY              (10)
 
-#define NUM_VLANS                            8
+#define NUM_VLANS                            (8)
+
+#define NX_PTP_THREAD_STACK_SIZE             (1024)
+#define NX_PTP_THREAD_PRIORITY               (2)
 
 /* ---------------------------------------------------------------------------- */
 /* Switch Config */

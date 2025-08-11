@@ -20,11 +20,11 @@ nx_status_t nx_stp_init(NX_IP *ip_ptr, char *name, TX_EVENT_FLAGS_GROUP *events)
 
     nx_status_t status = NX_STATUS_SUCCESS;
 
-    nx_stp.ip_ptr = ip_ptr;
+    nx_stp.ip_ptr               = ip_ptr;
     nx_stp.tx_packet_ptr        = NULL;
     nx_stp.rx_packet_queue_head = NULL;
     nx_stp.rx_packet_queue_tail = NULL;
-    nx_stp.events = events;
+    nx_stp.events               = events;
 
     return status;
 }
@@ -74,10 +74,14 @@ nx_status_t nx_stp_send_packet() {
     ethernet_frame_ptr = (uint32_t *) (packet_ptr->nx_packet_prepend_ptr - 2);
 
     /* Change the endianess if required */
-    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr++));
-    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr++));
-    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr++));
-    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr++));
+    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr));
+    ethernet_frame_ptr++;
+    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr));
+    ethernet_frame_ptr++;
+    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr));
+    ethernet_frame_ptr++;
+    NX_CHANGE_ULONG_ENDIAN(*(ethernet_frame_ptr));
+    ethernet_frame_ptr++;
 
     /* Send the packet */
     status = nx_link_raw_packet_send(nx_stp.ip_ptr, 1, packet_ptr);

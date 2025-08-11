@@ -26,3 +26,18 @@ UINT MX_NetXDuo_Init(VOID *memory_ptr) {
     return ret;
 }
 ```
+
+## Ethernet TIM Trigger Remap
+
+```C
+static void MX_TIM2_Init(void) {
+
+    ...
+
+    /* USER CODE BEGIN TIM2_Init 2 */
+    HAL_TIMEx_RemapConfig(&htim2, TIM_TIM2_ETR_ETH_PPS);
+    /* USER CODE END TIM2_Init 2 */
+
+    ...
+}
+```
