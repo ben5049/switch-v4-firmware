@@ -21,10 +21,6 @@
 #include "switch_thread.h"
 
 
-const uint8_t bpdu_dest_address[BPDU_DST_ADDR_SIZE]      = {0x01, 0x80, 0xC2, 0x00, 0x00, 0x00};
-const uint8_t bpdu_dest_address_mask[BPDU_DST_ADDR_SIZE] = {0xff, 0xff, 0xff, 0x00, 0x00, 0xff}; /* Bytes 1 and 2 are masked because the SJA1105 switch puts the source port tag there */
-const uint8_t bpdu_llc[BPDU_LLC_SIZE]                    = {0x42, 0x42, 0x03};
-
 static UCHAR        stp_byte_pool_buffer[STP_MEM_POOL_SIZE] __ALIGNED(32);
 static TX_BYTE_POOL stp_byte_pool;
 

@@ -42,7 +42,10 @@ typedef struct {
 } nx_stp_t;
 
 
-extern nx_stp_t nx_stp;
+extern nx_stp_t      nx_stp;
+extern const uint8_t bpdu_dest_address[BPDU_DST_ADDR_SIZE];
+extern const uint8_t bpdu_dest_address_mask[BPDU_DST_ADDR_SIZE];
+extern const uint8_t bpdu_llc[BPDU_LLC_SIZE];
 
 nx_status_t nx_stp_init(NX_IP *ip_ptr, char *name, TX_EVENT_FLAGS_GROUP *events);
 nx_status_t nx_stp_allocate_packet(void);

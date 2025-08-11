@@ -13,7 +13,10 @@
 #include "stp_thread.h"
 
 
-nx_stp_t nx_stp;
+nx_stp_t      nx_stp;
+const uint8_t bpdu_dest_address[BPDU_DST_ADDR_SIZE]      = {0x01, 0x80, 0xC2, 0x00, 0x00, 0x00};
+const uint8_t bpdu_dest_address_mask[BPDU_DST_ADDR_SIZE] = {0xff, 0xff, 0xff, 0x00, 0x00, 0xff}; /* Bytes 1 and 2 are masked because the SJA1105 switch puts the source port tag there */
+const uint8_t bpdu_llc[BPDU_LLC_SIZE]                    = {0x42, 0x42, 0x03};
 
 
 nx_status_t nx_stp_init(NX_IP *ip_ptr, char *name, TX_EVENT_FLAGS_GROUP *events) {
@@ -25,6 +28,13 @@ nx_status_t nx_stp_init(NX_IP *ip_ptr, char *name, TX_EVENT_FLAGS_GROUP *events)
     nx_stp.rx_packet_queue_head = NULL;
     nx_stp.rx_packet_queue_tail = NULL;
     nx_stp.events               = events;
+
+    /* Join the multicast group */
+    nx_link_multicast_join(
+        ip_ptr,
+        1,
+        (uint32_t) ((bpdu_dest_address[0] << 8) | bpdu_dest_address[1]),
+        (uint32_t) ((bpdu_dest_address[2] << 24) | (bpdu_dest_address[3] << 16) | (bpdu_dest_address[4] << 8) | bpdu_dest_address[5]));
 
     return status;
 }

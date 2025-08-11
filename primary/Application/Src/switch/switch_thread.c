@@ -182,6 +182,8 @@ void switch_thread_entry(uint32_t initial_input) {
         CHECK(SJA1105_ManagementRouteFree(&hsja1105, false));
         /* TODO: Add byte pool maintenance */
 
+        /* TODO: Ocassionally check no important MAC addresses have been learned by accident (PTP, STP, etc)*/
+
         /* Read the temperature */
         CHECK(SJA1105_ReadTemperatureX10(&hsja1105, &temp_x10));
 
