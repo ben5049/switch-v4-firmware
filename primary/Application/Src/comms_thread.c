@@ -31,7 +31,7 @@
 NX_TCP_SOCKET tcp_socket;
 
 uint8_t   comms_thread_stack[COMMS_THREAD_STACK_SIZE];
-TX_THREAD comms_thread_ptr;
+TX_THREAD comms_thread_handle;
 
 
 void comms_thread_entry(uint32_t initial_input) {

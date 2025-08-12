@@ -33,7 +33,7 @@ enum Port_Enum {
 
 /* Exported variables */
 extern uint8_t              switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
-extern TX_THREAD            switch_thread_ptr;
+extern TX_THREAD            switch_thread_handle;
 extern atomic_uint_fast32_t sja1105_error_counter;
 extern sja1105_handle_t     hsja1105;
 

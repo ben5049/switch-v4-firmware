@@ -22,9 +22,11 @@ extern "C" {
 #define TICKS_TO_MS(ticks)        (((ticks) * 1000) / TX_TIMER_TICKS_PER_SECOND)
 #define MS_TO_TICKS(ms)           (((ms) * TX_TIMER_TICKS_PER_SECOND) / 1000)
 
+#define MIN(a, b)                 ((a) < (b) ? (a) : (b))
+#define MAX(a, b)                 ((a) > (b) ? (a) : (b))
 #define CONSTRAIN(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
 
-void write_mac_addr(uint8_t *buf);
+void write_mac_addr(uint8_t* buf);
 bool compare_mac_addrs_with_mask(const uint8_t* addr1, const uint8_t* addr2, const uint8_t* mask);
 
 uint32_t tx_thread_sleep_ms(uint32_t ms);

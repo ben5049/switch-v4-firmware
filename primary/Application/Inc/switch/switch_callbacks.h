@@ -17,7 +17,7 @@ extern "C" {
 
 
 /* Exported variables */
-extern TX_MUTEX                  sja1105_mutex_ptr;
+extern TX_MUTEX                  sja1105_mutex_handle;
 extern const sja1105_callbacks_t sja1105_callbacks;
 
 sja1105_status_t switch_byte_pool_init(void);

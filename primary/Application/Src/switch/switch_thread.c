@@ -21,7 +21,7 @@
     } while (0)
 
 uint8_t   switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
-TX_THREAD switch_thread_ptr;
+TX_THREAD switch_thread_handle;
 
 sja1105_handle_t     hsja1105;
 atomic_uint_fast32_t sja1105_error_counter = 0;

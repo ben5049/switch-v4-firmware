@@ -14,7 +14,8 @@
 #include "main.h"
 
 #include "nx_app.h"
-#include "nx_ptp.h"
+#include "ptp_thread.h"
+#include "ptp_callbacks.h"
 #include "config.h"
 #include "comms_thread.h"
 
@@ -28,17 +29,14 @@ uint32_t net_mask;
 
 NX_PACKET_POOL nx_packet_pool;
 
-static NX_DHCP dhcp_client;
-TX_SEMAPHORE   dhcp_semaphore_ptr;
+NX_DHCP      dhcp_client;
+TX_SEMAPHORE dhcp_semaphore_handle;
 
 NX_PTP_CLIENT  ptp_client;
-static uint8_t ptp_stack[NX_PTP_THREAD_STACK_SIZE]; /* TODO: Rename this, it is confusing */
+static uint8_t nx_internal_ptp_stack[NX_INTERNAL_PTP_THREAD_STACK_SIZE];
 
-TX_THREAD nx_app_thread_ptr;
+TX_THREAD nx_app_thread_handle;
 uint8_t   nx_app_thread_stack[NX_APP_THREAD_STACK_SIZE];
-
-TX_THREAD nx_link_thread_ptr;
-uint8_t   nx_link_thread_stack[NX_LINK_THREAD_STACK_SIZE];
 
 
 /* This function should be called once in MX_NetXDuo_Init */
@@ -61,11 +59,11 @@ nx_status_t nx_user_init(TX_BYTE_POOL *byte_pool) {
     if (status != NX_SUCCESS) return status;
 
     /* Allocate the memory for nx_ip_instance */
-    status = (tx_byte_allocate(byte_pool, (void **) &pointer, NX_IP_INSTANCE_THREAD_SIZE, TX_NO_WAIT) != TX_SUCCESS);
+    status = (tx_byte_allocate(byte_pool, (void **) &pointer, NX_INTERNAL_IP_THREAD_STACK_SIZE, TX_NO_WAIT) != TX_SUCCESS);
     if (status != NX_SUCCESS) return status;
 
     /* Create the main NX_IP instance */
-    status = nx_ip_create(&nx_ip_instance, "NetX Ip instance", NX_APP_DEFAULT_IP_ADDRESS, NX_APP_DEFAULT_NET_MASK, &nx_packet_pool, nx_stm32_eth_driver, pointer, NX_IP_INSTANCE_THREAD_SIZE, NX_APP_INSTANCE_PRIORITY);
+    status = nx_ip_create(&nx_ip_instance, "NetX Ip instance", NX_DEFAULT_IP_ADDRESS, NX_DEFAULT_NET_MASK, &nx_packet_pool, nx_stm32_eth_driver, pointer, NX_INTERNAL_IP_THREAD_STACK_SIZE, NX_INTERNAL_IP_THREAD_PRIORITY);
     if (status != NX_SUCCESS) return status;
 
     /* Allocate the memory for ARP */
@@ -93,7 +91,7 @@ nx_status_t nx_user_init(TX_BYTE_POOL *byte_pool) {
     if (status != NX_SUCCESS) return status;
 
     /* Create the PTP client */
-    status = nx_ptp_client_create(&ptp_client, &nx_ip_instance, 0, &nx_packet_pool, NX_PTP_THREAD_PRIORITY, (UCHAR *) ptp_stack, sizeof(ptp_stack), ptp_clock_callback, NX_NULL);
+    status = nx_ptp_client_create(&ptp_client, &nx_ip_instance, 0, &nx_packet_pool, NX_INTERNAL_PTP_THREAD_PRIORITY, (UCHAR *) nx_internal_ptp_stack, sizeof(nx_internal_ptp_stack), ptp_clock_callback, NX_NULL);
     if (status != NX_SUCCESS) return status;
 
     return status;
@@ -105,7 +103,7 @@ static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
         Error_Handler();
     }
     if (ip_address != NULL_ADDRESS) {
-        tx_semaphore_put(&dhcp_semaphore_ptr);
+        tx_semaphore_put(&dhcp_semaphore_handle);
     }
 }
 
@@ -127,72 +125,17 @@ void nx_app_thread_entry(uint32_t initial_input) {
     }
 
     /* Wait until an IP address is ready */
-    if (tx_semaphore_get(&dhcp_semaphore_ptr, TX_WAIT_FOREVER) != TX_SUCCESS) {
+    if (tx_semaphore_get(&dhcp_semaphore_handle, TX_WAIT_FOREVER) != TX_SUCCESS) {
         Error_Handler();
     }
 
     /* TODO: Start any threads that require networking after this is done such as the comms thread (not stp though) */
 
     /* the network is correctly initialized, start certain threads */
-    tx_thread_resume(&comms_thread_ptr);
-    tx_thread_resume(&nx_ptp_tx_thread_ptr);
+    tx_thread_resume(&comms_thread_handle);
+    tx_thread_resume(&ptp_thread_handle);
 
+    /* This thread is no longer needed */
     tx_thread_relinquish();
     return;
-}
-
-
-/* TODO: Remember the dynamically assigned IP address (NX_DHCP_CLIENT_RESTORE_STATE) */
-
-void nx_link_thread_entry(uint32_t thread_input) {
-
-    nx_ip_status_t actual_status;
-    nx_status_t    status;
-    bool           linkdown = false;
-
-    while (1) {
-
-        /* Send request to check if the Ethernet cable is connected. */
-        status = nx_ip_interface_status_check(&nx_ip_instance, 0, NX_IP_LINK_ENABLED, (uint32_t *) &actual_status, 10);
-
-        if (status == NX_SUCCESS) {
-            if (linkdown) {
-                linkdown = false;
-
-                /* Send request to enable PHY Link. */
-                nx_ip_driver_direct_command(&nx_ip_instance, NX_LINK_ENABLE, (uint32_t *) &actual_status);
-
-                /* Send request to check if an address is resolved. */
-                status = nx_ip_interface_status_check(&nx_ip_instance, 0, NX_IP_ADDRESS_RESOLVED, (uint32_t *) &actual_status, 10);
-                if (status == NX_SUCCESS) {
-
-                    /* Stop DHCP */
-                    nx_dhcp_stop(&dhcp_client);
-
-                    /* Re-initialize DHCP */
-                    nx_dhcp_reinitialize(&dhcp_client);
-
-                    /* Start DHCP */
-                    nx_dhcp_start(&dhcp_client);
-
-                    /* Wait until an IP address is ready */
-                    if (tx_semaphore_get(&dhcp_semaphore_ptr, TX_WAIT_FOREVER) != TX_SUCCESS) {
-                        Error_Handler();
-                    }
-
-                } else {
-
-                    /* Set the DHCP Client's remaining lease time to 0 seconds to trigger an immediate renewal request for a DHCP address. */
-                    nx_dhcp_client_update_time_remaining(&dhcp_client, 0);
-                }
-            }
-        } else if (!linkdown) {
-            linkdown = true;
-
-            /* The network cable is not connected. */
-            nx_ip_driver_direct_command(&nx_ip_instance, NX_LINK_DISABLE, (uint32_t *) &actual_status);
-        }
-
-        tx_thread_sleep(NX_APP_CABLE_CONNECTION_CHECK_PERIOD);
-    }
 }

@@ -15,7 +15,7 @@
 #include "sja1105q_default_conf.h"
 
 
-TX_MUTEX            sja1105_mutex_ptr;
+TX_MUTEX            sja1105_mutex_handle;
 static UCHAR        switch_byte_pool_buffer[SWITCH_MEM_POOL_SIZE] __ALIGNED(32);
 static TX_BYTE_POOL switch_byte_pool;
 
@@ -58,7 +58,7 @@ static sja1105_status_t sja1105_take_mutex(sja1105_handle_t *dev, uint32_t timeo
     sja1105_status_t status = SJA1105_OK;
 
     /* Take the mutex and work out the status */
-    switch (tx_mutex_get(&sja1105_mutex_ptr, MS_TO_TICKS(timeout))) {
+    switch (tx_mutex_get(&sja1105_mutex_handle, MS_TO_TICKS(timeout))) {
         case TX_SUCCESS:
             status = SJA1105_OK;
             break;
@@ -77,7 +77,7 @@ static sja1105_status_t sja1105_give_mutex(sja1105_handle_t *dev) {
 
     sja1105_status_t status = SJA1105_OK;
 
-    if (tx_mutex_put(&sja1105_mutex_ptr) != TX_SUCCESS) status = SJA1105_MUTEX_ERROR;
+    if (tx_mutex_put(&sja1105_mutex_handle) != TX_SUCCESS) status = SJA1105_MUTEX_ERROR;
 
     return status;
 }

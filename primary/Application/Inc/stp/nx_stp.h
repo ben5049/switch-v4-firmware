@@ -3,6 +3,8 @@
  *
  *  Created on: Aug 3, 2025
  *      Author: bens1
+ *
+ * Wrapper around netx functions for sending and receiving BPDUs.
  */
 
 #ifndef INC_STP_NX_STP_H_
@@ -13,7 +15,6 @@ extern "C" {
 #endif
 
 
-#include "stdatomic.h"
 #include "stdbool.h"
 #include "nx_api.h"
 #include "nx_app.h"

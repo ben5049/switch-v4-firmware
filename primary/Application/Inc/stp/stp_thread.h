@@ -25,8 +25,8 @@ typedef struct STP_BRIDGE STP_BRIDGE;
 
 /* Exported variables */
 extern uint8_t              stp_thread_stack[STP_THREAD_STACK_SIZE];
-extern TX_THREAD            stp_thread_ptr;
-extern TX_EVENT_FLAGS_GROUP stp_events;
+extern TX_THREAD            stp_thread_handle;
+extern TX_EVENT_FLAGS_GROUP stp_events_handle;
 
 /* Exported functions*/
 void stp_thread_entry(uint32_t initial_input);

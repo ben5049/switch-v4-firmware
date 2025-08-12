@@ -53,7 +53,10 @@
         "cinttypes": "c",
         "nx_ptp.h": "c",
         "tx_api.h": "c",
-        "nxd_ptp_client.h": "c"
+        "nxd_ptp_client.h": "c",
+        "ptp.h": "c",
+        "random": "c",
+        "ptp_callbacks.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,

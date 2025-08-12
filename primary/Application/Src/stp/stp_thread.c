@@ -22,8 +22,8 @@
 
 
 uint8_t              stp_thread_stack[STP_THREAD_STACK_SIZE];
-TX_THREAD            stp_thread_ptr;
-TX_EVENT_FLAGS_GROUP stp_events;
+TX_THREAD            stp_thread_handle;
+TX_EVENT_FLAGS_GROUP stp_events_handle;
 
 
 volatile uint32_t stp_error_counter = 0;
@@ -121,7 +121,7 @@ void stp_thread_entry(uint32_t initial_input) {
         MAC_ADDR_OCTET6};
 
     /* Create the NetX STP instance used to send BPDUs */
-    nx_stp_init(&nx_ip_instance, "nx_stp_instance", &stp_events);
+    nx_stp_init(&nx_ip_instance, "nx_stp_instance", &stp_events_handle);
 
     /* Initialise the STP ThreadX byte pool */
     if (stp_byte_pool_init() != TX_SUCCESS) Error_Handler();
@@ -141,7 +141,7 @@ void stp_thread_entry(uint32_t initial_input) {
         if (current_time < next_wake_time) {
 
             /* Wait for a BPDU */
-            tx_event_flags_get(&stp_events, NX_STP_BPDU_REC_EVENT, TX_OR_CLEAR, &event_flags, next_wake_time - current_time);
+            tx_event_flags_get(&stp_events_handle, NX_STP_BPDU_REC_EVENT, TX_OR_CLEAR, &event_flags, next_wake_time - current_time);
 
             /* If at least one BPDU was received then process it */
             if (event_flags & NX_STP_BPDU_REC_EVENT) {

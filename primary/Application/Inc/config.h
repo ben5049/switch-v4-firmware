@@ -20,38 +20,52 @@ extern "C" {
 /* Networking Common Config */
 /* ---------------------------------------------------------------------------- */
 
-#define MAC_ADDR_OCTET1                      (0x00)
-#define MAC_ADDR_OCTET2                      (0x80)
-#define MAC_ADDR_OCTET3                      (0xE1)
-#define MAC_ADDR_OCTET4                      (0x00)
-#define MAC_ADDR_OCTET5                      (0x00)
-#define MAC_ADDR_OCTET6                      (0x00)
+#define MAC_ADDR_OCTET1                  (0x2e)
+#define MAC_ADDR_OCTET2                  (0x0d)
+#define MAC_ADDR_OCTET3                  (0x8f)
+#define MAC_ADDR_OCTET4                  (0xd3)
+#define MAC_ADDR_OCTET5                  (0x6a)
+#define MAC_ADDR_OCTET6                  (0x48)
 
-#define NX_APP_CABLE_CONNECTION_CHECK_PERIOD (1 * TX_TIMER_TICKS_PER_SECOND)  /* Check every second if the link is up */
-#define NX_APP_DEFAULT_TIMEOUT               (10 * TX_TIMER_TICKS_PER_SECOND) /* Timeout after 10 seconds */
-#define NX_APP_PACKET_POOL_SIZE              ((DEFAULT_PAYLOAD_SIZE + sizeof(NX_PACKET)) * 32)
-#define NX_IP_INSTANCE_THREAD_SIZE           (2 * 1024)
-#define NX_APP_INSTANCE_PRIORITY             (NX_APP_THREAD_PRIORITY)
-#define NX_APP_DEFAULT_IP_ADDRESS            (0)
-#define NX_APP_DEFAULT_NET_MASK              (0)
+#define NX_APP_DEFAULT_TIMEOUT           (10000)                                           /* Generic timeout for nx events (e.g. TCP send) in ms */
+#define NX_APP_PACKET_POOL_SIZE          ((DEFAULT_PAYLOAD_SIZE + sizeof(NX_PACKET)) * 32) /* Enough space for 32 max size packets */
 
-#define DEFAULT_PAYLOAD_SIZE                 (1536)
-#define DEFAULT_ARP_CACHE_SIZE               (1024)
+#define NX_DEFAULT_IP_ADDRESS            (0)                                               /* TODO: Set this */
+#define NX_DEFAULT_NET_MASK              (0)                                               /* TODO: Set this */
+#define NX_INTERNAL_IP_THREAD_STACK_SIZE (2 * 1024)
+#define NX_INTERNAL_IP_THREAD_PRIORITY   (NX_APP_THREAD_PRIORITY)
 
-#define NX_APP_THREAD_STACK_SIZE             (2 * 1024)
-#define NX_APP_THREAD_PRIORITY               (10)
+#define DEFAULT_PAYLOAD_SIZE             (1536) /* Ethernet payload size field (0x600) */
+
+#define DEFAULT_ARP_CACHE_SIZE           (1024)
+
+#define NX_APP_THREAD_STACK_SIZE         (2 * 1024)
+#define NX_APP_THREAD_PRIORITY           (10)
+
+#define NUM_VLANS                        (8) /* Currently only used for STP (unused due to RSTP not MSTP) */
+
+#define PRIMARY_INTERFACE                (0)
+
+/* ---------------------------------------------------------------------------- */
+/* Link Config */
+/* ---------------------------------------------------------------------------- */
 
 #define NX_LINK_THREAD_STACK_SIZE            (2 * 1024)
 #define NX_LINK_THREAD_PRIORITY              (10)
 
-#define NUM_VLANS                            (8)
+#define NX_APP_CABLE_CONNECTION_CHECK_PERIOD (1000) /* Interval between link checks in ms */
 
-#define NX_PTP_THREAD_STACK_SIZE             (1024)
-#define NX_PTP_THREAD_PRIORITY               (2)
+/* ---------------------------------------------------------------------------- */
+/* PTP Config */
+/* ---------------------------------------------------------------------------- */
 
-#define NX_PTP_TX_THREAD_STACK_SIZE          (1024)
-#define NX_PTP_TX_THREAD_PRIORITY            (4)
-#define NX_PTP_TX_QUEUE_SIZE                 (10)
+#define NX_INTERNAL_PTP_THREAD_STACK_SIZE (1024)
+#define NX_INTERNAL_PTP_THREAD_PRIORITY   (2) /* This must be very high priority. Firstly to minimise delays, and secondly to prevent another thread prempting it and sending a packet that receives the timestamp meant for a PTP packet. */
+
+#define PTP_THREAD_STACK_SIZE             (1024)
+#define PTP_THREAD_PRIORITY               (4)
+#define PTP_TX_QUEUE_SIZE                 (10)
+#define PTP_PRINT_TIME_INTERVAL           (1000) /* Time interval between printing the PTP time in ms. Must be >= 100ms. Set to UINT32_MAX to disable printing */
 
 /* ---------------------------------------------------------------------------- */
 /* Switch Config */
