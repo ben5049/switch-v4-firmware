@@ -46,7 +46,14 @@
         "nx_stm32_eth_driver.h": "c",
         "utils.h": "c",
         "ratio": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "cmath": "c",
+        "format": "c",
+        "numeric": "c",
+        "cinttypes": "c",
+        "nx_ptp.h": "c",
+        "tx_api.h": "c",
+        "nxd_ptp_client.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,

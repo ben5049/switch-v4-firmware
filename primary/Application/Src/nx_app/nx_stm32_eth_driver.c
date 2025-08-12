@@ -1385,17 +1385,23 @@ static VOID _nx_driver_transfer_to_netx(NX_IP *ip_ptr, NX_PACKET *packet_ptr) {
         nx_stp_packet_deferred_receive(ip_ptr, packet_ptr);
     }
 
-    /* Otherwise check for VLAN tags and send to the correct interface */
+    /* Otherwise handle timestamping, check for VLAN tags and send to the correct interface */
     else {
 
         /* Get the timestamp */
-        HAL_ETH_PTP_GetRxTimestamp(&eth_handle, &eth_timestamp);
-        nx_timestamp.nano_second = eth_timestamp.TimeStampLow;
-        nx_timestamp.second_low  = eth_timestamp.TimeStampHigh;
-        nx_timestamp.second_high = 0; /* This doesn't handle the overflow which occurs after 136 years */
+        if (HAL_ETH_PTP_GetRxTimestamp(&eth_handle, &eth_timestamp) == HAL_OK) {
+            nx_timestamp.nano_second = eth_timestamp.TimeStampLow;
+            nx_timestamp.second_low  = eth_timestamp.TimeStampHigh;
+            nx_timestamp.second_high = 0; /* This doesn't handle the overflow which occurs after 136 years */
 
-        /* Pass on to NetX. Note the timestamp is invalid if the packet isn't a PTP packet */
-        nx_link_ethernet_packet_received(ip_ptr, 1, packet_ptr, &nx_timestamp);
+            /* Pass on to NetX. Note the timestamp is invalid if the packet isn't a PTP packet */
+            nx_link_ethernet_packet_received(ip_ptr, 1, packet_ptr, &nx_timestamp);
+        }
+
+        /* PTP Not configured, pass on to NetX without a timestamp */
+        else {
+            nx_link_ethernet_packet_received(ip_ptr, 1, packet_ptr, NX_NULL);
+        }
     }
 }
 
@@ -1527,27 +1533,6 @@ static UINT _nx_driver_hardware_initialize(NX_IP_DRIVER *driver_req_ptr) {
 
     /* Clear the number of buffers in use counter.  */
     nx_driver_information.nx_driver_information_multicast_count = 0;
-
-    /* Configure the timestamping register for PTP */
-    ETH_PTP_ConfigTypeDef ptp_config;
-    HAL_ETH_PTP_GetConfig(&eth_handle, &ptp_config);
-    ptp_config.Timestamp             = ENABLE; /* Enable timestamping */
-    ptp_config.TimestampUpdateMode   = ENABLE; /* Fine mode */
-    ptp_config.TimestampInitialize   = DISABLE;
-    ptp_config.TimestampUpdate       = DISABLE;
-    ptp_config.TimestampAddendUpdate = DISABLE;
-    ptp_config.TimestampAll          = DISABLE;
-    ptp_config.TimestampRolloverMode = ENABLE;  /* Every 1,000,000 nanoseconds the seconds count is incremented */
-    ptp_config.TimestampV2           = ENABLE;  /* IEE 1588-2008 (PTPv2) enabled */
-    ptp_config.TimestampEthernet     = ENABLE;  /* Enable processing of PTP frames embedded directly in ethernet packets */
-    ptp_config.TimestampIPv6         = ENABLE;  /* Enable processing of PTP frames embedded in IPv6-UDP packets */
-    ptp_config.TimestampIPv4         = ENABLE;  /* Enable processing of PTP frames embedded in IPv4-UDP packets */
-    ptp_config.TimestampEvent        = DISABLE; /* ┐ These settings mean timestamps are taken for SYNC, Follow_Up, Delay_Req, */
-    ptp_config.TimestampMaster       = DISABLE; /* ├ Delay_Resp, Pdelay_Req, Pdelay_Resp, and Pdelay_Resp_Follow_Up messages. */
-    ptp_config.TimestampSnapshots    = ENABLE;  /* ┘ These are all the master and slave message types. */
-    ptp_config.TimestampFilter       = DISABLE; /* Don't bother filtering by destination address */
-    ptp_config.TimestampStatusMode   = DISABLE; /* Don't overwrite transmit timestamps */
-    HAL_ETH_PTP_SetConfig(&eth_handle, &ptp_config);
 
     /* Return success!  */
     return (NX_SUCCESS);

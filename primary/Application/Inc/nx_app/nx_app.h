@@ -16,6 +16,7 @@ extern "C" {
 #include "stdint.h"
 #include "tx_api.h"
 #include "nx_api.h"
+#include "nxd_ptp_client.h"
 
 #include "config.h"
 
@@ -109,6 +110,7 @@ extern TX_THREAD      nx_app_thread_ptr;
 extern uint8_t        nx_app_thread_stack[NX_APP_THREAD_STACK_SIZE];
 extern TX_THREAD      nx_link_thread_ptr;
 extern uint8_t        nx_link_thread_stack[NX_LINK_THREAD_STACK_SIZE];
+extern NX_PTP_CLIENT  ptp_client;
 
 void nx_app_thread_entry(uint32_t initial_input);
 void nx_link_thread_entry(uint32_t initial_input);

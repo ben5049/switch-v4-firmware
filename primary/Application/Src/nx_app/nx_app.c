@@ -14,12 +14,12 @@
 #include "main.h"
 
 #include "nx_app.h"
+#include "nx_ptp.h"
 #include "config.h"
 #include "comms_thread.h"
 
 
-#define NULL_ADDRESS   0
-#define CLOCK_CALLBACK nx_ptp_client_soft_clock_callback
+#define NULL_ADDRESS 0
 
 
 NX_IP    nx_ip_instance;
@@ -31,18 +31,14 @@ NX_PACKET_POOL nx_packet_pool;
 static NX_DHCP dhcp_client;
 TX_SEMAPHORE   dhcp_semaphore_ptr;
 
-static NX_PTP_CLIENT ptp_client;
-static SHORT         ptp_utc_offset = 0; /* Define ptp utc offset.  */
-static ULONG         ptp_stack[NX_PTP_THREAD_STACK_SIZE];
+NX_PTP_CLIENT  ptp_client;
+static uint8_t ptp_stack[NX_PTP_THREAD_STACK_SIZE]; /* TODO: Rename this, it is confusing */
 
 TX_THREAD nx_app_thread_ptr;
 uint8_t   nx_app_thread_stack[NX_APP_THREAD_STACK_SIZE];
 
 TX_THREAD nx_link_thread_ptr;
 uint8_t   nx_link_thread_stack[NX_LINK_THREAD_STACK_SIZE];
-
-
-static UINT ptp_event_callback(NX_PTP_CLIENT *ptp_client_ptr, UINT event, VOID *event_data, VOID *callback_data);
 
 
 /* This function should be called once in MX_NetXDuo_Init */
@@ -97,7 +93,7 @@ nx_status_t nx_user_init(TX_BYTE_POOL *byte_pool) {
     if (status != NX_SUCCESS) return status;
 
     /* Create the PTP client */
-    status = nx_ptp_client_create(&ptp_client, &nx_ip_instance, 0, &nx_packet_pool, NX_PTP_THREAD_PRIORITY, (UCHAR *) ptp_stack, sizeof(ptp_stack), CLOCK_CALLBACK, NX_NULL);
+    status = nx_ptp_client_create(&ptp_client, &nx_ip_instance, 0, &nx_packet_pool, NX_PTP_THREAD_PRIORITY, (UCHAR *) ptp_stack, sizeof(ptp_stack), ptp_clock_callback, NX_NULL);
     if (status != NX_SUCCESS) return status;
 
     return status;
@@ -117,8 +113,6 @@ static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
 void nx_app_thread_entry(uint32_t initial_input) {
 
     nx_status_t status = NX_SUCCESS;
-    // NX_PTP_TIME      tm;
-    // NX_PTP_DATE_TIME date;
 
     /* Register the IP address change callback */
     status = nx_ip_address_change_notify(&nx_ip_instance, ip_address_change_notify_callback, NULL);
@@ -139,26 +133,9 @@ void nx_app_thread_entry(uint32_t initial_input) {
 
     /* TODO: Start any threads that require networking after this is done such as the comms thread (not stp though) */
 
-    /* the network is correctly initialized, start the TCP thread */
+    /* the network is correctly initialized, start certain threads */
     tx_thread_resume(&comms_thread_ptr);
-
-    /* start the PTP client */
-    nx_ptp_client_start(&ptp_client, NX_NULL, 0, 0, 0, ptp_event_callback, NX_NULL);
-    nx_ptp_client_master_enable(&ptp_client, NX_PTP_CLIENT_ROLE_SLAVE_AND_MASTER, 255, 248, 248, 254, NX_NULL, NX_NULL, NX_NULL); /* Enable master mode with the lowest priority so it is only used as a last restort. TODO: Randomise or make different */
-
-    // while (1) {
-
-    //     /* read the PTP clock */
-    //     nx_ptp_client_time_get(&ptp_client, &tm);
-
-    //     /* convert PTP time to UTC date and time */
-    //     nx_ptp_client_utility_convert_time_to_date(&tm, -ptp_utc_offset, &date);
-
-    //     /* display the current time */
-    //     printf("%2u/%02u/%u %02u:%02u:%02u.%09lu\r\n", date.day, date.month, date.year, date.hour, date.minute, date.second, date.nanosecond);
-
-    //     tx_thread_sleep(NX_IP_PERIODIC_RATE);
-    // }
+    tx_thread_resume(&nx_ptp_tx_thread_ptr);
 
     tx_thread_relinquish();
     return;
@@ -218,32 +195,4 @@ void nx_link_thread_entry(uint32_t thread_input) {
 
         tx_thread_sleep(NX_APP_CABLE_CONNECTION_CHECK_PERIOD);
     }
-}
-
-
-static UINT ptp_event_callback(NX_PTP_CLIENT *ptp_client_ptr, UINT event, VOID *event_data, VOID *callback_data) {
-    NX_PARAMETER_NOT_USED(callback_data);
-
-    switch (event) {
-        case NX_PTP_CLIENT_EVENT_MASTER: {
-            printf("new MASTER clock!\r\n");
-            break;
-        }
-
-        case NX_PTP_CLIENT_EVENT_SYNC: {
-            nx_ptp_client_sync_info_get((NX_PTP_CLIENT_SYNC *) event_data, NX_NULL, &ptp_utc_offset);
-            printf("SYNC event: utc offset=%d\r\n", ptp_utc_offset);
-            break;
-        }
-
-        case NX_PTP_CLIENT_EVENT_TIMEOUT: {
-            printf("Master clock TIMEOUT!\r\n");
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-
-    return 0;
 }

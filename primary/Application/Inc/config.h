@@ -49,6 +49,10 @@ extern "C" {
 #define NX_PTP_THREAD_STACK_SIZE             (1024)
 #define NX_PTP_THREAD_PRIORITY               (2)
 
+#define NX_PTP_TX_THREAD_STACK_SIZE          (1024)
+#define NX_PTP_TX_THREAD_PRIORITY            (4)
+#define NX_PTP_TX_QUEUE_SIZE                 (10)
+
 /* ---------------------------------------------------------------------------- */
 /* Switch Config */
 /* ---------------------------------------------------------------------------- */
