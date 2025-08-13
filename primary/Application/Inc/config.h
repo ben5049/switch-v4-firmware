@@ -78,6 +78,13 @@ extern "C" {
 #define SWITCH_MEM_POOL_SIZE            (1024 * sizeof(uint32_t)) /* 1024 Words should be enough for most variable length tables. TODO Check */
 
 /* ---------------------------------------------------------------------------- */
+/* PHY Config */
+/* ---------------------------------------------------------------------------- */
+
+#define NUM_PHYS    (4)
+#define PHY_TIMEOUT (100) /* Default timeout for PHY operations in ms */
+
+/* ---------------------------------------------------------------------------- */
 /* STP Config */
 /* ---------------------------------------------------------------------------- */
 

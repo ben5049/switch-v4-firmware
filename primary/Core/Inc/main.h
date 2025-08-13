@@ -57,8 +57,22 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define PHY2_INT_Pin GPIO_PIN_14
+#define PHY2_INT_GPIO_Port GPIOG
+#define PHY1_INT_Pin GPIO_PIN_10
+#define PHY1_INT_GPIO_Port GPIOG
+#define PHY0_INT_Pin GPIO_PIN_7
+#define PHY0_INT_GPIO_Port GPIOD
+#define PHY_CLK_EN_Pin GPIO_PIN_6
+#define PHY_CLK_EN_GPIO_Port GPIOD
 #define SWCH_CS_Pin GPIO_PIN_11
 #define SWCH_CS_GPIO_Port GPIOA
+#define PHY_WAKE_Pin GPIO_PIN_0
+#define PHY_WAKE_GPIO_Port GPIOF
+#define PHY3_INT_Pin GPIO_PIN_3
+#define PHY3_INT_GPIO_Port GPIOF
+#define PHY_RST_Pin GPIO_PIN_8
+#define PHY_RST_GPIO_Port GPIOF
 #define SWCH_RST_Pin GPIO_PIN_6
 #define SWCH_RST_GPIO_Port GPIOH
 

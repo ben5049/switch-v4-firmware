@@ -56,7 +56,9 @@
         "nxd_ptp_client.h": "c",
         "ptp.h": "c",
         "random": "c",
-        "ptp_callbacks.h": "c"
+        "ptp_callbacks.h": "c",
+        "stdint.h": "c",
+        "lan867x.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,
