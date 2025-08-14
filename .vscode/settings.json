@@ -58,7 +58,14 @@
         "random": "c",
         "ptp_callbacks.h": "c",
         "stdint.h": "c",
-        "lan867x.h": "c"
+        "lan867x.h": "c",
+        "phy_callbacks.h": "c",
+        "phy_common.h": "c",
+        "88q211x.h": "c",
+        "88q211x_init.h": "c",
+        "phy_utils.h": "c",
+        "88q211x_regs.h": "c",
+        "condition_variable": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,

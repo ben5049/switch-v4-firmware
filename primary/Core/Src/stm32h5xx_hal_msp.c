@@ -69,6 +69,22 @@ void HAL_MspInit(void)
 
   /* System interrupt init*/
 
+  /** Enable the VREF clock
+  */
+  __HAL_RCC_VREF_CLK_ENABLE();
+
+  /** Configure the internal voltage reference buffer voltage scale
+  */
+  HAL_SYSCFG_VREFBUF_VoltageScalingConfig(SYSCFG_VREFBUF_VOLTAGE_SCALE0);
+
+  /** Enable the Internal Voltage Reference buffer
+  */
+  HAL_SYSCFG_EnableVREFBUF();
+
+  /** Configure the internal voltage reference buffer high impedance mode
+  */
+  HAL_SYSCFG_VREFBUF_HighImpedanceConfig(SYSCFG_VREFBUF_HIGH_IMPEDANCE_DISABLE);
+
   /* USER CODE BEGIN MspInit 1 */
 
   /* USER CODE END MspInit 1 */
@@ -115,6 +131,51 @@ void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc)
     /* USER CODE BEGIN CRC_MspDeInit 1 */
 
     /* USER CODE END CRC_MspDeInit 1 */
+  }
+
+}
+
+/**
+  * @brief DTS MSP Initialization
+  * This function configures the hardware resources used in this example
+  * @param hdts: DTS handle pointer
+  * @retval None
+  */
+void HAL_DTS_MspInit(DTS_HandleTypeDef* hdts)
+{
+  if(hdts->Instance==DTS)
+  {
+    /* USER CODE BEGIN DTS_MspInit 0 */
+
+    /* USER CODE END DTS_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_DTS_CLK_ENABLE();
+    /* USER CODE BEGIN DTS_MspInit 1 */
+
+    /* USER CODE END DTS_MspInit 1 */
+
+  }
+
+}
+
+/**
+  * @brief DTS MSP De-Initialization
+  * This function freeze the hardware resources used in this example
+  * @param hdts: DTS handle pointer
+  * @retval None
+  */
+void HAL_DTS_MspDeInit(DTS_HandleTypeDef* hdts)
+{
+  if(hdts->Instance==DTS)
+  {
+    /* USER CODE BEGIN DTS_MspDeInit 0 */
+
+    /* USER CODE END DTS_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_DTS_CLK_DISABLE();
+    /* USER CODE BEGIN DTS_MspDeInit 1 */
+
+    /* USER CODE END DTS_MspDeInit 1 */
   }
 
 }
@@ -174,9 +235,9 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* ETH interrupt Init */
-    HAL_NVIC_SetPriority(ETH_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(ETH_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(ETH_IRQn);
-    HAL_NVIC_SetPriority(ETH_WKUP_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(ETH_WKUP_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(ETH_WKUP_IRQn);
     /* USER CODE BEGIN ETH_MspInit 1 */
 
@@ -282,7 +343,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* SPI1 interrupt Init */
-    HAL_NVIC_SetPriority(SPI1_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(SPI1_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(SPI1_IRQn);
     /* USER CODE BEGIN SPI1_MspInit 1 */
 
@@ -316,19 +377,19 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
     GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_2;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = GPIO_PIN_9;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* SPI2 interrupt Init */
-    HAL_NVIC_SetPriority(SPI2_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(SPI2_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(SPI2_IRQn);
     /* USER CODE BEGIN SPI2_MspInit 1 */
 
@@ -436,7 +497,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     /* UART4 interrupt Init */
-    HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(UART4_IRQn, 10, 0);
     HAL_NVIC_EnableIRQ(UART4_IRQn);
     /* USER CODE BEGIN UART4_MspInit 1 */
 

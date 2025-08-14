@@ -59,10 +59,13 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define PHY2_INT_Pin GPIO_PIN_14
 #define PHY2_INT_GPIO_Port GPIOG
+#define PHY2_INT_EXTI_IRQn EXTI14_IRQn
 #define PHY1_INT_Pin GPIO_PIN_10
 #define PHY1_INT_GPIO_Port GPIOG
+#define PHY1_INT_EXTI_IRQn EXTI10_IRQn
 #define PHY0_INT_Pin GPIO_PIN_7
 #define PHY0_INT_GPIO_Port GPIOD
+#define PHY0_INT_EXTI_IRQn EXTI7_IRQn
 #define PHY_CLK_EN_Pin GPIO_PIN_6
 #define PHY_CLK_EN_GPIO_Port GPIOD
 #define SWCH_CS_Pin GPIO_PIN_11
@@ -71,6 +74,7 @@ void Error_Handler(void);
 #define PHY_WAKE_GPIO_Port GPIOF
 #define PHY3_INT_Pin GPIO_PIN_3
 #define PHY3_INT_GPIO_Port GPIOF
+#define PHY3_INT_EXTI_IRQn EXTI3_IRQn
 #define PHY_RST_Pin GPIO_PIN_8
 #define PHY_RST_GPIO_Port GPIOF
 #define SWCH_RST_Pin GPIO_PIN_6

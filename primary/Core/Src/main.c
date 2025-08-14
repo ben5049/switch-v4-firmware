@@ -48,6 +48,8 @@ ETH_DMADescTypeDef  DMATxDscrTab[ETH_TX_DESC_CNT]; /* Ethernet Tx DMA Descriptor
 
 CRC_HandleTypeDef hcrc;
 
+DTS_HandleTypeDef hdts;
+
 ETH_HandleTypeDef heth;
 
 SPI_HandleTypeDef hspi1;
@@ -68,6 +70,7 @@ static void MX_UART4_Init(void);
 static void MX_ETH_Init(void);
 static void MX_ICACHE_Init(void);
 static void MX_CRC_Init(void);
+static void MX_DTS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -112,6 +115,7 @@ int main(void)
   MX_ETH_Init();
   MX_ICACHE_Init();
   MX_CRC_Init();
+  MX_DTS_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -214,6 +218,39 @@ static void MX_CRC_Init(void)
   /* USER CODE BEGIN CRC_Init 2 */
 
   /* USER CODE END CRC_Init 2 */
+
+}
+
+/**
+  * @brief DTS Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_DTS_Init(void)
+{
+
+  /* USER CODE BEGIN DTS_Init 0 */
+
+  /* USER CODE END DTS_Init 0 */
+
+  /* USER CODE BEGIN DTS_Init 1 */
+
+  /* USER CODE END DTS_Init 1 */
+  hdts.Instance = DTS;
+  hdts.Init.QuickMeasure = DTS_QUICKMEAS_ENABLE;
+  hdts.Init.RefClock = DTS_REFCLKSEL_LSE;
+  hdts.Init.TriggerInput = DTS_TRIGGER_HW_NONE;
+  hdts.Init.SamplingTime = DTS_SMP_TIME_1_CYCLE;
+  hdts.Init.Divider = 0;
+  hdts.Init.HighThreshold = 0x0;
+  hdts.Init.LowThreshold = 0x0;
+  if (HAL_DTS_Init(&hdts) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN DTS_Init 2 */
+
+  /* USER CODE END DTS_Init 2 */
 
 }
 
@@ -474,14 +511,14 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : PHY2_INT_Pin PHY1_INT_Pin */
   GPIO_InitStruct.Pin = PHY2_INT_Pin|PHY1_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PHY0_INT_Pin */
   GPIO_InitStruct.Pin = PHY0_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(PHY0_INT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PHY_CLK_EN_Pin */
@@ -495,7 +532,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = SWCH_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(SWCH_CS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PHY_WAKE_Pin PHY_RST_Pin */
@@ -507,7 +544,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : PHY3_INT_Pin */
   GPIO_InitStruct.Pin = PHY3_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(PHY3_INT_GPIO_Port, &GPIO_InitStruct);
 
@@ -517,6 +554,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(SWCH_RST_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 7, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI7_IRQn, 7, 0);
+  HAL_NVIC_EnableIRQ(EXTI7_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI10_IRQn, 7, 0);
+  HAL_NVIC_EnableIRQ(EXTI10_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI14_IRQn, 7, 0);
+  HAL_NVIC_EnableIRQ(EXTI14_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

@@ -1,5 +1,5 @@
 /*
- * phy_callbacks.c
+ * phy_callbacks_88q2112.c
  *
  *  Created on: Aug 12, 2025
  *      Author: bens1
@@ -16,7 +16,7 @@ extern ETH_HandleTypeDef heth;
 
 
 /* This function performs a clause 45 register read */
-phy_status_88q211x_t phy_88q2112_callback_read_reg(phy_handle_88q211x_t *dev, uint8_t dev_addr, uint16_t reg_addr, uint16_t *data) {
+phy_status_t phy_88q2112_callback_read_reg(uint8_t phy_addr, uint8_t mmd_addr, uint16_t reg_addr, uint16_t *data, uint32_t timeout, void *context) {
 
     uint32_t tickstart;
     uint32_t tmp_dr;
@@ -35,8 +35,9 @@ phy_status_88q211x_t phy_88q2112_callback_read_reg(phy_handle_88q211x_t *dev, ui
     /* Write the MACMDIOAR register */
     tmp_ar = READ_REG(heth.Instance->MACMDIOAR);
     SET_BIT(tmp_ar, ETH_MACMDIOAR_PSE); /* 88Q2112 only needs 1 preamble bit */
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_PA, (((uint32_t) dev->config->phy_addr) << ETH_MACMDIOAR_PA_Pos));
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_RDA, (((uint32_t) dev_addr) << ETH_MACMDIOAR_RDA_Pos));
+    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_PA, (((uint32_t) phy_addr) << ETH_MACMDIOAR_PA_Pos));
+    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_RDA, (((uint32_t) mmd_addr) << ETH_MACMDIOAR_RDA_Pos));
+    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_CR, ETH_MACMDIOAR_CR_DIV26); /* Set the clock frequency to 9.62MHz (PHY supports up to 12.5MHz) */
     MODIFY_REG(tmp_ar, ETH_MACMDIOAR_MOC, ETH_MACMDIOAR_MOC_WR);
     SET_BIT(tmp_ar, ETH_MACMDIOAR_C45E);
     SET_BIT(tmp_ar, ETH_MACMDIOAR_MB);
@@ -45,7 +46,7 @@ phy_status_88q211x_t phy_88q2112_callback_read_reg(phy_handle_88q211x_t *dev, ui
     /* Wait for the busy flag */
     tickstart = HAL_GetTick();
     while (READ_BIT(heth.Instance->MACMDIOAR, ETH_MACMDIOAR_MB) > 0U) {
-        if (((HAL_GetTick() - tickstart) > dev->config->timeout)) {
+        if (((HAL_GetTick() - tickstart) > timeout)) {
             return HAL_ERROR;
         }
     }
@@ -53,13 +54,15 @@ phy_status_88q211x_t phy_88q2112_callback_read_reg(phy_handle_88q211x_t *dev, ui
     /* ---------------------- Data phase ---------------------- */
 
     /* Change to a read operation */
+    tmp_ar = READ_REG(heth.Instance->MACMDIOAR);
     MODIFY_REG(tmp_ar, ETH_MACMDIOAR_MOC, ETH_MACMDIOAR_MOC_RD);
+    SET_BIT(tmp_ar, ETH_MACMDIOAR_MB);
     WRITE_REG(ETH->MACMDIOAR, tmp_ar);
 
     /* Wait for the busy flag */
     tickstart = HAL_GetTick();
     while (READ_BIT(heth.Instance->MACMDIOAR, ETH_MACMDIOAR_MB) > 0U) {
-        if (((HAL_GetTick() - tickstart) > dev->config->timeout)) {
+        if (((HAL_GetTick() - tickstart) > timeout)) {
             return HAL_ERROR;
         }
     }
@@ -71,7 +74,7 @@ phy_status_88q211x_t phy_88q2112_callback_read_reg(phy_handle_88q211x_t *dev, ui
 }
 
 /* This function performs a clause 45 register write */
-phy_status_88q211x_t phy_88q2112_callback_write_reg(phy_handle_88q211x_t *dev, uint8_t dev_addr, uint16_t reg_addr, uint16_t data) {
+phy_status_t phy_88q2112_callback_write_reg(uint8_t phy_addr, uint8_t mmd_addr, uint16_t reg_addr, uint16_t data, uint32_t timeout, void *context) {
 
     uint32_t tickstart;
     uint32_t tmp_dr;
@@ -90,8 +93,9 @@ phy_status_88q211x_t phy_88q2112_callback_write_reg(phy_handle_88q211x_t *dev, u
     /* Write the MACMDIOAR register */
     tmp_ar = READ_REG(heth.Instance->MACMDIOAR);
     SET_BIT(tmp_ar, ETH_MACMDIOAR_PSE); /* 88Q2112 only needs 1 preamble bit */
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_PA, (((uint32_t) dev->config->phy_addr) << ETH_MACMDIOAR_PA_Pos));
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_RDA, (((uint32_t) dev_addr) << ETH_MACMDIOAR_RDA_Pos));
+    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_PA, (((uint32_t) phy_addr) << ETH_MACMDIOAR_PA_Pos));
+    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_RDA, (((uint32_t) mmd_addr) << ETH_MACMDIOAR_RDA_Pos));
+    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_CR, ETH_MACMDIOAR_CR_DIV26); /* Set the clock frequency to 9.62MHz (PHY supports up to 12.5MHz) */
     MODIFY_REG(tmp_ar, ETH_MACMDIOAR_MOC, ETH_MACMDIOAR_MOC_WR);
     SET_BIT(tmp_ar, ETH_MACMDIOAR_C45E);
     SET_BIT(tmp_ar, ETH_MACMDIOAR_MB);
@@ -100,7 +104,7 @@ phy_status_88q211x_t phy_88q2112_callback_write_reg(phy_handle_88q211x_t *dev, u
     /* Wait for the busy flag */
     tickstart = HAL_GetTick();
     while (READ_BIT(heth.Instance->MACMDIOAR, ETH_MACMDIOAR_MB) > 0U) {
-        if (((HAL_GetTick() - tickstart) > dev->config->timeout)) {
+        if (((HAL_GetTick() - tickstart) > timeout)) {
             return HAL_ERROR;
         }
     }
@@ -117,7 +121,7 @@ phy_status_88q211x_t phy_88q2112_callback_write_reg(phy_handle_88q211x_t *dev, u
     /* Wait for the busy flag */
     tickstart = HAL_GetTick();
     while (READ_BIT(heth.Instance->MACMDIOAR, ETH_MACMDIOAR_MB) > 0U) {
-        if (((HAL_GetTick() - tickstart) > dev->config->timeout)) {
+        if (((HAL_GetTick() - tickstart) > timeout)) {
             return HAL_ERROR;
         }
     }
@@ -125,7 +129,7 @@ phy_status_88q211x_t phy_88q2112_callback_write_reg(phy_handle_88q211x_t *dev, u
     return HAL_OK;
 }
 
-const phy_callbacks_88q211x_t phy_callbacks_88q2112 = {
+const phy_callbacks_t phy_callbacks_88q2112 = {
     .callback_read_reg    = &phy_88q2112_callback_read_reg,
     .callback_write_reg   = &phy_88q2112_callback_write_reg,
     .callback_get_time_ms = NULL,
