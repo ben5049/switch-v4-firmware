@@ -65,7 +65,8 @@
         "88q211x_init.h": "c",
         "phy_utils.h": "c",
         "88q211x_regs.h": "c",
-        "condition_variable": "c"
+        "condition_variable": "c",
+        "main.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,
