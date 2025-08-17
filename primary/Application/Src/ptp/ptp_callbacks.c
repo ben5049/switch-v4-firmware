@@ -59,11 +59,17 @@ UINT ptp_clock_callback(NX_PTP_CLIENT *client_ptr, UINT operation, NX_PTP_TIME *
             ptp_config.TimestampAddend       = addend;
             ptp_config.TimestampAddendUpdate = ENABLE;
             ptp_config.TimestampAll          = DISABLE;
-            ptp_config.TimestampRolloverMode = ENABLE;                   /* Every 1,000,000,000 nanoseconds the seconds count is incremented */
-            ptp_config.TimestampV2           = ENABLE;                   /* IEE 1588-2008 (PTPv2) enabled */
-            ptp_config.TimestampEthernet     = ENABLE;                   /* Enable processing of PTP frames embedded directly in ethernet packets */
-            ptp_config.TimestampIPv6         = ENABLE;                   /* Enable processing of PTP frames embedded in IPv6-UDP packets */
-            ptp_config.TimestampIPv4         = ENABLE;                   /* Enable processing of PTP frames embedded in IPv4-UDP packets */
+            ptp_config.TimestampRolloverMode = ENABLE; /* Every 1,000,000,000 nanoseconds the seconds count is incremented */
+            ptp_config.TimestampV2           = ENABLE; /* IEE 1588-2008 (PTPv2) enabled */
+#ifdef NX_ENABLE_GPTP
+            ptp_config.TimestampEthernet = ENABLE;     /* Enable processing of PTP frames embedded directly in ethernet packets */
+            ptp_config.TimestampIPv6     = DISABLE;    /* Disable processing of PTP frames embedded in IPv6-UDP packets */
+            ptp_config.TimestampIPv4     = DISABLE;    /* Disable processing of PTP frames embedded in IPv4-UDP packets */
+#else
+            ptp_config.TimestampEthernet = DISABLE; /* Disable processing of PTP frames embedded directly in ethernet packets */
+            ptp_config.TimestampIPv6     = ENABLE;  /* Enable processing of PTP frames embedded in IPv6-UDP packets */
+            ptp_config.TimestampIPv4     = ENABLE;  /* Enable processing of PTP frames embedded in IPv4-UDP packets */
+#endif
             ptp_config.TimestampEvent        = DISABLE;                  /* ┐ These settings mean timestamps are taken for SYNC, Follow_Up, Delay_Req, */
             ptp_config.TimestampMaster       = DISABLE;                  /* ├ Delay_Resp, Pdelay_Req, Pdelay_Resp, and Pdelay_Resp_Follow_Up messages. */
             ptp_config.TimestampSnapshots    = ENABLE;                   /* ┘ These are all the master and slave message types. */
@@ -74,6 +80,8 @@ UINT ptp_clock_callback(NX_PTP_CLIENT *client_ptr, UINT operation, NX_PTP_TIME *
             /* Write the new config */
             if (HAL_ETH_PTP_SetConfig(&heth, &ptp_config) != HAL_OK) status = NX_STATUS_OPTION_ERROR;
             if (status != NX_STATUS_SUCCESS) return status;
+
+            /* TODO: Set the ETH_MACTSECNR_TSEC and ETH_MACTSICNR_TSIC registers */
 
             /* Reset event counters */
             ptp_event_counters.tx_timestamps_missed = 0;

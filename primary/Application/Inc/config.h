@@ -67,6 +67,8 @@ extern "C" {
 #define PTP_TX_QUEUE_SIZE                 (10)
 #define PTP_PRINT_TIME_INTERVAL           (1000) /* Time interval between printing the PTP time in ms. Must be >= 100ms. Set to UINT32_MAX to disable printing */
 
+#define PTP_CLIENT_MASTER_SUB_PRIORITY    (248)  /* The subpriority of this device for BMCA. Default for an end instance is 248 */
+
 /* ---------------------------------------------------------------------------- */
 /* Switch Config */
 /* ---------------------------------------------------------------------------- */

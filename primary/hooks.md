@@ -41,3 +41,7 @@ static void MX_TIM2_Init(void) {
     ...
 }
 ```
+
+## SystemClock_Config
+
+The function `SystemClock_Config();` must be exposed in `main.h`.

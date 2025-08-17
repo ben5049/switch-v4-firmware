@@ -105,6 +105,8 @@ void phy_thread_entry(uint32_t initial_input) {
     PHY_88Q211X_GetVCTResults(&hphy1, &cable_state, &maximum_peak_distance);
     PHY_88Q211X_GetVCTResults(&hphy2, &cable_state, &maximum_peak_distance);
 
+    /* TODO: Enable End to End Transparent Clock and PTP hardware acceleration */
+
     while (1) {
         tx_thread_sleep_ms(1000);
 

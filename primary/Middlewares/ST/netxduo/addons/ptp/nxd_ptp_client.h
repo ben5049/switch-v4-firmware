@@ -93,7 +93,7 @@ extern "C" {
 /* Enable sending reverse sync when the role of PTP clock becomes slave. This will allow master clock
    to be aware of the offset from slave to master. Reverse SYNC may be ignored by master clock.  */
 
-#define NX_PTP_ENABLE_REVERSE_SYNC
+// #define NX_PTP_ENABLE_REVERSE_SYNC
 
 
 /* PTP Client packet type. By default, UDP is used as transport.  */
