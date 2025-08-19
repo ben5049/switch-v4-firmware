@@ -66,7 +66,13 @@
         "phy_utils.h": "c",
         "88q211x_regs.h": "c",
         "condition_variable": "c",
-        "main.h": "c"
+        "main.h": "c",
+        "boot_main.h": "c",
+        "crc.h": "c",
+        "gpio.h": "c",
+        "fram.h": "c",
+        "integrity.h": "c",
+        "stm32_uidhash.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,
@@ -91,5 +97,9 @@
     },
     "C_Cpp.clang_format_fallbackStyle": "none",
     "C_Cpp.clang_format_sortIncludes": false,
-    "C_Cpp.clang_format_style": "file"
+    "C_Cpp.clang_format_style": "file",
+    "flake8.args": [
+        "--max-line-length=150",
+        "--ignore=E262,E221,E501"
+    ]
 }

@@ -28,6 +28,7 @@ uint32_t ip_address;
 uint32_t net_mask;
 
 NX_PACKET_POOL nx_packet_pool;
+static uint8_t nx_packet_pool_memory[NX_APP_PACKET_POOL_SIZE] __attribute__((section(".ETH_Section"))) ;
 
 NX_DHCP      dhcp_client;
 TX_SEMAPHORE dhcp_semaphore_handle;
@@ -48,14 +49,10 @@ nx_status_t nx_user_init(TX_BYTE_POOL *byte_pool) {
     uint8_t *pointer;
     nx_system_initialize();
 
-    /* Allocate the memory for packet_pool.  */
-    status = (tx_byte_allocate(byte_pool, (void **) &pointer, NX_APP_PACKET_POOL_SIZE, TX_NO_WAIT) != TX_SUCCESS);
-    if (status != NX_SUCCESS) return status;
-
     /* Create the Packet pool to be used for packet allocation,
      * If extra NX_PACKET are to be used the NX_APP_PACKET_POOL_SIZE should be increased
      */
-    status = nx_packet_pool_create(&nx_packet_pool, "NetXDuo App Pool", DEFAULT_PAYLOAD_SIZE, pointer, NX_APP_PACKET_POOL_SIZE);
+    status = nx_packet_pool_create(&nx_packet_pool, "NetXDuo App Pool", DEFAULT_PAYLOAD_SIZE, nx_packet_pool_memory, NX_APP_PACKET_POOL_SIZE);
     if (status != NX_SUCCESS) return status;
 
     /* Allocate the memory for nx_ip_instance */

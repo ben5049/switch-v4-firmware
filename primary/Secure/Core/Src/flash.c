@@ -49,11 +49,16 @@ void MX_FLASH_Init(void)
   {
     Error_Handler();
   }
-  pOBInit.OptionType = OPTIONBYTE_PROD_STATE|OPTIONBYTE_WMSEC;
-  pOBInit.ProductState = OB_PROD_STATE_OPEN;
+  pOBInit.OptionType = OPTIONBYTE_WMSEC;
   pOBInit.Banks = FLASH_BANK_1;
   pOBInit.WMSecStartSector = 0;
   pOBInit.WMSecEndSector = 7;
+  if (HAL_FLASHEx_OBProgram(&pOBInit) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  pOBInit.Banks = FLASH_BANK_2;
+  pOBInit.WMSecEndSector = 127;
   if (HAL_FLASHEx_OBProgram(&pOBInit) != HAL_OK)
   {
     Error_Handler();
@@ -72,6 +77,16 @@ void MX_FLASH_Init(void)
                               ;
   FLASH_BBSecInitStruct.BBAttributes_array[2] =   0x00000000;
   FLASH_BBSecInitStruct.BBAttributes_array[3] =   0x00000000;
+  if (HAL_FLASHEx_ConfigBBAttributes(&FLASH_BBSecInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  FLASH_BBSecInitStruct.Bank = FLASH_BANK_2;
+  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0xFFFFFFFF;
+  FLASH_BBSecInitStruct.BBAttributes_array[1] =   0xFFFFFFFF
+                              ;
+  FLASH_BBSecInitStruct.BBAttributes_array[2] =   0xFFFFFFFF;
+  FLASH_BBSecInitStruct.BBAttributes_array[3] =   0xFFFFFFFF;
   if (HAL_FLASHEx_ConfigBBAttributes(&FLASH_BBSecInitStruct) != HAL_OK)
   {
     Error_Handler();

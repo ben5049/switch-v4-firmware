@@ -71,6 +71,10 @@ void MX_RAMCFG_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_RAMCFG_Erase(&hramcfg_SRAM3) != HAL_OK)
+  {
+    Error_Handler();
+  }
   if (HAL_RAMCFG_StartECC(&hramcfg_SRAM3) != HAL_OK)
   {
     Error_Handler();

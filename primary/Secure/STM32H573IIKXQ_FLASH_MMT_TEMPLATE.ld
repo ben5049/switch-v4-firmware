@@ -49,6 +49,7 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
 /* Start MX regions */
+  FLASH2	(rx)	: ORIGIN = 0x0c100000, LENGTH = 1024K
   FLASH	(rx)	: ORIGIN = 0x0c000000, LENGTH = 56K
   FLASH_NSC	(rx)	: ORIGIN = 0x0c00e000, LENGTH = 8K
   RAM	(xrw)	: ORIGIN = 0x30040000, LENGTH = 64K
@@ -64,6 +65,7 @@ SECTIONS
   {
     . = ALIGN(4);
     KEEP(*(.isr_vector)) /* Startup code */
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -80,6 +82,7 @@ SECTIONS
     KEEP (*(.init))
     KEEP (*(.fini))
 
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH
@@ -90,6 +93,7 @@ SECTIONS
     . = ALIGN(4);
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -97,6 +101,7 @@ SECTIONS
   {
     . = ALIGN(4);
     *(.ARM.extab* .gnu.linkonce.armextab.*)
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -106,6 +111,7 @@ SECTIONS
     __exidx_start = .;
     *(.ARM.exidx*)
     __exidx_end = .;
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -115,6 +121,7 @@ SECTIONS
     PROVIDE_HIDDEN (__preinit_array_start = .);
     KEEP (*(.preinit_array*))
     PROVIDE_HIDDEN (__preinit_array_end = .);
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -125,6 +132,7 @@ SECTIONS
     KEEP (*(SORT(.init_array.*)))
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -135,6 +143,7 @@ SECTIONS
     KEEP (*(SORT(.fini_array.*)))
     KEEP (*(.fini_array*))
     PROVIDE_HIDDEN (__fini_array_end = .);
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -151,6 +160,7 @@ SECTIONS
     *(.RamFunc)        /* .RamFunc sections */
     *(.RamFunc*)       /* .RamFunc* sections */
 
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
 
@@ -160,6 +170,7 @@ SECTIONS
   {
     . = ALIGN(4);
     *(.gnu.sgstubs*)   /* Secure Gateway stubs */
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH_NSC
 
@@ -174,6 +185,7 @@ SECTIONS
     *(.bss*)
     *(COMMON)
 
+    FILL(0xDEADC0DE)
     . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
@@ -187,6 +199,7 @@ SECTIONS
     PROVIDE ( _end = . );
     . = . + _Min_Heap_Size;
     . = . + _Min_Stack_Size;
+    FILL(0xDEADC0DE)
     . = ALIGN(8);
   } >RAM
 
@@ -199,4 +212,16 @@ SECTIONS
   }
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
+
+/*  Unitialized FLASH2 section into "FLASH2" FLASH2 type memory [MMT section] */
+ .FLASH2_Section :
+  {
+    . = ALIGN(4);
+    KEEP (*(.FLASH2_Section))
+    . = ALIGN(4);
+
+    FILL(0xDEADC0DE);
+    . = ORIGIN(FLASH2) + LENGTH(FLASH2) - 1;
+    BYTE(0);
+  } >FLASH2
 }

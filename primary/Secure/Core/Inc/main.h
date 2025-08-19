@@ -75,6 +75,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define FRAM_HOLD_Pin GPIO_PIN_15
+#define FRAM_HOLD_GPIO_Port GPIOG
 #define PHY2_INT_Pin GPIO_PIN_14
 #define PHY2_INT_GPIO_Port GPIOG
 #define PHY2_INT_EXTI_IRQn EXTI14_IRQn
@@ -84,8 +86,12 @@ void Error_Handler(void);
 #define PHY0_INT_Pin GPIO_PIN_7
 #define PHY0_INT_GPIO_Port GPIOD
 #define PHY0_INT_EXTI_IRQn EXTI7_IRQn
+#define FRAM_WP_Pin GPIO_PIN_1
+#define FRAM_WP_GPIO_Port GPIOI
 #define PHY_CLK_EN_Pin GPIO_PIN_6
 #define PHY_CLK_EN_GPIO_Port GPIOD
+#define FRAM_CS_Pin GPIO_PIN_15
+#define FRAM_CS_GPIO_Port GPIOA
 #define SWCH_CS_Pin GPIO_PIN_11
 #define SWCH_CS_GPIO_Port GPIOA
 #define PHY_WAKE_Pin GPIO_PIN_0
