@@ -12,6 +12,7 @@
 
 #include "integrity.h"
 #include "config.h"
+#include "prime256v1.h"
 
 
 typedef struct {
@@ -173,10 +174,35 @@ bool INTEGRITY_get_hash_in_progress() {
 
 
 /* TODO: Idk man */
-bool INTEGRITY_check_non_secure_firmware_signature(void) {
-    PKA_ECDSAVerifInTypeDef signature;
-    HAL_PKA_ECDSAVerif(&hpka, &signature, 100);
-    HAL_PKA_ECDSAVerif_IsValidSignature(&hpka);
+bool INTEGRITY_check_non_secure_firmware_signature(sha256_digest_t *hash) {
+
+    PKA_ECDSAVerifInTypeDef in = {0};
+
+    /* Curve parameters (same as in signing example) */
+    in.primeOrderSize = prime256v1_Order_len;
+    in.modulusSize    = prime256v1_Prime_len;
+    in.coefSign       = prime256v1_A_sign;
+    in.coef           = prime256v1_absA;
+    in.modulus        = prime256v1_Prime;
+    in.basePointX     = prime256v1_GeneratorX;
+    in.basePointY     = prime256v1_GeneratorY;
+    in.primeOrder     = prime256v1_Order;
+
+    /* Public key of signer (stored in secure flash) */
+    in.pPubKeyCurvePtX = root_pubkey_x; // 32-byte array
+    in.pPubKeyCurvePtY = root_pubkey_y; // 32-byte array
+
+    /* Signature values r and s (each 32-byte) */
+    in.RSign = signature_r;
+    in.SSign = signature_s;
+
+    /* SHA-256 digest of your signed message (manifest = {version || fw_hash}) */
+    in.hash = (uint8_t *) hash;
+
+    /* This should take 2,938,000 clock cycles which is 11.8ms. TODO: use interrupts */
+    HAL_PKA_ECDSAVerif(&hpka, &in, 200); /* TODO: Check return */
+
+    return HAL_PKA_ECDSAVerif_IsValidSignature(&hpka);
 }
 
 

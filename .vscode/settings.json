@@ -87,7 +87,8 @@
         "thread": "c",
         "vector": "c",
         "text_encoding": "c",
-        "typeindex": "c"
+        "typeindex": "c",
+        "prime256v1.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,
