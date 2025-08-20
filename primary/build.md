@@ -13,4 +13,3 @@
 
 # Compiler Defines (Secure)
 
-`HAL_CRC_MODULE_ENABLED` - Required because by default CubeMX only allows peripherals to be S or NS and this one needs to be both. (This is already defined for NS). The required HAL source files also need to be added.

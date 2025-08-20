@@ -28,3 +28,20 @@ The macro can then be set in `Secure/Core/Src/main.c`:
 ```
 
 This applies regardless of which firmware image is used since the current bank will always start at `0x08000000`.
+
+# Padding
+
+All partially used flash sections should be padded. (Note: do not pad unused "2" sections)
+
+```
+ .FLASH_Section :
+  {
+    . = ALIGN(4);
+    KEEP (*(.FLASH_Section))
+    . = ALIGN(4);
+
+    FILL(0xDEADC0DE);
+    . = ORIGIN(FLASH) + LENGTH(FLASH) - 1;
+    BYTE(0);  // Not sure if this is necessary
+  } >FLASH2
+```

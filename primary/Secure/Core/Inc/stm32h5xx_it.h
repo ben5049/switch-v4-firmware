@@ -57,10 +57,15 @@ void DebugMon_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
 void RAMCFG_IRQHandler(void);
+void FLASH_S_IRQHandler(void);
 void GTZC_IRQHandler(void);
 void RCC_S_IRQHandler(void);
+void GPDMA1_Channel4_IRQHandler(void);
 void TIM2_IRQHandler(void);
 void SPI1_IRQHandler(void);
+void RNG_IRQHandler(void);
+void HASH_IRQHandler(void);
+void PKA_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

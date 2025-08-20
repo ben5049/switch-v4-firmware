@@ -50,10 +50,11 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
 /* Start MX regions */
-  FLASH	(rx)	: ORIGIN = 0x08010000, LENGTH = 960K
-  ETH	(xrw)	: ORIGIN = 0x20090000, LENGTH = 64K
-  RAM	(xrw)	: ORIGIN = 0x20050000, LENGTH = 256K
-  MISC	(xrw)	: ORIGIN = 0x20000000, LENGTH = 256K
+  FLASH2	(rx)	: ORIGIN = 0x08120000, LENGTH = 896K
+  TRACE	(xrw)	: ORIGIN = 0x20020000, LENGTH = 128K
+  FLASH	(rx)	: ORIGIN = 0x08020000, LENGTH = 896K
+  ETH	(xrw)	: ORIGIN = 0x20080000, LENGTH = 64K
+  RAM	(xrw)	: ORIGIN = 0x20050000, LENGTH = 192K
 /* End MX regions */
 }
 
@@ -194,20 +195,28 @@ SECTIONS
   }
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
-/*  Unitialized ETH section into "ETH" ETH type memory [MMT section] */
+/*  Unitialized FLASH2 section into "FLASH2" FLASH2 type memory [MMT section] */
+ .FLASH2_Section :
+  {
+    . = ALIGN(4);
+    KEEP (*(.FLASH2_Section))
+    . = ALIGN(4);
+  } >FLASH2
+
+ /*  Unitialized TRACE section into "TRACE" TRACE type memory [MMT section] */
+ .TRACE_Section :
+  {
+    . = ALIGN(4);
+    KEEP (*(.TRACE_Section))
+    . = ALIGN(4);
+  } >TRACE
+
+ /*  Unitialized ETH section into "ETH" ETH type memory [MMT section] */
  .ETH_Section :
   {
     . = ALIGN(4);
     KEEP (*(.ETH_Section))
     . = ALIGN(4);
   } >ETH
-
- /*  Unitialized MISC section into "MISC" MISC type memory [MMT section] */
- .MISC_Section :
-  {
-    . = ALIGN(4);
-    KEEP (*(.MISC_Section))
-    . = ALIGN(4);
-  } >MISC
 
 }

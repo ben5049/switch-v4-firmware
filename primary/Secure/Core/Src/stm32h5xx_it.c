@@ -55,9 +55,14 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern DMA_HandleTypeDef handle_GPDMA1_Channel4;
+extern HASH_HandleTypeDef hhash;
+extern PKA_HandleTypeDef hpka;
 extern RAMCFG_HandleTypeDef hramcfg_SRAM1;
 extern RAMCFG_HandleTypeDef hramcfg_SRAM2;
 extern RAMCFG_HandleTypeDef hramcfg_SRAM3;
+extern RAMCFG_HandleTypeDef hramcfg_BKPRAM;
+extern RNG_HandleTypeDef hrng;
 extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim2;
 
@@ -226,10 +231,24 @@ void RAMCFG_IRQHandler(void)
   /* USER CODE BEGIN RAMCFG_IRQn 0 */
 
   /* USER CODE END RAMCFG_IRQn 0 */
-  HAL_RAMCFG_IRQHandler(&hramcfg_SRAM3);
+  HAL_RAMCFG_IRQHandler(&hramcfg_BKPRAM);
   /* USER CODE BEGIN RAMCFG_IRQn 1 */
 
   /* USER CODE END RAMCFG_IRQn 1 */
+}
+
+/**
+  * @brief This function handles Flash secure global interrupt.
+  */
+void FLASH_S_IRQHandler(void)
+{
+  /* USER CODE BEGIN FLASH_S_IRQn 0 */
+
+  /* USER CODE END FLASH_S_IRQn 0 */
+  HAL_FLASH_IRQHandler();
+  /* USER CODE BEGIN FLASH_S_IRQn 1 */
+
+  /* USER CODE END FLASH_S_IRQn 1 */
 }
 
 /**
@@ -260,6 +279,20 @@ void RCC_S_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles GPDMA1 Channel 4 global interrupt.
+  */
+void GPDMA1_Channel4_IRQHandler(void)
+{
+  /* USER CODE BEGIN GPDMA1_Channel4_IRQn 0 */
+
+  /* USER CODE END GPDMA1_Channel4_IRQn 0 */
+  HAL_DMA_IRQHandler(&handle_GPDMA1_Channel4);
+  /* USER CODE BEGIN GPDMA1_Channel4_IRQn 1 */
+
+  /* USER CODE END GPDMA1_Channel4_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM2 global interrupt.
   */
 void TIM2_IRQHandler(void)
@@ -285,6 +318,48 @@ void SPI1_IRQHandler(void)
   /* USER CODE BEGIN SPI1_IRQn 1 */
 
   /* USER CODE END SPI1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles RNG global interrupt.
+  */
+void RNG_IRQHandler(void)
+{
+  /* USER CODE BEGIN RNG_IRQn 0 */
+
+  /* USER CODE END RNG_IRQn 0 */
+  HAL_RNG_IRQHandler(&hrng);
+  /* USER CODE BEGIN RNG_IRQn 1 */
+
+  /* USER CODE END RNG_IRQn 1 */
+}
+
+/**
+  * @brief This function handles HASH global interrupt.
+  */
+void HASH_IRQHandler(void)
+{
+  /* USER CODE BEGIN HASH_IRQn 0 */
+
+  /* USER CODE END HASH_IRQn 0 */
+  HAL_HASH_IRQHandler(&hhash);
+  /* USER CODE BEGIN HASH_IRQn 1 */
+
+  /* USER CODE END HASH_IRQn 1 */
+}
+
+/**
+  * @brief This function handles PKA global interrupt.
+  */
+void PKA_IRQHandler(void)
+{
+  /* USER CODE BEGIN PKA_IRQn 0 */
+
+  /* USER CODE END PKA_IRQn 0 */
+  HAL_PKA_IRQHandler(&hpka);
+  /* USER CODE BEGIN PKA_IRQn 1 */
+
+  /* USER CODE END PKA_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

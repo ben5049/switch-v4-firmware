@@ -38,6 +38,8 @@ extern RAMCFG_HandleTypeDef hramcfg_SRAM2;
 
 extern RAMCFG_HandleTypeDef hramcfg_SRAM3;
 
+extern RAMCFG_HandleTypeDef hramcfg_BKPRAM;
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

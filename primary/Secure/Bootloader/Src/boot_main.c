@@ -5,23 +5,29 @@
  *      Author: bens1
  */
 
-#include "crc.h"
-#include "flash.h"
-#include "ramcfg.h"
-#include "sau.h"
-#include "spi.h"
+#include "stdint.h"
+#include "stdbool.h"
 #include "gpio.h"
+#include "gpdma.h"
+#include "flash.h"
+#include "sau.h"
+#include "ramcfg.h"
+#include "spi.h"
+#include "rng.h"
+#include "hash.h"
+#include "pka.h"
 
 #include "boot_main.h"
 #include "config.h"
 #include "integrity.h"
 #include "metadata.h"
-
-
-metadata_handle_t hmeta;
+#include "utils.h"
+#include "flash_tools.h"
 
 
 void boot_main() {
+
+    sha256_digest_t *current_secure_firmware_hash;
 
     /* Step 1: Initialise peripherals
      * Step 2: Get previous secure firmware version and CRC from FRAM for current bank
@@ -39,29 +45,60 @@ void boot_main() {
      */
 
     /* Initialise peripherals */
-    MX_CRC_Init();
     MX_GPIO_Init();
+    MX_GPDMA1_Init();
     MX_FLASH_Init();
     MX_SAU_Init();
     MX_RAMCFG_Init();
     MX_SPI1_Init();
+    MX_RNG_Init();
+    MX_HASH_Init();
+    MX_PKA_Init();
 
-    /* Calculate the CRCs while waiting for the FRAM to be available */
-//    uint32_t current_bank_secure_crc = calculate_secure_crc(true);
-//    uint32_t other_bank_secure_crc   = calculate_secure_crc(false);
+    /* Enable ECC interrupts */
+    HAL_RAMCFG_EnableNotification(&hramcfg_SRAM2, RAMCFG_IT_ALL);
+    HAL_RAMCFG_EnableNotification(&hramcfg_SRAM3, RAMCFG_IT_ALL);
+    HAL_RAMCFG_EnableNotification(&hramcfg_BKPRAM, RAMCFG_IT_ALL);
 
-    /* Initialised the metadata struct (controls FRAM) */
-    if (META_Init(&hmeta) != META_OK) {
-        Error_Handler();
-    }
+    /* TODO: Get bank swap (from option bytes?) */
+    bool bank_swap = false;
+
+    /* Initialise the integrity module */
+    if (INTEGRITY_Init(bank_swap) != INTEGRITY_OK) Error_Handler();
+
+    /* Start calculating the SHA256 of the current secure firmware (non-blocking, uses DMA) */
+    if (INTEGRITY_start_secure_firmware_hash(CURRENT_FLASH_BANK(bank_swap)) != INTEGRITY_OK) Error_Handler();
+
+    /* Initialise the metadata module (uses FRAM over SPI1) */
+    if (META_Init(&hmeta, bank_swap) != META_OK) Error_Handler();
+
+    /* Wait for the current secure firmware hash to finish */
+    while (INTEGRITY_get_hash_in_progress()) __NOP();
+    current_secure_firmware_hash = INTEGRITY_get_secure_firmware_hash(CURRENT_FLASH_BANK(bank_swap));
+    if (current_secure_firmware_hash == NULL) Error_Handler();
 
     /* If this is the first boot then configure the device and metadata */
     if (hmeta.first_boot) {
-        // TODO:
+
+        if (META_Configure(&hmeta, current_secure_firmware_hash) != META_OK) Error_Handler();
+
+        // TODO: copy current secure firmware into other bank and check it was written correctly
     }
 
     /* Else this isn't the first boot, proceed */
     else {
+
+        /* Check the current secure firmware hasn't been corrupted or tampered with */
+        bool identical = false;
+        if (META_compare_secure_firmware_hash(&hmeta, CURRENT_FLASH_BANK(bank_swap), current_secure_firmware_hash, &identical) != META_OK) Error_Handler();
+
+        /* If it has been corrupted or tampered with then swap banks if the other bank is valid */
+        if (!identical) {
+
+            // TODO: Check other bank is valid
+            FLASH_swap_banks();
+        }
+
         // TODO:
     }
 }

@@ -13,20 +13,28 @@
 #include "hal.h"
 
 
-#define FRAM_TPU             (1)   /* Must wait 1ms after power up to access */
-#define FRAM_DEFAULT_TIMEOUT (100) /* Timeout in ms for events */
+#define FRAM_TPU                      (1)   /* Must wait 1ms after power up to access */
+#define FRAM_DEFAULT_TIMEOUT          (100) /* Timeout in ms for events */
 
-#define FRAM_OPCODE_WRSR     (0x01)
-#define FRAM_OPCODE_WRITE    (0x02)
-#define FRAM_OPCODE_READ     (0x03)
-#define FRAM_OPCODE_WRDI     (0x04)
-#define FRAM_OPCODE_RDSR     (0x05)
-#define FRAM_OPCODE_WREN     (0x06)
+#define FRAM_OPCODE_WRSR              (0x01)
+#define FRAM_OPCODE_WRITE             (0x02)
+#define FRAM_OPCODE_READ              (0x03)
+#define FRAM_OPCODE_WRDI              (0x04)
+#define FRAM_OPCODE_RDSR              (0x05)
+#define FRAM_OPCODE_WREN              (0x06)
 
-#define FRAM_SR_WEN          (1 << 1)
-#define FRAM_SR_BP0          (1 << 2)
-#define FRAM_SR_BP1          (1 << 3)
-#define FRAM_SR_WPEN         (1 << 7)
+#define FRAM_SR_WEN                   (1 << 1)
+#define FRAM_SR_BP0                   (1 << 2)
+#define FRAM_SR_BP1                   (1 << 3)
+#define FRAM_SR_WPEN                  (1 << 7)
+
+#define FRAM_START_ADDR               (0x00)
+#define FRAM_SIZE                     (1 << 13)                           /* Size in bytes */
+#define FRAM_END_ADDR                 ((FRAM_START_ADDR + FRAM_SIZE) - 1) /* 0x1fff */
+#define FRAM_HALF_SIZE                (1 << 12)
+#define FRAM_UPPER_HALF_START_ADDR    (0x1000)
+#define FRAM_QUARTER_SIZE             (1 << 11)
+#define FRAM_UPPER_QUARTER_START_ADDR (0x1800)
 
 
 typedef enum {
@@ -34,7 +42,7 @@ typedef enum {
     FRAM_ERROR   = HAL_ERROR,
     FRAM_BUSY    = HAL_BUSY,
     FRAM_TIMEOUT = HAL_TIMEOUT,
-    FRAM_NOT_IMPLEMENTED,
+    FRAM_NOT_IMPLEMENTED_ERROR,
     FRAM_PARAMETER_ERROR,
 } fram_status_t;
 

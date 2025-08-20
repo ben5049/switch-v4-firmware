@@ -8,6 +8,13 @@
 #ifndef INC_CONFIG_H_
 #define INC_CONFIG_H_
 
+
+/* ---------------------------------------------------------------------------- */
+/* General Config */
+/* ---------------------------------------------------------------------------- */
+
+#define NUM_BANKS 2
+
 /* ---------------------------------------------------------------------------- */
 /* Flash Config (must be updated if the linker file is changed) */
 /* ---------------------------------------------------------------------------- */
@@ -19,12 +26,13 @@
 #define FLASH_NS_BANK2_BASE_ADDR 0x08100000
 
 #define FLASH_S_REGION_OFFSET    0x00000000
-#define FLASH_S_REGION_SIZE      (56 * 1024)
+#define FLASH_S_REGION_SIZE      (112 * 1024)                                      /* In bytes */
 
-#define FLASH_NSC_REGION_OFFSET  (FLASH_S_REGION_OFFSET + FLASH_S_REGION_SIZE) /* = 0x0000e000 */
-#define FLASH_NSC_REGION_SIZE    (8 * 1024)
+#define FLASH_NSC_REGION_OFFSET  (FLASH_S_REGION_OFFSET + FLASH_S_REGION_SIZE)     /* = 0x0000e000 */
+#define FLASH_NSC_REGION_SIZE    (16 * 1024)                                       /* In bytes */
 
 #define FLASH_NS_REGION_OFFSET   (FLASH_NSC_REGION_OFFSET + FLASH_NSC_REGION_SIZE) /* = 0x00010000 */
-#define FLASH_NS_REGION_SIZE     (960 * 1024)
+#define FLASH_NS_REGION_SIZE     (896 * 1024)                                      /* In bytes */
+
 
 #endif /* INC_CONFIG_H_ */

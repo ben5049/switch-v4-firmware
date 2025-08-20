@@ -27,6 +27,7 @@
 RAMCFG_HandleTypeDef hramcfg_SRAM1;
 RAMCFG_HandleTypeDef hramcfg_SRAM2;
 RAMCFG_HandleTypeDef hramcfg_SRAM3;
+RAMCFG_HandleTypeDef hramcfg_BKPRAM;
 
 /* RAMCFG init function */
 void MX_RAMCFG_Init(void)
@@ -76,6 +77,18 @@ void MX_RAMCFG_Init(void)
     Error_Handler();
   }
   if (HAL_RAMCFG_StartECC(&hramcfg_SRAM3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initialize RAMCFG BKPRAM
+  */
+  hramcfg_BKPRAM.Instance = RAMCFG_BKPRAM;
+  if (HAL_RAMCFG_Init(&hramcfg_BKPRAM) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_RAMCFG_StartECC(&hramcfg_BKPRAM) != HAL_OK)
   {
     Error_Handler();
   }

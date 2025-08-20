@@ -72,6 +72,9 @@ void HAL_MspInit(void)
   /* System interrupt init*/
 
   /* Peripheral interrupt init */
+  /* FLASH_S_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(FLASH_S_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(FLASH_S_IRQn);
   /* GTZC_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(GTZC_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(GTZC_IRQn);
