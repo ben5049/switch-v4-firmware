@@ -48,10 +48,6 @@ void MX_RAMCFG_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_RAMCFG_Erase(&hramcfg_SRAM1) != HAL_OK)
-  {
-    Error_Handler();
-  }
 
   /** Initialize RAMCFG SRAM2
   */
@@ -69,10 +65,6 @@ void MX_RAMCFG_Init(void)
   */
   hramcfg_SRAM3.Instance = RAMCFG_SRAM3;
   if (HAL_RAMCFG_Init(&hramcfg_SRAM3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_RAMCFG_Erase(&hramcfg_SRAM3) != HAL_OK)
   {
     Error_Handler();
   }

@@ -188,13 +188,14 @@ bool INTEGRITY_check_non_secure_firmware_signature(sha256_digest_t *hash) {
     in.basePointY     = prime256v1_GeneratorY;
     in.primeOrder     = prime256v1_Order;
 
+    Error_Handler();
     /* Public key of signer (stored in secure flash) */
-    in.pPubKeyCurvePtX = root_pubkey_x; // 32-byte array
-    in.pPubKeyCurvePtY = root_pubkey_y; // 32-byte array
-
-    /* Signature values r and s (each 32-byte) */
-    in.RSign = signature_r;
-    in.SSign = signature_s;
+    //    in.pPubKeyCurvePtX = root_pubkey_x; // 32-byte array
+    //    in.pPubKeyCurvePtY = root_pubkey_y; // 32-byte array
+    //
+    //    /* Signature values r and s (each 32-byte) */
+    //    in.RSign = signature_r;
+    //    in.SSign = signature_s;
 
     /* SHA-256 digest of your signed message (manifest = {version || fw_hash}) */
     in.hash = (uint8_t *) hash;
@@ -223,4 +224,9 @@ void HAL_HASH_DgstCpltCallback(HASH_HandleTypeDef *hhash) {
     } else {
         Error_Handler();
     }
+}
+
+
+void HAL_HASH_ErrorCallback(HASH_HandleTypeDef *hhash) {
+    Error_Handler();
 }

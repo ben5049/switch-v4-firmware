@@ -49,7 +49,7 @@ sha256_digest_t   *INTEGRITY_get_non_secure_firmware_hash(uint8_t bank);
 bool               INTEGRITY_get_hash_in_progress(void);
 
 /* TODO: */
-bool INTEGRITY_check_non_secure_firmware_signature(void);
+bool INTEGRITY_check_non_secure_firmware_signature(sha256_digest_t *hash);
 
 
 #endif /* INC_INTEGRITY_H_ */

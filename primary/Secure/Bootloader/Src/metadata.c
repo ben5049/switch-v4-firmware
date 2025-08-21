@@ -102,6 +102,8 @@ metadata_status_t META_Init(metadata_handle_t *self, bool bank_swap) {
     if (FRAM_Init(&self->hfram, FRAM_VARIANT_FM25CL64B, &hspi1, FRAM_CS_GPIO_Port, FRAM_CS_Pin, FRAM_HOLD_GPIO_Port, FRAM_HOLD_Pin, FRAM_WP_GPIO_Port, FRAM_WP_Pin) != FRAM_OK) status = META_FRAM_ERROR;
     if (status != META_OK) return status;
 
+    //TODO: Add quick test to make sure data can be written and read
+
     /* Enable metadata area protection in the FRAM (counters are always unlocked) */
     status = META_lock_metadata(self);
     if (status != META_OK) return status;

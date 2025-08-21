@@ -52,7 +52,7 @@ void MX_FLASH_Init(void)
   pOBInit.OptionType = OPTIONBYTE_WMSEC;
   pOBInit.Banks = FLASH_BANK_BOTH;
   pOBInit.WMSecStartSector = 0;
-  pOBInit.WMSecEndSector = 13;
+  pOBInit.WMSecEndSector = 15;
   if (HAL_FLASHEx_OBProgram(&pOBInit) != HAL_OK)
   {
     Error_Handler();
