@@ -72,7 +72,7 @@ void HAL_RNG_MspInit(RNG_HandleTypeDef* rngHandle)
     __HAL_RCC_RNG_CLK_ENABLE();
 
     /* RNG interrupt Init */
-    HAL_NVIC_SetPriority(RNG_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(RNG_IRQn, 4, 0);
     HAL_NVIC_EnableIRQ(RNG_IRQn);
   /* USER CODE BEGIN RNG_MspInit 1 */
 

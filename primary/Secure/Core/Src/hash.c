@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    hash.c
-  * @brief   This file provides code for the configuration
-  *          of the HASH instances.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    hash.c
+ * @brief   This file provides code for the configuration
+ *          of the HASH instances.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "hash.h"
@@ -25,7 +25,7 @@
 /* USER CODE END 0 */
 
 HASH_HandleTypeDef hhash;
-DMA_HandleTypeDef handle_GPDMA1_Channel4;
+DMA_HandleTypeDef handle_GPDMA1_Channel0;
 
 /* HASH init function */
 void MX_HASH_Init(void)
@@ -39,7 +39,7 @@ void MX_HASH_Init(void)
 
   /* USER CODE END HASH_Init 1 */
   hhash.Instance = HASH;
-  hhash.Init.DataType = HASH_NO_SWAP;
+  hhash.Init.DataType = HASH_BYTE_SWAP;
   hhash.Init.Algorithm = HASH_ALGOSELECTION_SHA256;
   if (HAL_HASH_Init(&hhash) != HAL_OK)
   {
@@ -62,35 +62,35 @@ void HAL_HASH_MspInit(HASH_HandleTypeDef* hashHandle)
 
     /* HASH DMA Init */
     /* GPDMA1_REQUEST_HASH_IN Init */
-    handle_GPDMA1_Channel4.Instance = GPDMA1_Channel4;
-    handle_GPDMA1_Channel4.Init.Request = GPDMA1_REQUEST_HASH_IN;
-    handle_GPDMA1_Channel4.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
-    handle_GPDMA1_Channel4.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    handle_GPDMA1_Channel4.Init.SrcInc = DMA_SINC_INCREMENTED;
-    handle_GPDMA1_Channel4.Init.DestInc = DMA_DINC_FIXED;
-    handle_GPDMA1_Channel4.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;
-    handle_GPDMA1_Channel4.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;
-    handle_GPDMA1_Channel4.Init.Priority = DMA_LOW_PRIORITY_MID_WEIGHT;
-    handle_GPDMA1_Channel4.Init.SrcBurstLength = 4;
-    handle_GPDMA1_Channel4.Init.DestBurstLength = 4;
-    handle_GPDMA1_Channel4.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT0|DMA_DEST_ALLOCATED_PORT1;
-    handle_GPDMA1_Channel4.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    handle_GPDMA1_Channel4.Init.Mode = DMA_NORMAL;
-    if (HAL_DMA_Init(&handle_GPDMA1_Channel4) != HAL_OK)
+    handle_GPDMA1_Channel0.Instance = GPDMA1_Channel0;
+    handle_GPDMA1_Channel0.Init.Request = GPDMA1_REQUEST_HASH_IN;
+    handle_GPDMA1_Channel0.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
+    handle_GPDMA1_Channel0.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    handle_GPDMA1_Channel0.Init.SrcInc = DMA_SINC_INCREMENTED;
+    handle_GPDMA1_Channel0.Init.DestInc = DMA_DINC_FIXED;
+    handle_GPDMA1_Channel0.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;
+    handle_GPDMA1_Channel0.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;
+    handle_GPDMA1_Channel0.Init.Priority = DMA_LOW_PRIORITY_LOW_WEIGHT;
+    handle_GPDMA1_Channel0.Init.SrcBurstLength = 4;
+    handle_GPDMA1_Channel0.Init.DestBurstLength = 4;
+    handle_GPDMA1_Channel0.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT0|DMA_DEST_ALLOCATED_PORT1;
+    handle_GPDMA1_Channel0.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
+    handle_GPDMA1_Channel0.Init.Mode = DMA_NORMAL;
+    if (HAL_DMA_Init(&handle_GPDMA1_Channel0) != HAL_OK)
     {
       Error_Handler();
     }
 
-    __HAL_LINKDMA(hashHandle, hdmain, handle_GPDMA1_Channel4);
+    __HAL_LINKDMA(hashHandle, hdmain, handle_GPDMA1_Channel0);
 
-    if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel4, DMA_CHANNEL_PRIV|DMA_CHANNEL_SEC
+    if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel0, DMA_CHANNEL_PRIV|DMA_CHANNEL_SEC
                               |DMA_CHANNEL_SRC_SEC|DMA_CHANNEL_DEST_SEC) != HAL_OK)
     {
       Error_Handler();
     }
 
     /* HASH interrupt Init */
-    HAL_NVIC_SetPriority(HASH_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(HASH_IRQn, 8, 0);
     HAL_NVIC_EnableIRQ(HASH_IRQn);
   /* USER CODE BEGIN HASH_MspInit 1 */
 

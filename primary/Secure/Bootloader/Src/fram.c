@@ -8,12 +8,16 @@
 #include "stdint.h"
 
 #include "fram.h"
+#include "logging.h"
 
 
 static fram_status_t FRAM_WriteEnable(fram_handle_t *dev);
 static fram_status_t FRAM_WriteDisable(fram_handle_t *dev);
 static fram_status_t FRAM_ReadSR(fram_handle_t *dev, uint8_t *sr);
 static fram_status_t FRAM_WriteSR(fram_handle_t *dev, uint8_t sr);
+
+static fram_status_t spi_transmit(fram_handle_t *dev, const uint8_t *data, uint16_t size);
+static fram_status_t spi_receive(fram_handle_t *dev, uint8_t *data, uint16_t size);
 
 
 fram_status_t FRAM_Init(
@@ -71,7 +75,7 @@ static fram_status_t FRAM_WriteEnable(fram_handle_t *dev) {
 
     HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, RESET);
 
-    status = HAL_SPI_Transmit(dev->hspi, &opcode, 1, FRAM_DEFAULT_TIMEOUT);
+    status = spi_transmit(dev, &opcode, 1);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         return status;
@@ -90,7 +94,7 @@ static fram_status_t FRAM_WriteDisable(fram_handle_t *dev) {
 
     HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, RESET);
 
-    status = HAL_SPI_Transmit(dev->hspi, &opcode, 1, FRAM_DEFAULT_TIMEOUT);
+    status = spi_transmit(dev, &opcode, 1);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         return status;
@@ -109,13 +113,13 @@ static fram_status_t FRAM_ReadSR(fram_handle_t *dev, uint8_t *sr) {
 
     HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, RESET);
 
-    status = HAL_SPI_Transmit(dev->hspi, &opcode, 1, FRAM_DEFAULT_TIMEOUT);
+    status = spi_transmit(dev, &opcode, 1);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         return status;
     }
 
-    status = HAL_SPI_Receive(dev->hspi, sr, 1, FRAM_DEFAULT_TIMEOUT);
+    status = spi_receive(dev, sr, 1);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         return status;
@@ -129,8 +133,9 @@ static fram_status_t FRAM_ReadSR(fram_handle_t *dev, uint8_t *sr) {
 
 static fram_status_t FRAM_WriteSR(fram_handle_t *dev, uint8_t sr) {
 
-    fram_status_t status = FRAM_OK;
-    uint8_t       opcode = FRAM_OPCODE_WRSR;
+    fram_status_t status   = FRAM_OK;
+    uint8_t       opcode   = FRAM_OPCODE_WRSR;
+    uint8_t       reg_data = 0;
 
     status = FRAM_WriteEnable(dev);
     if (status != FRAM_OK) return status;
@@ -138,14 +143,14 @@ static fram_status_t FRAM_WriteSR(fram_handle_t *dev, uint8_t sr) {
     HAL_GPIO_WritePin(dev->wp_port, dev->wp_pin, SET);
     HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, RESET);
 
-    status = HAL_SPI_Transmit(dev->hspi, &opcode, 1, FRAM_DEFAULT_TIMEOUT);
+    status = spi_transmit(dev, &opcode, 1);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         HAL_GPIO_WritePin(dev->wp_port, dev->wp_pin, RESET);
         return status;
     }
 
-    status = HAL_SPI_Receive(dev->hspi, &sr, 1, FRAM_DEFAULT_TIMEOUT);
+    status = spi_transmit(dev, &sr, 1);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         HAL_GPIO_WritePin(dev->wp_port, dev->wp_pin, RESET);
@@ -154,6 +159,17 @@ static fram_status_t FRAM_WriteSR(fram_handle_t *dev, uint8_t sr) {
 
     HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
     HAL_GPIO_WritePin(dev->wp_port, dev->wp_pin, RESET);
+
+    /* Read the status register */
+    status = FRAM_ReadSR(dev, &reg_data);
+    if (status != FRAM_OK) return status;
+
+    /* Check the write was successful */
+    if (reg_data != sr) {
+        status = FRAM_IO_ERROR;
+        LOG_ERROR("FRAM failed to write SR\n");
+        return status;
+    }
 
     return status;
 }
@@ -236,6 +252,7 @@ fram_status_t FRAM_SetBlockProtection(fram_handle_t *dev, fram_block_protect_t p
 
         default:
             status = FRAM_PARAMETER_ERROR;
+            LOG_ERROR("FRAM invalid block protection setting\n");
             break;
     }
     if (status != FRAM_OK) return status;
@@ -261,20 +278,23 @@ fram_status_t FRAM_Write(fram_handle_t *dev, uint16_t addr, uint8_t *data, uint1
 
     HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, RESET);
 
-    status = HAL_SPI_Transmit(dev->hspi, &opcode, 1, FRAM_DEFAULT_TIMEOUT);
+    /* Send the opcode */
+    status = spi_transmit(dev, &opcode, 1);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         return status;
     }
 
+    /* Send the address */
     addr   &= 0x1fff; /* 13-bit address */
-    status  = HAL_SPI_Transmit(dev->hspi, (uint8_t *) (&addr), 2, FRAM_DEFAULT_TIMEOUT);
+    status  = spi_transmit(dev, (uint8_t *) (&addr), 2);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         return status;
     }
 
-    status = HAL_SPI_Transmit(dev->hspi, data, size, FRAM_DEFAULT_TIMEOUT);
+    /* Send the data */
+    status = spi_transmit(dev, data, size);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         return status;
@@ -293,26 +313,91 @@ fram_status_t FRAM_Read(fram_handle_t *dev, uint16_t addr, uint8_t *data, uint16
 
     HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, RESET);
 
-    status = HAL_SPI_Transmit(dev->hspi, &opcode, 1, FRAM_DEFAULT_TIMEOUT);
+    /* Send the opcode */
+    status = spi_transmit(dev, &opcode, 1);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         return status;
     }
 
+    /* Send the address */
     addr   &= 0x1fff; /* 13-bit address */
-    status  = HAL_SPI_Transmit(dev->hspi, (uint8_t *) (&addr), 2, FRAM_DEFAULT_TIMEOUT);
+    status  = spi_transmit(dev, (uint8_t *) (&addr), 2);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         return status;
     }
 
-    status = HAL_SPI_Receive(dev->hspi, data, size, FRAM_DEFAULT_TIMEOUT);
+    /* Read the data */
+    status = spi_receive(dev, data, size);
     if (status != FRAM_OK) {
         HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
         return status;
     }
 
     HAL_GPIO_WritePin(dev->cs_port, dev->cs_pin, SET);
+
+    return status;
+}
+
+
+/* Test the FRAM is working by writing and then reading back a byte */
+fram_status_t FRAM_Test(fram_handle_t *dev, uint16_t addr, uint8_t data) {
+
+    fram_status_t status = FRAM_OK;
+    uint8_t       reg_data;
+
+    /* Write the test data */
+    status = FRAM_Write(dev, addr, &data, 1);
+    if (status != FRAM_OK) return status;
+
+    /* Read the test data */
+    status = FRAM_Read(dev, addr, &reg_data, 1);
+    if (status != FRAM_OK) return status;
+
+    /* Check the test data */
+    if (reg_data != data) {
+        status = FRAM_IO_ERROR;
+        LOG_ERROR("FRAM_Test failed\n");
+        return status;
+    }
+
+    return status;
+}
+
+
+/* ---------------------------------------------------------------------------- */
+/* HAL Functions */
+/* ---------------------------------------------------------------------------- */
+
+
+static fram_status_t spi_transmit(fram_handle_t *dev, const uint8_t *data, uint16_t size) {
+
+    fram_status_t status     = FRAM_OK;
+    hal_status_t  hal_status = HAL_OK;
+
+    hal_status = HAL_SPI_Transmit(dev->hspi, data, size, FRAM_DEFAULT_TIMEOUT);
+
+    if (hal_status != HAL_OK) {
+        LOG_ERROR("FRAM HAL_SPI_Transmit Error, code = %d\n", hal_status);
+        status = FRAM_IO_ERROR;
+    }
+
+    return status;
+}
+
+
+static fram_status_t spi_receive(fram_handle_t *dev, uint8_t *data, uint16_t size) {
+
+    fram_status_t status     = FRAM_OK;
+    hal_status_t  hal_status = HAL_OK;
+
+    hal_status = HAL_SPI_Receive(dev->hspi, data, size, FRAM_DEFAULT_TIMEOUT);
+
+    if (hal_status != HAL_OK) {
+        LOG_ERROR("FRAM HAL_SPI_Receive Error, code = %d\n", hal_status);
+        status = FRAM_IO_ERROR;
+    }
 
     return status;
 }

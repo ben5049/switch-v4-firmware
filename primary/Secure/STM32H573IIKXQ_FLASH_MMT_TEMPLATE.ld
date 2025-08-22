@@ -51,9 +51,9 @@ MEMORY
 /* Start MX regions */
   FLASH2	(rx)	: ORIGIN = 0x0c100000, LENGTH = 112K
   FLASH_NSC2	(rx)	: ORIGIN = 0x0c11c000, LENGTH = 16K
-  LOG	(xrw)	: ORIGIN = 0x30000000, LENGTH = 128K
-  FLASH	(rx)	: ORIGIN = 0x0c000000, LENGTH = 112K
   BACKUP	(xrw)	: ORIGIN = 0x50036400, LENGTH = 4K
+  FLASH	(rx)	: ORIGIN = 0x0c000000, LENGTH = 112K
+  LOG	(xrw)	: ORIGIN = 0x30000000, LENGTH = 128K
   FLASH_NSC	(rx)	: ORIGIN = 0x0c01c000, LENGTH = 16K
   RAM	(xrw)	: ORIGIN = 0x30040000, LENGTH = 64K
 /* End MX regions */
@@ -231,6 +231,14 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH_NSC2
 
+ /*  Unitialized BACKUP section into "BACKUP" BACKUP type memory [MMT section] */
+ .BACKUP_Section (NOLOAD):
+  {
+    . = ALIGN(4);
+    KEEP (*(.BACKUP_Section))
+    . = ALIGN(4);
+  } >BACKUP
+
  /*  Unitialized LOG section into "LOG" LOG type memory [MMT section] */
  .LOG_Section :
   {
@@ -238,13 +246,5 @@ SECTIONS
     KEEP (*(.LOG_Section))
     . = ALIGN(4);
   } >LOG
-
- /*  Unitialized BACKUP section into "BACKUP" BACKUP type memory [MMT section] */
- .BACKUP_Section (NOLOAD) :
-  {
-    . = ALIGN(4);
-    KEEP (*(.BACKUP_Section))
-    . = ALIGN(4);
-  } >BACKUP
 
 }

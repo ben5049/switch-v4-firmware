@@ -13,7 +13,6 @@
 #include "eth.h"
 #include "icache.h"
 #include "spi.h"
-#include "usart.h"
 #include "gpio.h"
 
 #include "app_main.h"
@@ -33,7 +32,6 @@
 //     MX_GPIO_Init();
 //     MX_SPI1_Init();
 //     MX_SPI2_Init();
-//     MX_UART4_Init();
 //     MX_ETH_Init();
 //     MX_ICACHE_Init();
 //     MX_CRC_Init();

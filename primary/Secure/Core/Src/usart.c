@@ -60,7 +60,7 @@ void MX_UART4_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_DisableFifoMode(&huart4) != HAL_OK)
+  if (HAL_UARTEx_EnableFifoMode(&huart4) != HAL_OK)
   {
     Error_Handler();
   }

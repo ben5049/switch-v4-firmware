@@ -6,13 +6,17 @@
  */
 
 #include "memory.h"
+#include "assert.h"
 #include "main.h"
+#include "rng.h"
+#include "aes.h"
 #include "hal.h"
 
 #include "metadata.h"
 #include "fram.h"
 #include "stm32_uidhash.h"
 #include "utils.h"
+#include "logging.h"
 
 
 #define META_FRAM_DATA_START_ADDR ((FRAM_END_ADDR + 1) - sizeof(metadata_data_t))
@@ -20,7 +24,9 @@
 
 metadata_handle_t __attribute__((section(".BACKUP_Section"))) hmeta; /* Placed in backup SRAM */
 
-extern SPI_HandleTypeDef hspi1;
+extern SPI_HandleTypeDef  hspi1;
+extern RNG_HandleTypeDef  hrng;
+extern CRYP_HandleTypeDef hcryp;
 
 
 static void META_GetDeviceID(metadata_handle_t *self) {
@@ -88,7 +94,8 @@ static metadata_status_t META_unlock_metadata(metadata_handle_t *self) {
 
 metadata_status_t META_Init(metadata_handle_t *self, bool bank_swap) {
 
-    metadata_status_t status = META_OK;
+    metadata_status_t status        = META_OK;
+    uint32_t          random_number = 0;
 
     /* Reset the module struct */
     self->initialised = false;
@@ -96,16 +103,22 @@ metadata_status_t META_Init(metadata_handle_t *self, bool bank_swap) {
     self->bank_swap   = bank_swap;
 
     /* Wait for the FRAM to be available */
-    while (HAL_GetTick() < FRAM_TPU) __NOP();
+    while (HAL_GetTick() < FRAM_TPU) HAL_Delay(1);
 
     /* Initialise the FRAM */
     if (FRAM_Init(&self->hfram, FRAM_VARIANT_FM25CL64B, &hspi1, FRAM_CS_GPIO_Port, FRAM_CS_Pin, FRAM_HOLD_GPIO_Port, FRAM_HOLD_Pin, FRAM_WP_GPIO_Port, FRAM_WP_Pin) != FRAM_OK) status = META_FRAM_ERROR;
     if (status != META_OK) return status;
 
-    //TODO: Add quick test to make sure data can be written and read
-
     /* Enable metadata area protection in the FRAM (counters are always unlocked) */
     status = META_lock_metadata(self);
+    if (status != META_OK) return status;
+
+    /* Test FRAM reading and writing (at the top of the counter area since it should now be unlocked) */
+    _Static_assert(sizeof(metadata_counters_t) < FRAM_HALF_SIZE, "FRAM test location impinges on potentially locked FRAM address");
+    if (HAL_RNG_GenerateRandomNumber(&hrng, &random_number) != HAL_OK) status = META_RNG_ERROR;
+    if (status != META_OK) return status;
+    random_number &= 0x000000ff;
+    status         = FRAM_Test(&self->hfram, sizeof(metadata_counters_t), (uint8_t) random_number);
     if (status != META_OK) return status;
 
     /* Load the metadata */
@@ -114,6 +127,7 @@ metadata_status_t META_Init(metadata_handle_t *self, bool bank_swap) {
 
     /* Get the device ID */
     META_GetDeviceID(self);
+    LOG_INFO("Device ID = 0x%08lx\n", self->device_id);
     if (self->device_id != self->metadata.device_id) {
         self->first_boot = true;
     }
@@ -127,31 +141,37 @@ metadata_status_t META_Init(metadata_handle_t *self, bool bank_swap) {
         self->first_boot = true; /* New patch version */
     }
 
+    if (self->first_boot) LOG_INFO("First time booting with current firmware\n");
+
 #if METADATA_ENABLE_ROLLBACK_PROTECTION == true
     /* Check for rollbacks */
     if (METADATA_VERSION_MAJOR < self->metadata.metadata_version_major) {
         status = META_VERSION_ROLLBACK_ERROR;
+        LOG_ERROR("Metadata major version rollback\n");
         return status;
     } else if ((METADATA_VERSION_MAJOR == self->metadata.metadata_version_major) &&
                (METADATA_VERSION_MINOR < self->metadata.metadata_version_minor)) {
+        LOG_ERROR("Metadata minor version rollback\n");
         status = META_VERSION_ROLLBACK_ERROR;
         return status;
     } else if ((METADATA_VERSION_MAJOR == self->metadata.metadata_version_major) &&
                (METADATA_VERSION_MINOR == self->metadata.metadata_version_minor) &&
                (METADATA_VERSION_PATCH < self->metadata.metadata_version_patch)) {
+        LOG_ERROR("Metadata patch version rollback\n");
         status = META_VERSION_ROLLBACK_ERROR;
         return status;
     }
 #endif /* METADATA_ENABLE_ROLLBACK_PROTECTION == true */
 
     self->initialised = true;
+    LOG_INFO("Metadata module initialised\n");
 
     return status;
 }
 
 
 /* Should be called if META_Init() found this was the first boot */
-metadata_status_t META_Configure(metadata_handle_t *self, sha256_digest_t *secure_firmware_hash) {
+metadata_status_t META_Configure(metadata_handle_t *self, uint8_t *secure_firmware_hash) {
 
     metadata_status_t status = META_NOT_IMPLEMENTED_ERROR;
 
@@ -185,11 +205,21 @@ metadata_status_t META_Configure(metadata_handle_t *self, sha256_digest_t *secur
 /* Load the metadata (data) from the FRAM */
 metadata_status_t META_load_metadata(metadata_handle_t *self) {
 
-    metadata_status_t status = META_OK;
+    metadata_status_t            status = META_OK;
+    __ALIGN_BEGIN static uint8_t encrypted_metadata[sizeof(metadata_data_t)] __ALIGN_END;
 
     _Static_assert((META_FRAM_DATA_START_ADDR + sizeof(metadata_data_t) - 1) == FRAM_END_ADDR, "Metadata struct not aligned to end of FRAM");
 
-    if (FRAM_Read(&self->hfram, META_FRAM_DATA_START_ADDR, (uint8_t *) &self->metadata, sizeof(metadata_data_t)) != FRAM_OK) status = META_FRAM_ERROR;
+    /* Stream out the encrypted metadata from the FRAM */
+    if (FRAM_Read(&self->hfram, META_FRAM_DATA_START_ADDR, encrypted_metadata, sizeof(metadata_data_t)) != FRAM_OK) status = META_FRAM_ERROR;
+    if (status != META_OK) return status;
+
+    /* Decrypt the metadata and deserialise into the struct */
+    if (HAL_CRYP_Decrypt(&hcryp, (uint32_t *) encrypted_metadata, sizeof(metadata_data_t), (uint32_t *) &self->metadata, 100) != HAL_OK) {
+        status = META_ENCRYPTION_ERROR;
+        LOG_ERROR("Metadata decryption failed\n");
+        return status;
+    }
 
     return status;
 }
@@ -198,7 +228,8 @@ metadata_status_t META_load_metadata(metadata_handle_t *self) {
 /* Dump the metadata (data) to the FRAM */
 metadata_status_t META_dump_metadata(metadata_handle_t *self) {
 
-    metadata_status_t status = META_OK;
+    metadata_status_t            status = META_OK;
+    __ALIGN_BEGIN static uint8_t encrypted_metadata[sizeof(metadata_data_t)] __ALIGN_END;
 
     /* Don't dump non-initialised metadata */
     if (self->initialised == false) status = META_NOT_INITIALISED_ERROR;
@@ -206,12 +237,19 @@ metadata_status_t META_dump_metadata(metadata_handle_t *self) {
 
     _Static_assert((META_FRAM_DATA_START_ADDR + sizeof(metadata_data_t) - 1) == FRAM_END_ADDR, "Metadata struct not aligned to end of FRAM");
 
+    /* Serialise the struct and encrypt */
+    if (HAL_CRYP_Encrypt(&hcryp, (uint32_t *) &self->metadata, sizeof(metadata_data_t), (uint32_t *) encrypted_metadata, 100) != HAL_OK) {
+        status = META_ENCRYPTION_ERROR;
+        LOG_ERROR("Metadata encryption failed\n");
+        return status;
+    }
+
     /* Unlock the metadata region in the FRAM */
     status = META_unlock_metadata(self);
     if (status != META_OK) return status;
 
-    /* Write to the FRAM */
-    if (FRAM_Write(&self->hfram, META_FRAM_DATA_START_ADDR, (uint8_t *) &self->metadata, sizeof(metadata_data_t)) != FRAM_OK) status = META_FRAM_ERROR;
+    /* Stream out the encrypted metadata to the FRAM */
+    if (FRAM_Write(&self->hfram, META_FRAM_DATA_START_ADDR, encrypted_metadata, sizeof(metadata_data_t)) != FRAM_OK) status = META_FRAM_ERROR;
     if (status != META_OK) return status;
 
     /* Lock the metadata region in the FRAM . TODO: If there is an error earlier then this needs to be called before returning */
@@ -244,24 +282,23 @@ metadata_status_t META_dump_counters(metadata_handle_t *self) {
 }
 
 
-metadata_status_t META_set_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, sha256_digest_t *hash) {
+metadata_status_t META_set_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash) {
 
     metadata_status_t status = META_OK;
-    sha256_digest_t  *destination_hash;
+    uint8_t          *destination_hash;
 
     /* Get the hash destination pointer */
     if (bank == FLASH_BANK_1) {
-        destination_hash = &self->metadata.secure_firmware_1_hash;
+        destination_hash = self->metadata.secure_firmware_1_hash;
     } else if (bank == FLASH_BANK_2) {
-        destination_hash = &self->metadata.secure_firmware_2_hash;
+        destination_hash = self->metadata.secure_firmware_2_hash;
     } else {
         status = META_PARAMETER_ERROR;
     }
     if (status != META_OK) return status;
 
     /* Copy the hash */
-    _Static_assert(sizeof(sha256_digest_t) == SHA256_SIZE, "Hash struct incorrect size");
-    memcpy(destination_hash, hash, sizeof(sha256_digest_t));
+    memcpy(destination_hash, hash, SHA256_SIZE);
 
     /* Update the device struct */
     if (bank == FLASH_BANK_1) {
@@ -275,16 +312,16 @@ metadata_status_t META_set_secure_firmware_hash(metadata_handle_t *self, uint8_t
 }
 
 
-metadata_status_t META_compare_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, sha256_digest_t *hash, bool *identical) {
+metadata_status_t META_compare_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *identical) {
 
     metadata_status_t status      = META_OK;
-    sha256_digest_t  *stored_hash = NULL;
+    uint8_t          *stored_hash = NULL;
 
     /* Retrieve the stored hash for the bank's secure firmware */
     if ((bank == FLASH_BANK_1) && self->metadata.secure_firmware_1_valid) {
-        stored_hash = &self->metadata.secure_firmware_1_hash;
+        stored_hash = self->metadata.secure_firmware_1_hash;
     } else if ((bank == FLASH_BANK_2) && self->metadata.secure_firmware_2_valid) {
-        stored_hash = &self->metadata.secure_firmware_2_hash;
+        stored_hash = self->metadata.secure_firmware_2_hash;
     } else {
         status = META_PARAMETER_ERROR;
     }
@@ -295,30 +332,29 @@ metadata_status_t META_compare_secure_firmware_hash(metadata_handle_t *self, uin
     if (status != META_OK) return status;
 
     /* Compare the hashes */
-    *identical = memcmp(hash, stored_hash, sizeof(sha256_digest_t)) == 0;
+    *identical = memcmp(hash, stored_hash, sizeof(uint8_t)) == 0;
 
     return status;
 }
 
 
-metadata_status_t META_set_non_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, sha256_digest_t *hash) {
+metadata_status_t META_set_non_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash) {
 
     metadata_status_t status = META_OK;
-    sha256_digest_t  *destination_hash;
+    uint8_t          *destination_hash;
 
     /* Get the hash destination pointer */
     if (bank == FLASH_BANK_1) {
-        destination_hash = &self->metadata.non_secure_firmware_1_hash;
+        destination_hash = self->metadata.non_secure_firmware_1_hash;
     } else if (bank == FLASH_BANK_2) {
-        destination_hash = &self->metadata.non_secure_firmware_2_hash;
+        destination_hash = self->metadata.non_secure_firmware_2_hash;
     } else {
         status = META_PARAMETER_ERROR;
     }
     if (status != META_OK) return status;
 
     /* Copy the hash */
-    _Static_assert(sizeof(sha256_digest_t) == SHA256_SIZE, "Hash struct incorrect size");
-    memcpy(destination_hash, hash, sizeof(sha256_digest_t));
+    memcpy(destination_hash, hash, SHA256_SIZE);
 
     /* Update the device struct */
     if (bank == FLASH_BANK_1) {
@@ -332,16 +368,16 @@ metadata_status_t META_set_non_secure_firmware_hash(metadata_handle_t *self, uin
 }
 
 
-metadata_status_t META_compare_non_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, sha256_digest_t *hash, bool *identical) {
+metadata_status_t META_compare_non_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *identical) {
 
     metadata_status_t status      = META_OK;
-    sha256_digest_t  *stored_hash = NULL;
+    uint8_t          *stored_hash = NULL;
 
     /* Retrieve the stored hash for the bank's secure firmware */
     if ((bank == FLASH_BANK_1) && self->metadata.non_secure_firmware_1_valid) {
-        stored_hash = &self->metadata.non_secure_firmware_1_hash;
+        stored_hash = self->metadata.non_secure_firmware_1_hash;
     } else if ((bank == FLASH_BANK_2) && self->metadata.non_secure_firmware_2_valid) {
-        stored_hash = &self->metadata.non_secure_firmware_2_hash;
+        stored_hash = self->metadata.non_secure_firmware_2_hash;
     } else {
         status = META_PARAMETER_ERROR;
     }
@@ -352,7 +388,7 @@ metadata_status_t META_compare_non_secure_firmware_hash(metadata_handle_t *self,
     if (status != META_OK) return status;
 
     /* Compare the hashes */
-    *identical = memcmp(hash, stored_hash, sizeof(sha256_digest_t)) == 0;
+    *identical = memcmp(hash, stored_hash, SHA256_SIZE) == 0;
 
     return status;
 }

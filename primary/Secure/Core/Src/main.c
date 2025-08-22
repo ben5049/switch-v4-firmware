@@ -19,11 +19,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "gtzc_s.h"
+#include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "boot_main.h"
 #include "config.h"
+#include "logging.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -217,12 +219,11 @@ void PeriphCommonClock_Config(void)
 
   /** Initializes the peripherals clock
   */
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_SPI1
-                              |RCC_PERIPHCLK_SPI2;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_SPI1;
   PeriphClkInitStruct.PLL2.PLL2Source = RCC_PLL2_SOURCE_HSE;
   PeriphClkInitStruct.PLL2.PLL2M = 2;
   PeriphClkInitStruct.PLL2.PLL2N = 16;
-  PeriphClkInitStruct.PLL2.PLL2P = 8;
+  PeriphClkInitStruct.PLL2.PLL2P = 5;
   PeriphClkInitStruct.PLL2.PLL2Q = 8;
   PeriphClkInitStruct.PLL2.PLL2R = 2;
   PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2_VCIRANGE_3;
@@ -231,7 +232,6 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL2.PLL2ClockOut = RCC_PLL2_DIVP|RCC_PLL2_DIVQ;
   PeriphClkInitStruct.Uart4ClockSelection = RCC_UART4CLKSOURCE_PLL2Q;
   PeriphClkInitStruct.Spi1ClockSelection = RCC_SPI1CLKSOURCE_PLL2P;
-  PeriphClkInitStruct.Spi2ClockSelection = RCC_SPI2CLKSOURCE_PLL2P;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -257,7 +257,7 @@ void MPU_Config(void)
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
   MPU_InitStruct.Number = MPU_REGION_NUMBER0;
   MPU_InitStruct.BaseAddress = 0x0C000000;
-  MPU_InitStruct.LimitAddress = 0x0C11FFFF;
+  MPU_InitStruct.LimitAddress = 0x0C01BFFF;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER0;
   MPU_InitStruct.AccessPermission = MPU_REGION_PRIV_RW;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
@@ -268,6 +268,14 @@ void MPU_Config(void)
   /** Initializes and configures the Region 1 and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER1;
+  MPU_InitStruct.BaseAddress = 0x0C100000;
+  MPU_InitStruct.LimitAddress = 0x0C11BFFF;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region 2 and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER2;
   MPU_InitStruct.BaseAddress = 0x30000000;
   MPU_InitStruct.LimitAddress = 0x3001FFFF;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER1;
@@ -275,18 +283,18 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 2 and the memory to be protected
+  /** Initializes and configures the Region 3 and the memory to be protected
   */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER2;
+  MPU_InitStruct.Number = MPU_REGION_NUMBER3;
   MPU_InitStruct.BaseAddress = 0x30040000;
   MPU_InitStruct.LimitAddress = 0x3004FFFF;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 3 and the memory to be protected
+  /** Initializes and configures the Region 4 and the memory to be protected
   */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER3;
+  MPU_InitStruct.Number = MPU_REGION_NUMBER4;
   MPU_InitStruct.BaseAddress = 0x50036400;
   MPU_InitStruct.LimitAddress = 0x500373FF;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
@@ -344,6 +352,7 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
     __disable_irq();
+    LOG_ERROR("Error handler :(\n");
     while (1) {
     }
   /* USER CODE END Error_Handler_Debug */

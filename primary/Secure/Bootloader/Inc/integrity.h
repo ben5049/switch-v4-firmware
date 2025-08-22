@@ -34,22 +34,18 @@ typedef enum {
     INTEGRITY_HASH_ERROR,
 } integrity_state_t;
 
-typedef struct {
-    uint8_t bytes[SHA256_SIZE];
-} sha256_digest_t;
 
-
-integrity_status_t INTEGRITY_Init(bool bank_swap);
+integrity_status_t INTEGRITY_Init(bool bank_swap, uint8_t *current_bank_secure_digest, uint8_t *other_bank_secure_digest, uint8_t *current_bank_non_secure_digest, uint8_t *other_bank_non_secure_digest);
 
 /* Hash functions */
-integrity_status_t INTEGRITY_start_secure_firmware_hash(uint8_t bank);
-sha256_digest_t   *INTEGRITY_get_secure_firmware_hash(uint8_t bank);
+integrity_status_t INTEGRITY_compute_secure_firmware_hash(uint8_t bank);
+uint8_t           *INTEGRITY_get_secure_firmware_hash(uint8_t bank);
 integrity_status_t INTEGRITY_start_non_secure_firmware_hash(uint8_t bank);
-sha256_digest_t   *INTEGRITY_get_non_secure_firmware_hash(uint8_t bank);
+uint8_t           *INTEGRITY_get_non_secure_firmware_hash(uint8_t bank);
 bool               INTEGRITY_get_hash_in_progress(void);
 
 /* TODO: */
-bool INTEGRITY_check_non_secure_firmware_signature(sha256_digest_t *hash);
+bool INTEGRITY_check_non_secure_firmware_signature(uint8_t *hash);
 
 
 #endif /* INC_INTEGRITY_H_ */

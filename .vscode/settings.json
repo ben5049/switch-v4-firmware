@@ -88,7 +88,12 @@
         "vector": "c",
         "text_encoding": "c",
         "typeindex": "c",
-        "prime256v1.h": "c"
+        "prime256v1.h": "c",
+        "cstdio": "c",
+        "logging.h": "c",
+        "usart.h": "c",
+        "rng.h": "c",
+        "span": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,
@@ -104,6 +109,7 @@
         "ZENOH_GENERIC",
         "DEBUG",
         "HAL_ETH_USE_PTP",
+        "TX_PORT_USE_BASEPRI",
     ],
     "C_Cpp.errorSquiggles": "enabled",
     "C_Cpp.files.exclude": {

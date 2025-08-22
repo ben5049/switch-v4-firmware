@@ -22,6 +22,7 @@
 #include "stm32h5xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "logging.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,7 +56,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern DMA_HandleTypeDef handle_GPDMA1_Channel4;
+extern DMA_HandleTypeDef handle_GPDMA1_Channel0;
 extern HASH_HandleTypeDef hhash;
 extern PKA_HandleTypeDef hpka;
 extern RAMCFG_HandleTypeDef hramcfg_SRAM1;
@@ -63,7 +64,9 @@ extern RAMCFG_HandleTypeDef hramcfg_SRAM2;
 extern RAMCFG_HandleTypeDef hramcfg_SRAM3;
 extern RAMCFG_HandleTypeDef hramcfg_BKPRAM;
 extern RNG_HandleTypeDef hrng;
+extern CRYP_HandleTypeDef hcryp;
 extern SPI_HandleTypeDef hspi1;
+extern UART_HandleTypeDef huart4;
 extern TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN EV */
@@ -79,7 +82,7 @@ extern TIM_HandleTypeDef htim2;
 void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
-
+	LOG_ERROR("NMI handler :(\n");
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
    while (1)
@@ -94,7 +97,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+	LOG_ERROR("Hard fault handler :(\n");
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -279,17 +282,31 @@ void RCC_S_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles GPDMA1 Channel 4 global interrupt.
+  * @brief This function handles GPDMA1 Channel 0 global interrupt.
   */
-void GPDMA1_Channel4_IRQHandler(void)
+void GPDMA1_Channel0_IRQHandler(void)
 {
-  /* USER CODE BEGIN GPDMA1_Channel4_IRQn 0 */
+  /* USER CODE BEGIN GPDMA1_Channel0_IRQn 0 */
 
-  /* USER CODE END GPDMA1_Channel4_IRQn 0 */
-  HAL_DMA_IRQHandler(&handle_GPDMA1_Channel4);
-  /* USER CODE BEGIN GPDMA1_Channel4_IRQn 1 */
+  /* USER CODE END GPDMA1_Channel0_IRQn 0 */
+  HAL_DMA_IRQHandler(&handle_GPDMA1_Channel0);
+  /* USER CODE BEGIN GPDMA1_Channel0_IRQn 1 */
 
-  /* USER CODE END GPDMA1_Channel4_IRQn 1 */
+  /* USER CODE END GPDMA1_Channel0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles Secure AES global interrupt.
+  */
+void SAES_IRQHandler(void)
+{
+  /* USER CODE BEGIN SAES_IRQn 0 */
+
+  /* USER CODE END SAES_IRQn 0 */
+  HAL_CRYP_IRQHandler(&hcryp);
+  /* USER CODE BEGIN SAES_IRQn 1 */
+
+  /* USER CODE END SAES_IRQn 1 */
 }
 
 /**
@@ -318,6 +335,33 @@ void SPI1_IRQHandler(void)
   /* USER CODE BEGIN SPI1_IRQn 1 */
 
   /* USER CODE END SPI1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles UART4 global interrupt.
+  */
+void UART4_IRQHandler(void)
+{
+  /* USER CODE BEGIN UART4_IRQn 0 */
+
+  /* USER CODE END UART4_IRQn 0 */
+  HAL_UART_IRQHandler(&huart4);
+  /* USER CODE BEGIN UART4_IRQn 1 */
+
+  /* USER CODE END UART4_IRQn 1 */
+}
+
+/**
+  * @brief This function handles FPU global interrupt.
+  */
+void FPU_IRQHandler(void)
+{
+  /* USER CODE BEGIN FPU_IRQn 0 */
+
+  /* USER CODE END FPU_IRQn 0 */
+  /* USER CODE BEGIN FPU_IRQn 1 */
+
+  /* USER CODE END FPU_IRQn 1 */
 }
 
 /**

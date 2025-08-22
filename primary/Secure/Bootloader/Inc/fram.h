@@ -13,8 +13,8 @@
 #include "hal.h"
 
 
-#define FRAM_TPU                      (1)   /* Must wait 1ms after power up to access */
-#define FRAM_DEFAULT_TIMEOUT          (100) /* Timeout in ms for events */
+#define FRAM_TPU                      (1)    /* Must wait 1ms after power up to access */
+#define FRAM_DEFAULT_TIMEOUT          (1000) /* Timeout in ms for events */
 
 #define FRAM_OPCODE_WRSR              (0x01)
 #define FRAM_OPCODE_WRITE             (0x02)
@@ -44,6 +44,7 @@ typedef enum {
     FRAM_TIMEOUT = HAL_TIMEOUT,
     FRAM_NOT_IMPLEMENTED_ERROR,
     FRAM_PARAMETER_ERROR,
+    FRAM_IO_ERROR, /* Written data != read data */
 } fram_status_t;
 
 typedef enum {
@@ -88,6 +89,7 @@ fram_status_t FRAM_SetBlockProtection(fram_handle_t *dev, fram_block_protect_t p
 
 fram_status_t FRAM_Write(fram_handle_t *dev, uint16_t addr, uint8_t *data, uint16_t size);
 fram_status_t FRAM_Read(fram_handle_t *dev, uint16_t addr, uint8_t *data, uint16_t size);
+fram_status_t FRAM_Test(fram_handle_t *dev, uint16_t addr, uint8_t data);
 
 fram_status_t FRAM_EnableWP(fram_handle_t *dev);
 fram_status_t FRAM_DisableWP(fram_handle_t *dev);

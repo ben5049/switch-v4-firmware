@@ -313,7 +313,7 @@
 //     <1=> Lowered to 0x04-0x07
 //   <i> Value for SCB->AIRCR register bit PRIS
 */
-#define SCB_AIRCR_PRIS_VAL          0
+#define SCB_AIRCR_PRIS_VAL          1
 
 /*
 //   <o>BusFault, HardFault, and NMI target
@@ -454,11 +454,11 @@
 //   <o.26> USART1_IRQn           <0=> Secure state
 //   <o.27> USART2_IRQn           <0=> Secure state
 //   <o.28> USART3_IRQn           <0=> Secure state
-//   <o.29> UART4_IRQn            <1=> Non-Secure state
+//   <o.29> UART4_IRQn            <0=> Secure state
 //   <o.30> UART5_IRQn            <0=> Secure state
 //   <o.31> LPUART1_IRQn          <0=> Secure state
 */
-#define NVIC_INIT_ITNS1_VAL      0x21020000
+#define NVIC_INIT_ITNS1_VAL      0x01020000
 
 /*
 //   </e>

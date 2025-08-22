@@ -60,7 +60,7 @@ void HAL_PKA_MspInit(PKA_HandleTypeDef* pkaHandle)
     __HAL_RCC_PKA_CLK_ENABLE();
 
     /* PKA interrupt Init */
-    HAL_NVIC_SetPriority(PKA_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(PKA_IRQn, 8, 0);
     HAL_NVIC_EnableIRQ(PKA_IRQn);
   /* USER CODE BEGIN PKA_MspInit 1 */
 

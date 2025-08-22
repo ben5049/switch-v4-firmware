@@ -13,18 +13,19 @@
 #include "integrity.h"
 #include "config.h"
 #include "prime256v1.h"
+#include "logging.h"
 
 
 typedef struct {
     bool                       bank_swap;
     volatile integrity_state_t bank1_secure_digest_state;
-    sha256_digest_t            bank1_secure_digest;
+    uint8_t                   *bank1_secure_digest;
     volatile integrity_state_t bank2_secure_digest_state;
-    sha256_digest_t            bank2_secure_digest;
+    uint8_t                   *bank2_secure_digest;
     volatile integrity_state_t bank1_non_secure_digest_state;
-    sha256_digest_t            bank1_non_secure_digest;
+    uint8_t                   *bank1_non_secure_digest;
     volatile integrity_state_t bank2_non_secure_digest_state;
-    sha256_digest_t            bank2_non_secure_digest;
+    uint8_t                   *bank2_non_secure_digest;
 } integrity_handle_t;
 
 
@@ -34,7 +35,13 @@ extern HASH_HandleTypeDef hhash;
 extern PKA_HandleTypeDef  hpka;
 
 
-static integrity_status_t _INTEGRITY_Init(integrity_handle_t *self, bool bank_swap) {
+static integrity_status_t _INTEGRITY_Init(
+    integrity_handle_t *self,
+    bool                bank_swap,
+    uint8_t            *current_bank_secure_digest,
+    uint8_t            *other_bank_secure_digest,
+    uint8_t            *current_bank_non_secure_digest,
+    uint8_t            *other_bank_non_secure_digest) {
 
     integrity_status_t status = INTEGRITY_OK;
 
@@ -45,11 +52,31 @@ static integrity_status_t _INTEGRITY_Init(integrity_handle_t *self, bool bank_sw
     self->bank1_non_secure_digest_state = INTEGRITY_HASH_NOT_COMPUTED;
     self->bank2_non_secure_digest_state = INTEGRITY_HASH_NOT_COMPUTED;
 
+    if (bank_swap) {
+        self->bank1_secure_digest     = other_bank_secure_digest;
+        self->bank2_secure_digest     = current_bank_secure_digest;
+        self->bank1_non_secure_digest = other_bank_non_secure_digest;
+        self->bank2_non_secure_digest = current_bank_non_secure_digest;
+    } else {
+        self->bank1_secure_digest     = current_bank_secure_digest;
+        self->bank2_secure_digest     = other_bank_secure_digest;
+        self->bank1_non_secure_digest = current_bank_non_secure_digest;
+        self->bank2_non_secure_digest = other_bank_non_secure_digest;
+    }
+
+    LOG_INFO("Integrity module initialised\n");
+
     return status;
 }
 
-integrity_status_t INTEGRITY_Init(bool bank_swap) {
-    return _INTEGRITY_Init(&hintegrity, bank_swap);
+integrity_status_t INTEGRITY_Init(
+    bool     bank_swap,
+    uint8_t *current_bank_secure_digest,
+    uint8_t *other_bank_secure_digest,
+    uint8_t *current_bank_non_secure_digest,
+    uint8_t *other_bank_non_secure_digest) {
+
+    return _INTEGRITY_Init(&hintegrity, bank_swap, current_bank_secure_digest, other_bank_secure_digest, current_bank_non_secure_digest, other_bank_non_secure_digest);
 }
 
 
@@ -58,12 +85,12 @@ integrity_status_t INTEGRITY_Init(bool bank_swap) {
 /* ---------------------------------------------------------------------------- */
 
 
-static integrity_status_t _INTEGRITY_start_secure_firmware_hash(integrity_handle_t *self, uint8_t bank) {
+static integrity_status_t _INTEGRITY_compute_secure_firmware_hash(integrity_handle_t *self, uint8_t bank) {
 
     integrity_status_t status    = HAL_OK;
     uint8_t           *start_ptr = NULL;
     uint32_t           size      = FLASH_S_REGION_SIZE + FLASH_NSC_REGION_SIZE;
-    sha256_digest_t   *digest;
+    uint8_t           *digest;
 
     /* Check a hash isn't in progress already */
     if (INTEGRITY_get_hash_in_progress()) status = INTEGRITY_BUSY;
@@ -85,7 +112,7 @@ static integrity_status_t _INTEGRITY_start_secure_firmware_hash(integrity_handle
     if (status != INTEGRITY_OK) return status;
 
     /* Get the output digest pointer */
-    digest = (bank == FLASH_BANK_1) ? &self->bank1_secure_digest : &self->bank2_secure_digest;
+    digest = (bank == FLASH_BANK_1) ? self->bank1_secure_digest : self->bank2_secure_digest;
     if (digest == NULL) status = INTEGRITY_PARAMETER_ERROR;
     if (status != INTEGRITY_OK) return status;
 
@@ -97,7 +124,9 @@ static integrity_status_t _INTEGRITY_start_secure_firmware_hash(integrity_handle
     }
 
     /* Start the hash */
-    status = HAL_HASH_Start_DMA(&hhash, start_ptr, size, (uint8_t *) digest);
+    LOG_INFO("Starting hash\n");
+    status = HAL_HASH_Start(&hhash, start_ptr, size, digest, 200);
+    LOG_INFO("Finished hash\n");
     if (status != INTEGRITY_OK) {
 
         /* Update self */
@@ -108,30 +137,38 @@ static integrity_status_t _INTEGRITY_start_secure_firmware_hash(integrity_handle
         }
 
         return status;
+    } else {
+
+        /* Update self */
+        if (bank == FLASH_BANK_1) {
+            self->bank1_secure_digest_state = INTEGRITY_HASH_COMPLETE;
+        } else if (bank == FLASH_BANK_2) {
+            self->bank2_secure_digest_state = INTEGRITY_HASH_COMPLETE;
+        }
     }
 
     return status;
 }
 
-integrity_status_t INTEGRITY_start_secure_firmware_hash(uint8_t bank) {
-    return _INTEGRITY_start_secure_firmware_hash(&hintegrity, bank);
+integrity_status_t INTEGRITY_compute_secure_firmware_hash(uint8_t bank) {
+    return _INTEGRITY_compute_secure_firmware_hash(&hintegrity, bank);
 }
 
 
-static sha256_digest_t *_INTEGRITY_get_secure_firmware_hash(integrity_handle_t *self, uint8_t bank) {
+static uint8_t *_INTEGRITY_get_secure_firmware_hash(integrity_handle_t *self, uint8_t bank) {
 
-    sha256_digest_t *hash = NULL;
+    uint8_t *hash = NULL;
 
     if ((bank == FLASH_BANK_1) && (self->bank1_secure_digest_state == INTEGRITY_HASH_COMPLETE)) {
-        hash = &self->bank1_secure_digest;
+        hash = self->bank1_secure_digest;
     } else if ((bank == FLASH_BANK_2) && (self->bank2_secure_digest_state == INTEGRITY_HASH_COMPLETE)) {
-        hash = &self->bank2_secure_digest;
+        hash = self->bank2_secure_digest;
     }
 
     return hash;
 }
 
-sha256_digest_t *INTEGRITY_get_secure_firmware_hash(uint8_t bank) {
+uint8_t *INTEGRITY_get_secure_firmware_hash(uint8_t bank) {
     return _INTEGRITY_get_secure_firmware_hash(&hintegrity, bank);
 }
 
@@ -149,17 +186,24 @@ integrity_status_t INTEGRITY_start_non_secure_firmware_hash(uint8_t bank) {
 
 
 static bool _INTEGRITY_get_in_progress(integrity_handle_t *self) {
-    if (self->bank1_secure_digest_state == INTEGRITY_HASH_IN_PROGRESS) {
-        return true;
+
+    bool in_progress = true;
+
+    if (HAL_HASH_GetState(&hhash) == HAL_HASH_STATE_BUSY) {
+        in_progress = true;
+    } else if (self->bank1_secure_digest_state == INTEGRITY_HASH_IN_PROGRESS) {
+        in_progress = true;
     } else if (self->bank2_secure_digest_state == INTEGRITY_HASH_IN_PROGRESS) {
-        return true;
+        in_progress = true;
     } else if (self->bank1_non_secure_digest_state == INTEGRITY_HASH_IN_PROGRESS) {
-        return true;
+        in_progress = true;
     } else if (self->bank2_non_secure_digest_state == INTEGRITY_HASH_IN_PROGRESS) {
-        return true;
+        in_progress = true;
     } else {
-        return false;
+        in_progress = false;
     }
+
+    return in_progress;
 }
 
 
@@ -174,7 +218,7 @@ bool INTEGRITY_get_hash_in_progress() {
 
 
 /* TODO: Idk man */
-bool INTEGRITY_check_non_secure_firmware_signature(sha256_digest_t *hash) {
+bool INTEGRITY_check_non_secure_firmware_signature(uint8_t *hash) {
 
     PKA_ECDSAVerifInTypeDef in = {0};
 
@@ -228,5 +272,76 @@ void HAL_HASH_DgstCpltCallback(HASH_HandleTypeDef *hhash) {
 
 
 void HAL_HASH_ErrorCallback(HASH_HandleTypeDef *hhash) {
+
+    switch (HAL_HASH_GetError(hhash)) {
+        case (HAL_HASH_ERROR_NONE): {
+            LOG_ERROR("HAL_HASH_ERROR_NONE\n");
+            break;
+        }
+        case (HAL_HASH_ERROR_BUSY): {
+            LOG_ERROR("HAL_HASH_ERROR_BUSY\n");
+            break;
+        }
+        case (HAL_HASH_ERROR_DMA): {
+            switch (HAL_DMA_GetError(hhash->hdmain)) {
+                case (HAL_DMA_ERROR_NONE): {
+                    LOG_ERROR("HAL_HASH_ERROR_DMA -> HAL_DMA_ERROR_NONE\n");
+                    break;
+                }
+                case (HAL_DMA_ERROR_DTE): {
+                    LOG_ERROR("HAL_HASH_ERROR_DMA -> HAL_DMA_ERROR_DTE\n");
+                    break;
+                }
+                case (HAL_DMA_ERROR_ULE): {
+                    LOG_ERROR("HAL_HASH_ERROR_DMA -> HAL_DMA_ERROR_ULE\n");
+                    break;
+                }
+                case (HAL_DMA_ERROR_USE): {
+                    LOG_ERROR("HAL_HASH_ERROR_DMA -> HAL_DMA_ERROR_USE\n");
+                    break;
+                }
+                case (HAL_DMA_ERROR_TO): {
+                    LOG_ERROR("HAL_HASH_ERROR_DMA -> HAL_DMA_ERROR_TO\n");
+                    break;
+                }
+                case (HAL_DMA_ERROR_TIMEOUT): {
+                    LOG_ERROR("HAL_HASH_ERROR_DMA -> HAL_DMA_ERROR_TIMEOUT\n");
+                    break;
+                }
+                case (HAL_DMA_ERROR_NO_XFER): {
+                    LOG_ERROR("HAL_HASH_ERROR_DMA -> HAL_DMA_ERROR_NO_XFER\n");
+                    break;
+                }
+                case (HAL_DMA_ERROR_BUSY): {
+                    LOG_ERROR("HAL_HASH_ERROR_DMA -> HAL_DMA_ERROR_BUSY\n");
+                    break;
+                }
+                case (HAL_DMA_ERROR_INVALID_CALLBACK): {
+                    LOG_ERROR("HAL_HASH_ERROR_DMA -> HAL_DMA_ERROR_INVALID_CALLBACK\n");
+                    break;
+                }
+                case (HAL_DMA_ERROR_NOT_SUPPORTED): {
+                    LOG_ERROR("HAL_HASH_ERROR_DMA -> HAL_DMA_ERROR_NOT_SUPPORTED\n");
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+            break;
+        }
+        case (HAL_HASH_ERROR_TIMEOUT): {
+            LOG_ERROR("HAL_HASH_ERROR_TIMEOUT\n");
+            break;
+        }
+#if (USE_HAL_HASH_REGISTER_CALLBACKS == 1U)
+        case (HAL_HASH_ERROR_INVALID_CALLBACK): {
+            LOG_ERROR("HAL_HASH_ERROR_INVALID_CALLBACK\n");
+            break;
+        }
+#endif
+        default:
+            break;
+    }
     Error_Handler();
 }

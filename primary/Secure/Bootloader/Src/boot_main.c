@@ -16,18 +16,21 @@
 #include "rng.h"
 #include "hash.h"
 #include "pka.h"
+#include "usart.h"
+#include "aes.h"
 
 #include "boot_main.h"
 #include "config.h"
 #include "integrity.h"
 #include "metadata.h"
 #include "utils.h"
-#include "flash_tools.h"
+#include "memory_tools.h"
+#include "logging.h"
 
 
 void boot_main() {
 
-    sha256_digest_t *current_secure_firmware_hash;
+    __ALIGN_BEGIN static uint8_t current_secure_firmware_hash[SHA256_SIZE] __ALIGN_END;
 
     /* Step 1: Initialise peripherals
      * Step 2: Get previous secure firmware version and CRC from FRAM for current bank
@@ -54,46 +57,31 @@ void boot_main() {
     MX_RNG_Init();
     MX_HASH_Init();
     MX_PKA_Init();
+    MX_UART4_Init();
+    MX_SAES_AES_Init();
 
-    { // TODO: Move to function
-        /* Enable write access to backup domain */
-        PWR_S->DBPCR |= PWR_DBPCR_DBP; /* Disable write protection */
+    LOG_INFO("Starting secure firmware\n");
 
-        /* Enable clock to backup domain (updated __HAL_RCC_BKPRAM_CLK_ENABLE() for secure world) */
-        __IO uint32_t tmpreg;
-        SET_BIT(RCC_S->AHB1ENR, RCC_AHB1ENR_BKPRAMEN);
-        /* Delay after an RCC peripheral clock enabling */
-        tmpreg = READ_BIT(RCC_S->AHB1ENR, RCC_AHB1ENR_BKPRAMEN);
-        UNUSED(tmpreg);
-
-        /* Enable retention through sleep and power-off */
-        PWR_S->BDCR |= PWR_BDCR_BREN;
-
-        /* Enable voltage and temperature monitoring. TODO: Use this */
-        // PWR_S->BDCR  |= PWR_BDCR_MONEN;
-    }
+    enable_backup_domain();
 
     /* Enable ECC interrupts */
-    HAL_RAMCFG_EnableNotification(&hramcfg_SRAM2, RAMCFG_IT_ALL);
-    HAL_RAMCFG_EnableNotification(&hramcfg_SRAM3, RAMCFG_IT_ALL);
-    HAL_RAMCFG_EnableNotification(&hramcfg_BKPRAM, RAMCFG_IT_ALL);
+    if (HAL_RAMCFG_EnableNotification(&hramcfg_SRAM2, RAMCFG_IT_ALL) != HAL_OK) Error_Handler();
+    if (HAL_RAMCFG_EnableNotification(&hramcfg_SRAM3, RAMCFG_IT_ALL) != HAL_OK) Error_Handler();
+    if (HAL_RAMCFG_EnableNotification(&hramcfg_BKPRAM, RAMCFG_IT_ALL) != HAL_OK) Error_Handler();
 
     /* TODO: Get bank swap (from option bytes?) */
     bool bank_swap = false;
 
     /* Initialise the integrity module */
-    if (INTEGRITY_Init(bank_swap) != INTEGRITY_OK) Error_Handler();
+    if (INTEGRITY_Init(bank_swap, current_secure_firmware_hash, NULL, NULL, NULL) != INTEGRITY_OK) Error_Handler();
 
     /* Start calculating the SHA256 of the current secure firmware (non-blocking, uses DMA) */
-    if (INTEGRITY_start_secure_firmware_hash(CURRENT_FLASH_BANK(bank_swap)) != INTEGRITY_OK) Error_Handler();
+    if (INTEGRITY_compute_secure_firmware_hash(CURRENT_FLASH_BANK(bank_swap)) != INTEGRITY_OK) Error_Handler();
+    LOG_INFO("Secure firmware hash = ");
+    LOG_INFO_SHA256(current_secure_firmware_hash);
 
     /* Initialise the metadata module (uses FRAM over SPI1) */
     if (META_Init(&hmeta, bank_swap) != META_OK) Error_Handler();
-
-    /* Wait for the current secure firmware hash to finish */
-    while (INTEGRITY_get_hash_in_progress()) __NOP();
-    current_secure_firmware_hash = INTEGRITY_get_secure_firmware_hash(CURRENT_FLASH_BANK(bank_swap));
-    if (current_secure_firmware_hash == NULL) Error_Handler();
 
     /* If this is the first boot then configure the device and metadata */
     if (hmeta.first_boot) {
@@ -101,6 +89,8 @@ void boot_main() {
         if (META_Configure(&hmeta, current_secure_firmware_hash) != META_OK) Error_Handler();
 
         // TODO: copy current secure firmware into other bank and check it was written correctly
+
+        while (1);
     }
 
     /* Else this isn't the first boot, proceed */
@@ -110,12 +100,20 @@ void boot_main() {
         bool identical = false;
         if (META_compare_secure_firmware_hash(&hmeta, CURRENT_FLASH_BANK(bank_swap), current_secure_firmware_hash, &identical) != META_OK) Error_Handler();
 
-        /* If it has been corrupted or tampered with then swap banks if the other bank is valid */
+        /* If the secure firmware has been corrupted or tampered with then swap banks if the other bank is valid.
+         * Normally this shouldn't return as it needs a system reset for swapping banks take effect. While debugging
+         * ignore hash errors and continue as if valid */
+#ifndef DEBUG
         if (!identical) {
 
             // TODO: Check other bank is valid
-            FLASH_swap_banks();
+
+            swap_banks();
         }
+#endif
+
+
+        while (1);
 
         // TODO:
     }

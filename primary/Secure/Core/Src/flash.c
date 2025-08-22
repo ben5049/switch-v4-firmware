@@ -66,7 +66,7 @@ void MX_FLASH_Init(void)
 
   FLASH_BBSecInitStruct.Bank = FLASH_BANK_1;
   FLASH_BBSecInitStruct.BBAttributesType = FLASH_BB_PRIV|FLASH_BB_SEC;
-  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x0000FFFF;
+  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x00003FFF;
   FLASH_BBSecInitStruct.BBAttributes_array[1] =   0x00000000
                               ;
   FLASH_BBSecInitStruct.BBAttributes_array[2] =   0x00000000;
@@ -87,7 +87,7 @@ void MX_FLASH_Init(void)
   }
   FLASH_BBSecInitStruct.Bank = FLASH_BANK_2;
   FLASH_BBSecInitStruct.BBAttributesType = FLASH_BB_PRIV|FLASH_BB_SEC;
-  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x0000FFFF;
+  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x00003FFF;
   FLASH_BBSecInitStruct.BBAttributes_array[1] =   0x00000000
                               ;
   FLASH_BBSecInitStruct.BBAttributes_array[2] =   0x00000000;
