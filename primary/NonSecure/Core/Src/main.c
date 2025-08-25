@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "app_threadx.h"
 #include "main.h"
+#include "aes.h"
 #include "crc.h"
 #include "dts.h"
 #include "eth.h"
@@ -103,6 +104,7 @@ int main(void)
   MX_ETH_Init();
   MX_ICACHE_Init();
   MX_SPI2_Init();
+  MX_AES_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */

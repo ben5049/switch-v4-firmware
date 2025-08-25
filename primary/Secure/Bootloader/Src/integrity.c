@@ -13,6 +13,7 @@
 #include "integrity.h"
 #include "config.h"
 #include "prime256v1.h"
+#include "secrets.h"
 #include "logging.h"
 
 
@@ -233,10 +234,11 @@ bool INTEGRITY_check_non_secure_firmware_signature(uint8_t *hash) {
     in.primeOrder     = prime256v1_Order;
 
     Error_Handler();
+
     /* Public key of signer (stored in secure flash) */
-    //    in.pPubKeyCurvePtX = root_pubkey_x; // 32-byte array
-    //    in.pPubKeyCurvePtY = root_pubkey_y; // 32-byte array
-    //
+    set_ecdsa_key_x((uint8_t *) in.pPubKeyCurvePtX);
+    set_ecdsa_key_y((uint8_t *) in.pPubKeyCurvePtY);
+
     //    /* Signature values r and s (each 32-byte) */
     //    in.RSign = signature_r;
     //    in.SSign = signature_s;

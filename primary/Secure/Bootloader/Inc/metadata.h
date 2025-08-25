@@ -33,6 +33,8 @@ typedef enum {
     META_RNG_ERROR,
     META_MEMORY_ERROR,
     META_ENCRYPTION_ERROR,
+    META_LOG_TOO_LONG_ERROR,
+    META_LOCK_ERROR,
 } metadata_status_t;
 
 /* This struct stores the actual metadata data and is a mirror of the data stored in the FRAM. When this struct is updated the METADATA_VERSION numbers must be incremented. */
@@ -89,6 +91,9 @@ metadata_status_t META_load_metadata(metadata_handle_t *self);
 metadata_status_t META_dump_metadata(metadata_handle_t *self);
 metadata_status_t META_load_counters(metadata_handle_t *self);
 metadata_status_t META_dump_counters(metadata_handle_t *self);
+
+metadata_status_t META_write_log(metadata_handle_t *self, uint16_t addr, uint8_t *data, uint16_t size);
+metadata_status_t META_read_log(metadata_handle_t *self, uint16_t addr, uint8_t *data, uint16_t size);
 
 
 #endif /* INC_METADATA_H_ */

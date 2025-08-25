@@ -93,7 +93,10 @@
         "logging.h": "c",
         "usart.h": "c",
         "rng.h": "c",
-        "span": "c"
+        "span": "c",
+        "secrets.h": "c",
+        "platform.h": "c",
+        "stdio.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,

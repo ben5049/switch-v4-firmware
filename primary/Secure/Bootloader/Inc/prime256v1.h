@@ -12,6 +12,9 @@
 #include "stdint.h"
 
 
+#define ECDSA_SIZE 32
+
+
 extern const uint8_t  prime256v1_Prime[];
 extern const uint32_t prime256v1_Prime_len;
 

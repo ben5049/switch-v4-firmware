@@ -19,7 +19,8 @@
 #include "logging.h"
 
 
-#define META_FRAM_DATA_START_ADDR ((FRAM_END_ADDR + 1) - sizeof(metadata_data_t))
+#define META_FRAM_DATA_START_ADDR     (FRAM_UPPER_QUARTER_START_ADDR)
+#define META_FRAM_COUNTERS_START_ADDR (FRAM_UPPER_HALF_START_ADDR)
 
 
 metadata_handle_t __attribute__((section(".BACKUP_Section"))) hmeta; /* Placed in backup SRAM */
@@ -54,20 +55,20 @@ static void META_GetDeviceID(metadata_handle_t *self) {
 }
 
 
-static metadata_status_t META_lock_metadata(metadata_handle_t *self) {
+static metadata_status_t META_lock_metadata(metadata_handle_t *self, bool counters) {
 
     metadata_status_t    status = META_OK;
     fram_block_protect_t protection;
 
-    _Static_assert(sizeof(metadata_data_t) <= FRAM_HALF_SIZE, "Metadata struct too large for FRAM");
-    _Static_assert(sizeof(metadata_counters_t) <= FRAM_HALF_SIZE, "Counters struct too large for FRAM");
+    _Static_assert(sizeof(metadata_data_t) <= FRAM_QUARTER_SIZE, "Metadata struct too large for FRAM");
+    _Static_assert(sizeof(metadata_counters_t) <= FRAM_QUARTER_SIZE, "Counters struct too large for FRAM");
 
-    /* Only lock the upper quarter if the metadata fits there */
-    if (sizeof(metadata_data_t) <= FRAM_QUARTER_SIZE) {
+    /* Only lock the upper quarter where the metadata is located */
+    if (!counters) {
         protection = FRAM_PROTECT_UPPER_QUARTER;
     }
 
-    /* Lock upper half if the metadata fits there */
+    /* Also lock the next quarter where the counters are located */
     else {
         protection = FRAM_PROTECT_UPPER_HALF;
     }
@@ -109,12 +110,12 @@ metadata_status_t META_Init(metadata_handle_t *self, bool bank_swap) {
     if (FRAM_Init(&self->hfram, FRAM_VARIANT_FM25CL64B, &hspi1, FRAM_CS_GPIO_Port, FRAM_CS_Pin, FRAM_HOLD_GPIO_Port, FRAM_HOLD_Pin, FRAM_WP_GPIO_Port, FRAM_WP_Pin) != FRAM_OK) status = META_FRAM_ERROR;
     if (status != META_OK) return status;
 
-    /* Enable metadata area protection in the FRAM (counters are always unlocked) */
-    status = META_lock_metadata(self);
+    /* Enable metadata area protection in the FRAM (counters are unlocked) */
+    status = META_lock_metadata(self, false);
     if (status != META_OK) return status;
 
     /* Test FRAM reading and writing (at the top of the counter area since it should now be unlocked) */
-    _Static_assert(sizeof(metadata_counters_t) < FRAM_HALF_SIZE, "FRAM test location impinges on potentially locked FRAM address");
+    _Static_assert(sizeof(metadata_counters_t) < FRAM_QUARTER_SIZE, "FRAM test location impinges on potentially locked FRAM address");
     if (HAL_RNG_GenerateRandomNumber(&hrng, &random_number) != HAL_OK) status = META_RNG_ERROR;
     if (status != META_OK) return status;
     random_number &= 0x000000ff;
@@ -208,8 +209,6 @@ metadata_status_t META_load_metadata(metadata_handle_t *self) {
     metadata_status_t            status = META_OK;
     __ALIGN_BEGIN static uint8_t encrypted_metadata[sizeof(metadata_data_t)] __ALIGN_END;
 
-    _Static_assert((META_FRAM_DATA_START_ADDR + sizeof(metadata_data_t) - 1) == FRAM_END_ADDR, "Metadata struct not aligned to end of FRAM");
-
     /* Stream out the encrypted metadata from the FRAM */
     if (FRAM_Read(&self->hfram, META_FRAM_DATA_START_ADDR, encrypted_metadata, sizeof(metadata_data_t)) != FRAM_OK) status = META_FRAM_ERROR;
     if (status != META_OK) return status;
@@ -235,8 +234,6 @@ metadata_status_t META_dump_metadata(metadata_handle_t *self) {
     if (self->initialised == false) status = META_NOT_INITIALISED_ERROR;
     if (status != META_OK) return status;
 
-    _Static_assert((META_FRAM_DATA_START_ADDR + sizeof(metadata_data_t) - 1) == FRAM_END_ADDR, "Metadata struct not aligned to end of FRAM");
-
     /* Serialise the struct and encrypt */
     if (HAL_CRYP_Encrypt(&hcryp, (uint32_t *) &self->metadata, sizeof(metadata_data_t), (uint32_t *) encrypted_metadata, 100) != HAL_OK) {
         status = META_ENCRYPTION_ERROR;
@@ -253,7 +250,7 @@ metadata_status_t META_dump_metadata(metadata_handle_t *self) {
     if (status != META_OK) return status;
 
     /* Lock the metadata region in the FRAM . TODO: If there is an error earlier then this needs to be called before returning */
-    status = META_lock_metadata(self);
+    status = META_lock_metadata(self, false);
     if (status != META_OK) return status;
 
     return status;
@@ -389,6 +386,58 @@ metadata_status_t META_compare_non_secure_firmware_hash(metadata_handle_t *self,
 
     /* Compare the hashes */
     *identical = memcmp(hash, stored_hash, SHA256_SIZE) == 0;
+
+    return status;
+}
+
+
+/* Write to the first 4kB that is used for logging */
+metadata_status_t META_write_log(metadata_handle_t *self, uint16_t addr, uint8_t *data, uint16_t size) {
+
+    metadata_status_t status = META_OK;
+
+    if (size == 0) return status;
+
+    /* Bounds checking */
+    if ((addr + size) > FRAM_UPPER_HALF_START_ADDR) {
+        status = META_LOG_TOO_LONG_ERROR;
+        return status;
+    }
+
+    /* Write protection check */
+    if (self->hfram.block_protect == FRAM_PROTECT_ALL) {
+        status = META_LOCK_ERROR;
+        return status;
+    }
+
+    /* Write the log */
+    if (FRAM_Write(&self->hfram, addr, data, size) != FRAM_OK) {
+        status = META_FRAM_ERROR;
+        return status;
+    }
+
+    return status;
+}
+
+
+/* Read from the first 4kB that is used for logging */
+metadata_status_t META_read_log(metadata_handle_t *self, uint16_t addr, uint8_t *data, uint16_t size) {
+
+    metadata_status_t status = META_OK;
+
+    if (size == 0) return status;
+
+    /* Bounds checking */
+    if ((addr + size) > FRAM_UPPER_HALF_START_ADDR) {
+        status = META_LOG_TOO_LONG_ERROR;
+        return status;
+    }
+
+    /* Write the log */
+    if (FRAM_Read(&self->hfram, addr, data, size) != FRAM_OK) {
+        status = META_FRAM_ERROR;
+        return status;
+    }
 
     return status;
 }

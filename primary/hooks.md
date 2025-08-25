@@ -37,3 +37,22 @@ UINT MX_NetXDuo_Init(VOID *memory_ptr) {
 
 boot_main();
 
+### Keys
+
+[primary/Secure/Core/Src/aes.c](primary/Secure/Core/Src/aes.c):
+
+```C
+/* USER CODE BEGIN 0 */
+#include "secrets.h"
+/* USER CODE END 0 */
+
+void MX_SAES_AES_Init(void) {
+
+    /* USER CODE BEGIN SAES_Init 0 */
+    set_saes_key(pKeySAES);
+    set_saes_init_vector(pInitVectSAES);
+    /* USER CODE END SAES_Init 0 */
+
+    ...
+}
+```

@@ -1,27 +1,27 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    aes.c
-  * @brief   This file provides code for the configuration
-  *          of the AES instances.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    aes.c
+ * @brief   This file provides code for the configuration
+ *          of the AES instances.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "aes.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "secrets.h"
 /* USER CODE END 0 */
 
 CRYP_HandleTypeDef hcryp;
@@ -34,7 +34,8 @@ void MX_SAES_AES_Init(void)
 {
 
   /* USER CODE BEGIN SAES_Init 0 */
-
+    set_saes_key(pKeySAES);
+    set_saes_init_vector(pInitVectSAES);
   /* USER CODE END SAES_Init 0 */
 
   /* USER CODE BEGIN SAES_Init 1 */

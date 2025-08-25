@@ -19,6 +19,13 @@ for i, line in enumerate(lines):
         lines[i] = line.split(":", 1)[0] + "(NOLOAD):"
         print(f"\tNew line = '{lines[i]}'")
 
+    if ".LOG_Section :" in line:
+        print("Adding 'NOLOAD' to LOG section")
+        found = True
+        print(f"\tOriginal line = '{line}'")
+        lines[i] = line.split(":", 1)[0] + "(NOLOAD):"
+        print(f"\tNew line = '{lines[i]}'")
+
 if found:
     new_contents = "\n".join(lines)
     with open(LINKER_FILE, "w") as file:

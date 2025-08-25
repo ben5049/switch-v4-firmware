@@ -28,6 +28,9 @@
 #include "logging.h"
 
 
+uint8_t __attribute__((section(".LOG_Section"))) log_buffer[LOG_BUFFER_SIZE];
+
+
 void boot_main() {
 
     __ALIGN_BEGIN static uint8_t current_secure_firmware_hash[SHA256_SIZE] __ALIGN_END;
@@ -60,8 +63,11 @@ void boot_main() {
     MX_UART4_Init();
     MX_SAES_AES_Init();
 
+    /* Enable logging */
+    if (log_init(&hlog, log_buffer, LOG_BUFFER_SIZE) != LOG_OK) Error_Handler();
     LOG_INFO("Starting secure firmware\n");
 
+    /* Enable writing to the backup SRAM */
     enable_backup_domain();
 
     /* Enable ECC interrupts */
@@ -72,20 +78,20 @@ void boot_main() {
     /* TODO: Get bank swap (from option bytes?) */
     bool bank_swap = false;
 
-    /* Initialise the integrity module */
-    if (INTEGRITY_Init(bank_swap, current_secure_firmware_hash, NULL, NULL, NULL) != INTEGRITY_OK) Error_Handler();
-
-    /* Start calculating the SHA256 of the current secure firmware (non-blocking, uses DMA) */
-    if (INTEGRITY_compute_secure_firmware_hash(CURRENT_FLASH_BANK(bank_swap)) != INTEGRITY_OK) Error_Handler();
-    LOG_INFO("Secure firmware hash = ");
-    LOG_INFO_SHA256(current_secure_firmware_hash);
-
     /* Initialise the metadata module (uses FRAM over SPI1) */
     if (META_Init(&hmeta, bank_swap) != META_OK) Error_Handler();
 
+    /* TODO: If last shutdown was a crash, do something with messages */
+
+    /* Initialise the integrity module */
+    if (INTEGRITY_Init(bank_swap, current_secure_firmware_hash, NULL, NULL, NULL) != INTEGRITY_OK) Error_Handler();
+
+    /* Calculate the SHA256 of the current secure firmware */
+    if (INTEGRITY_compute_secure_firmware_hash(CURRENT_FLASH_BANK(bank_swap)) != INTEGRITY_OK) Error_Handler();
+    LOG_INFO_SHA256("Secure firmware hash = %s\n", current_secure_firmware_hash);
+
     /* If this is the first boot then configure the device and metadata */
     if (hmeta.first_boot) {
-
         if (META_Configure(&hmeta, current_secure_firmware_hash) != META_OK) Error_Handler();
 
         // TODO: copy current secure firmware into other bank and check it was written correctly
@@ -95,7 +101,6 @@ void boot_main() {
 
     /* Else this isn't the first boot, proceed */
     else {
-
         /* Check the current secure firmware hasn't been corrupted or tampered with */
         bool identical = false;
         if (META_compare_secure_firmware_hash(&hmeta, CURRENT_FLASH_BANK(bank_swap), current_secure_firmware_hash, &identical) != META_OK) Error_Handler();

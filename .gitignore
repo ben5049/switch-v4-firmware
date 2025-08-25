@@ -107,3 +107,4 @@ local.properties
 # CubeIDE
 [Rr]elease
 [Dd]ebug
+primary/Secure/Bootloader/Src/secrets.c
