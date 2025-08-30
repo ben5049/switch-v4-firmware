@@ -86,65 +86,107 @@ integrity_status_t INTEGRITY_Init(
 /* ---------------------------------------------------------------------------- */
 
 
-static integrity_status_t _INTEGRITY_compute_secure_firmware_hash(integrity_handle_t *self, uint8_t bank) {
+static integrity_status_t _INTEGRITY_compute_firmware_hash(integrity_handle_t *self, uint8_t bank, bool secure) {
 
     integrity_status_t status    = HAL_OK;
     uint8_t           *start_ptr = NULL;
-    uint32_t           size      = FLASH_S_REGION_SIZE + FLASH_NSC_REGION_SIZE;
+    uint32_t           size;
     uint8_t           *digest;
+
+    /* Check the input */
+    if ((bank != FLASH_BANK_1) && (bank != FLASH_BANK_2)) status = INTEGRITY_PARAMETER_ERROR;
+    if (status != INTEGRITY_OK) return status;
 
     /* Check a hash isn't in progress already */
     if (INTEGRITY_get_hash_in_progress()) status = INTEGRITY_BUSY;
     if (status != INTEGRITY_OK) return status;
 
-    /* Check the input */
-    if ((bank != FLASH_BANK_1) && (bank != FLASH_BANK_2)) status = INTEGRITY_PARAMETER_ERROR;
-    if ((size % 4) != 0) status = INTEGRITY_PARAMETER_ERROR;
-    if (status != INTEGRITY_OK) return status;
-
     /* Get the bank address */
     if (((bank == FLASH_BANK_1) && !self->bank_swap) || ((bank == FLASH_BANK_2) && self->bank_swap)) {
-        start_ptr = (uint8_t *) FLASH_S_BANK1_BASE_ADDR;
+        start_ptr = (uint8_t *) secure ? FLASH_S_BANK1_BASE_ADDR : FLASH_NS_BANK1_BASE_ADDR;
     } else if (((bank == FLASH_BANK_1) && self->bank_swap) || ((bank == FLASH_BANK_2) && !self->bank_swap)) {
-        start_ptr = (uint8_t *) FLASH_S_BANK2_BASE_ADDR;
+        start_ptr = (uint8_t *) secure ? FLASH_S_BANK2_BASE_ADDR : FLASH_NS_BANK2_BASE_ADDR;
     } else {
         status = INTEGRITY_PARAMETER_ERROR;
     }
     if (status != INTEGRITY_OK) return status;
 
+    /* Get the size */
+    if (secure) {
+        size = FLASH_S_REGION_SIZE + FLASH_NSC_REGION_SIZE;
+    } else {
+        size = FLASH_NS_REGION_SIZE;
+    }
+    if ((size % 4) != 0) status = INTEGRITY_PARAMETER_ERROR;
+    if (status != INTEGRITY_OK) return status;
+
     /* Get the output digest pointer */
-    digest = (bank == FLASH_BANK_1) ? self->bank1_secure_digest : self->bank2_secure_digest;
+    if (secure) {
+        digest = (bank == FLASH_BANK_1) ? self->bank1_secure_digest : self->bank2_secure_digest;
+    } else {
+        digest = (bank == FLASH_BANK_1) ? self->bank1_non_secure_digest : self->bank2_non_secure_digest;
+    }
     if (digest == NULL) status = INTEGRITY_PARAMETER_ERROR;
     if (status != INTEGRITY_OK) return status;
 
     /* Update self */
-    if (bank == FLASH_BANK_1) {
-        self->bank1_secure_digest_state = INTEGRITY_HASH_IN_PROGRESS;
-    } else if (bank == FLASH_BANK_2) {
-        self->bank2_secure_digest_state = INTEGRITY_HASH_IN_PROGRESS;
+    if (secure) {
+        if (bank == FLASH_BANK_1) {
+            self->bank1_secure_digest_state = INTEGRITY_HASH_IN_PROGRESS;
+        } else if (bank == FLASH_BANK_2) {
+            self->bank2_secure_digest_state = INTEGRITY_HASH_IN_PROGRESS;
+        }
+    } else {
+        if (bank == FLASH_BANK_1) {
+            self->bank1_non_secure_digest_state = INTEGRITY_HASH_IN_PROGRESS;
+        } else if (bank == FLASH_BANK_2) {
+            self->bank2_non_secure_digest_state = INTEGRITY_HASH_IN_PROGRESS;
+        }
     }
 
     /* Start the hash */
     LOG_INFO("Starting hash\n");
-    status = HAL_HASH_Start(&hhash, start_ptr, size, digest, 200);
-    LOG_INFO("Finished hash\n");
-    if (status != INTEGRITY_OK) {
+    status = HAL_HASH_Start(&hhash, start_ptr, size, digest, INTEGRITY_TIMEOUT_MS);
+
+    if (status != HAL_OK) {
+
+        status = INTEGRITY_HASHING_ERROR;
+        LOG_INFO("Error while hashing\n");
 
         /* Update self */
-        if (bank == FLASH_BANK_1) {
-            self->bank1_secure_digest_state = INTEGRITY_HASH_ERROR;
-        } else if (bank == FLASH_BANK_2) {
-            self->bank2_secure_digest_state = INTEGRITY_HASH_ERROR;
+        if (secure) {
+            if (bank == FLASH_BANK_1) {
+                self->bank1_secure_digest_state = INTEGRITY_HASH_ERROR;
+            } else if (bank == FLASH_BANK_2) {
+                self->bank2_secure_digest_state = INTEGRITY_HASH_ERROR;
+            }
+        } else {
+            if (bank == FLASH_BANK_1) {
+                self->bank1_non_secure_digest_state = INTEGRITY_HASH_ERROR;
+            } else if (bank == FLASH_BANK_2) {
+                self->bank2_non_secure_digest_state = INTEGRITY_HASH_ERROR;
+            }
         }
 
         return status;
+
     } else {
 
+        LOG_INFO("Finished hash\n");
+
         /* Update self */
-        if (bank == FLASH_BANK_1) {
-            self->bank1_secure_digest_state = INTEGRITY_HASH_COMPLETE;
-        } else if (bank == FLASH_BANK_2) {
-            self->bank2_secure_digest_state = INTEGRITY_HASH_COMPLETE;
+        if (secure) {
+            if (bank == FLASH_BANK_1) {
+                self->bank1_secure_digest_state = INTEGRITY_HASH_COMPLETE;
+            } else if (bank == FLASH_BANK_2) {
+                self->bank2_secure_digest_state = INTEGRITY_HASH_COMPLETE;
+            }
+        } else {
+            if (bank == FLASH_BANK_1) {
+                self->bank1_non_secure_digest_state = INTEGRITY_HASH_COMPLETE;
+            } else if (bank == FLASH_BANK_2) {
+                self->bank2_non_secure_digest_state = INTEGRITY_HASH_COMPLETE;
+            }
         }
     }
 
@@ -152,7 +194,11 @@ static integrity_status_t _INTEGRITY_compute_secure_firmware_hash(integrity_hand
 }
 
 integrity_status_t INTEGRITY_compute_secure_firmware_hash(uint8_t bank) {
-    return _INTEGRITY_compute_secure_firmware_hash(&hintegrity, bank);
+    return _INTEGRITY_compute_firmware_hash(&hintegrity, bank, true);
+}
+
+integrity_status_t INTEGRITY_compute_non_secure_firmware_hash(uint8_t bank) {
+    return _INTEGRITY_compute_firmware_hash(&hintegrity, bank, false);
 }
 
 
@@ -171,18 +217,6 @@ static uint8_t *_INTEGRITY_get_secure_firmware_hash(integrity_handle_t *self, ui
 
 uint8_t *INTEGRITY_get_secure_firmware_hash(uint8_t bank) {
     return _INTEGRITY_get_secure_firmware_hash(&hintegrity, bank);
-}
-
-
-static integrity_status_t _INTEGRITY_start_non_secure_firmware_hash(integrity_handle_t *self, uint8_t bank) {
-
-    integrity_status_t status = INTEGRITY_NOT_IMPLEMENTED_ERROR;
-
-    return status;
-}
-
-integrity_status_t INTEGRITY_start_non_secure_firmware_hash(uint8_t bank) {
-    return _INTEGRITY_start_non_secure_firmware_hash(&hintegrity, bank);
 }
 
 

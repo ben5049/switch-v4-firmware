@@ -171,6 +171,50 @@ metadata_status_t META_Init(metadata_handle_t *self, bool bank_swap) {
 }
 
 
+metadata_status_t META_Reinit(metadata_handle_t *self, bool bank_swap) {
+
+    metadata_status_t status        = META_OK;
+    uint32_t          random_number = 0;
+
+    /* Reset the module struct */
+    self->initialised = false;
+    self->first_boot  = false;
+    self->bank_swap   = bank_swap;
+
+    /* Wait for the FRAM to be available */
+    while (HAL_GetTick() < FRAM_TPU) HAL_Delay(1);
+
+    /* Initialise the FRAM */
+    if (FRAM_Init(&self->hfram, FRAM_VARIANT_FM25CL64B, &hspi1, FRAM_CS_GPIO_Port, FRAM_CS_Pin, FRAM_HOLD_GPIO_Port, FRAM_HOLD_Pin, FRAM_WP_GPIO_Port, FRAM_WP_Pin) != FRAM_OK) status = META_FRAM_ERROR;
+    if (status != META_OK) return status;
+
+    /* Enable metadata area protection in the FRAM (counters are unlocked) */
+    status = META_lock_metadata(self, false);
+    if (status != META_OK) return status;
+
+    /* Test FRAM reading and writing (at the top of the counter area since it should now be unlocked) */
+    _Static_assert(sizeof(metadata_counters_t) < FRAM_QUARTER_SIZE, "FRAM test location impinges on potentially locked FRAM address");
+    if (HAL_RNG_GenerateRandomNumber(&hrng, &random_number) != HAL_OK) status = META_RNG_ERROR;
+    if (status != META_OK) return status;
+    random_number &= 0x000000ff;
+    status         = FRAM_Test(&self->hfram, sizeof(metadata_counters_t), (uint8_t) random_number);
+    if (status != META_OK) return status;
+
+    /* Get the device ID */
+    META_GetDeviceID(self);
+    LOG_INFO("Device ID = 0x%08lx\n", self->device_id);
+    if (self->device_id != self->metadata.device_id) {
+        status = META_ID_ERROR;
+        return status;
+    }
+
+    self->initialised = true;
+    LOG_INFO("Metadata module reinitialised\n");
+
+    return status;
+}
+
+
 /* Should be called if META_Init() found this was the first boot */
 metadata_status_t META_Configure(metadata_handle_t *self, uint8_t *secure_firmware_hash) {
 

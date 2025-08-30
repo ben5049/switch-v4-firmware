@@ -217,7 +217,7 @@ log_status_t log_dump_to_fram(log_handle_t *self, metadata_handle_t *meta) {
     while (self->head_offset > current_offset) {
         type = *PTR_FROM_OFFSET(current_offset);
 
-        /* Only write the log if its useful */
+        /* Only write the log if its a valid type */
         if (type >= LOG_COMMITTED) {
             size = *PTR_FROM_OFFSET(current_offset + LOG_TYPE_SIZE);
             if (META_write_log(meta, addr, PTR_FROM_OFFSET(current_offset), size) != META_OK) {

@@ -33,9 +33,14 @@ UINT MX_NetXDuo_Init(VOID *memory_ptr) {
 
 ### Main
 
+```C
 #include "boot_main.h"
+#include "error.h"
 
 boot_main();
+
+error_handler(ERROR_HAL, HAL_ERROR);
+```
 
 ### Keys
 

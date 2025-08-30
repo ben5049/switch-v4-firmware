@@ -13,7 +13,7 @@
 
 
 void swap_banks() {
-
+    // should also hardware erase the backup sram
     /* In debug mode don't actually swap banks */
 #ifdef DEBUG
     Error_Handler();

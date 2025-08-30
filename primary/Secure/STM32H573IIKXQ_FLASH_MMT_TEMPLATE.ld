@@ -41,7 +41,6 @@ _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 
 _Min_Heap_Size = 0x200; /* required amount of heap */
 _Min_Stack_Size = 0x400; /* required amount of stack */
-
 /* Start user variables */
 
 /* End user variables */
@@ -50,12 +49,12 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
 /* Start MX regions */
-  FLASH2	(rx)	: ORIGIN = 0x0c100000, LENGTH = 112K
-  FLASH_NSC2	(rx)	: ORIGIN = 0x0c11c000, LENGTH = 16K
-  FLASH	(rx)	: ORIGIN = 0x0c000000, LENGTH = 112K
+  FLASH2	(rx)	: ORIGIN = 0x0c100000, LENGTH = 120K
+  FLASH_NSC2	(rx)	: ORIGIN = 0x0c11e000, LENGTH = 8K
   BACKUP	(xrw)	: ORIGIN = 0x50036400, LENGTH = 4K
+  FLASH	(rx)	: ORIGIN = 0x0c000000, LENGTH = 120K
   LOG	(xrw)	: ORIGIN = 0x30000000, LENGTH = 128K
-  FLASH_NSC	(rx)	: ORIGIN = 0x0c01c000, LENGTH = 16K
+  FLASH_NSC	(rx)	: ORIGIN = 0x0c01e000, LENGTH = 8K
   RAM	(xrw)	: ORIGIN = 0x30040000, LENGTH = 64K
 /* End MX regions */
 }
@@ -233,7 +232,7 @@ SECTIONS
   } >FLASH_NSC2
 
  /*  Unitialized BACKUP section into "BACKUP" BACKUP type memory [MMT section] */
- .BACKUP_Section (NOLOAD):
+ .BACKUP_Section :
   {
     . = ALIGN(4);
     KEEP (*(.BACKUP_Section))
@@ -241,7 +240,7 @@ SECTIONS
   } >BACKUP
 
  /*  Unitialized LOG section into "LOG" LOG type memory [MMT section] */
- .LOG_Section (NOLOAD):
+ .LOG_Section :
   {
     . = ALIGN(4);
     KEEP (*(.LOG_Section))

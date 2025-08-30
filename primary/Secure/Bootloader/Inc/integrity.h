@@ -15,8 +15,8 @@
 #include "hash.h"
 
 
-#define SHA256_SIZE 32 /* Size in bytes */
-
+#define SHA256_SIZE          32  /* Size in bytes */
+#define INTEGRITY_TIMEOUT_MS 500 /* ms */
 
 typedef enum {
     INTEGRITY_OK      = HAL_OK,
@@ -25,6 +25,7 @@ typedef enum {
     INTEGRITY_TIMEOUT = HAL_TIMEOUT,
     INTEGRITY_NOT_IMPLEMENTED_ERROR,
     INTEGRITY_PARAMETER_ERROR,
+    INTEGRITY_HASHING_ERROR,
 } integrity_status_t;
 
 typedef enum {
@@ -39,8 +40,8 @@ integrity_status_t INTEGRITY_Init(bool bank_swap, uint8_t *current_bank_secure_d
 
 /* Hash functions */
 integrity_status_t INTEGRITY_compute_secure_firmware_hash(uint8_t bank);
+integrity_status_t INTEGRITY_compute_non_secure_firmware_hash(uint8_t bank);
 uint8_t           *INTEGRITY_get_secure_firmware_hash(uint8_t bank);
-integrity_status_t INTEGRITY_start_non_secure_firmware_hash(uint8_t bank);
 uint8_t           *INTEGRITY_get_non_secure_firmware_hash(uint8_t bank);
 bool               INTEGRITY_get_hash_in_progress(void);
 

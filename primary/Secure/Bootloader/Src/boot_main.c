@@ -26,6 +26,7 @@
 #include "utils.h"
 #include "memory_tools.h"
 #include "logging.h"
+#include "error.h"
 
 
 uint8_t __attribute__((section(".LOG_Section"))) log_buffer[LOG_BUFFER_SIZE];
@@ -33,7 +34,12 @@ uint8_t __attribute__((section(".LOG_Section"))) log_buffer[LOG_BUFFER_SIZE];
 
 void boot_main() {
 
+    static uint8_t status;
+
     __ALIGN_BEGIN static uint8_t current_secure_firmware_hash[SHA256_SIZE] __ALIGN_END;
+    __ALIGN_BEGIN static uint8_t other_secure_firmware_hash[SHA256_SIZE] __ALIGN_END;
+    __ALIGN_BEGIN static uint8_t current_non_secure_firmware_hash[SHA256_SIZE] __ALIGN_END;
+    __ALIGN_BEGIN static uint8_t other_non_secure_firmware_hash[SHA256_SIZE] __ALIGN_END;
 
     /* Step 1: Initialise peripherals
      * Step 2: Get previous secure firmware version and CRC from FRAM for current bank
@@ -64,46 +70,66 @@ void boot_main() {
     MX_SAES_AES_Init();
 
     /* Enable logging */
-    if (log_init(&hlog, log_buffer, LOG_BUFFER_SIZE) != LOG_OK) Error_Handler();
+    status = log_init(&hlog, log_buffer, LOG_BUFFER_SIZE);
+    CHECK_STATUS(status, LOG_OK, ERROR_LOG);
     LOG_INFO("Starting secure firmware\n");
 
     /* Enable writing to the backup SRAM */
     enable_backup_domain();
 
     /* Enable ECC interrupts */
-    if (HAL_RAMCFG_EnableNotification(&hramcfg_SRAM2, RAMCFG_IT_ALL) != HAL_OK) Error_Handler();
-    if (HAL_RAMCFG_EnableNotification(&hramcfg_SRAM3, RAMCFG_IT_ALL) != HAL_OK) Error_Handler();
-    if (HAL_RAMCFG_EnableNotification(&hramcfg_BKPRAM, RAMCFG_IT_ALL) != HAL_OK) Error_Handler();
+    status = HAL_RAMCFG_EnableNotification(&hramcfg_SRAM2, RAMCFG_IT_ALL);
+    CHECK_STATUS(status, HAL_OK, ERROR_HAL);
+    status = HAL_RAMCFG_EnableNotification(&hramcfg_SRAM3, RAMCFG_IT_ALL);
+    CHECK_STATUS(status, HAL_OK, ERROR_HAL);
+    status = HAL_RAMCFG_EnableNotification(&hramcfg_BKPRAM, RAMCFG_IT_ALL);
+    CHECK_STATUS(status, HAL_OK, ERROR_HAL);
 
     /* TODO: Get bank swap (from option bytes?) */
     bool bank_swap = false;
 
+    /* Check if the metadata module is already initialised (CPU reset, but memory persisted) */
+    if (hmeta.initialised == true) {
+        status = META_Reinit(&hmeta, bank_swap);
+        CHECK_STATUS(status, META_OK, ERROR_META);
+    }
+
     /* Initialise the metadata module (uses FRAM over SPI1) */
-    if (META_Init(&hmeta, bank_swap) != META_OK) Error_Handler();
+    else {
+        status = META_Init(&hmeta, bank_swap);
+        CHECK_STATUS(status, META_OK, ERROR_META);
+    }
 
-    /* TODO: If last shutdown was a crash, do something with messages */
+    /* Check if the last boot was a crash. Startup in reduced mode */
+    if (hmeta.metadata.crashed) {
+        /* TODO: If last shutdown was a crash, do something with messages */
+    }
 
-    /* Initialise the integrity module */
-    if (INTEGRITY_Init(bank_swap, current_secure_firmware_hash, NULL, NULL, NULL) != INTEGRITY_OK) Error_Handler();
+    /* Initialise the integrity module and pass in empty buffers for hash digests */
+    status = INTEGRITY_Init(bank_swap, current_secure_firmware_hash, other_secure_firmware_hash, current_non_secure_firmware_hash, other_non_secure_firmware_hash);
+    CHECK_STATUS(status, INTEGRITY_OK, ERROR_INTEGRITY);
 
     /* Calculate the SHA256 of the current secure firmware */
-    if (INTEGRITY_compute_secure_firmware_hash(CURRENT_FLASH_BANK(bank_swap)) != INTEGRITY_OK) Error_Handler();
+    status = INTEGRITY_compute_secure_firmware_hash(CURRENT_FLASH_BANK(bank_swap));
+    CHECK_STATUS(status, INTEGRITY_OK, ERROR_INTEGRITY);
     LOG_INFO_SHA256("Secure firmware hash = %s\n", current_secure_firmware_hash);
 
     /* If this is the first boot then configure the device and metadata */
     if (hmeta.first_boot) {
-        if (META_Configure(&hmeta, current_secure_firmware_hash) != META_OK) Error_Handler();
+        status = META_Configure(&hmeta, current_secure_firmware_hash);
+        CHECK_STATUS(status, META_OK, ERROR_META);
 
-        // TODO: copy current secure firmware into other bank and check it was written correctly
-
+        // TODO: copy current secure and non-secure firmwares into other bank and check they were written correctly
         while (1);
     }
 
-    /* Else this isn't the first boot, proceed */
+    /* Else this isn't the first boot */
     else {
+
         /* Check the current secure firmware hasn't been corrupted or tampered with */
-        bool identical = false;
-        if (META_compare_secure_firmware_hash(&hmeta, CURRENT_FLASH_BANK(bank_swap), current_secure_firmware_hash, &identical) != META_OK) Error_Handler();
+        bool identical = true;
+        status         = META_compare_secure_firmware_hash(&hmeta, CURRENT_FLASH_BANK(bank_swap), current_secure_firmware_hash, &identical);
+        CHECK_STATUS(status, META_OK, ERROR_META);
 
         /* If the secure firmware has been corrupted or tampered with then swap banks if the other bank is valid.
          * Normally this shouldn't return as it needs a system reset for swapping banks take effect. While debugging
@@ -117,8 +143,23 @@ void boot_main() {
         }
 #endif
 
+        /* Check the other firmwares haven't been corrupted or tampered with */
 
-        while (1);
+        // TODO: check the other secure firmware properties in hmeta.
+        // If it has the same hash as this secure firmware then check that is true (set as valid or copy self into other)
+        // If different or marked as invalid then copy self into other
+        // Compute hash of secure other to make sure copy was successful
+        status = INTEGRITY_compute_secure_firmware_hash(OTHER_FLASH_BANK(bank_swap));
+        CHECK_STATUS(status, META_OK, ERROR_INTEGRITY);
+        status = META_compare_secure_firmware_hash(&hmeta, OTHER_FLASH_BANK(bank_swap), other_secure_firmware_hash, &identical);
+        CHECK_STATUS(status, META_OK, ERROR_META);
+
+        // Follow above steps for non-secure firmwares
+        status = INTEGRITY_compute_non_secure_firmware_hash(CURRENT_FLASH_BANK(bank_swap));
+        CHECK_STATUS(status, META_OK, ERROR_INTEGRITY);
+        status = INTEGRITY_compute_non_secure_firmware_hash(OTHER_FLASH_BANK(bank_swap));
+        CHECK_STATUS(status, META_OK, ERROR_INTEGRITY);
+
 
         // TODO:
     }

@@ -35,10 +35,18 @@ typedef enum {
     META_ENCRYPTION_ERROR,
     META_LOG_TOO_LONG_ERROR,
     META_LOCK_ERROR,
+    META_ID_ERROR,
 } metadata_status_t;
 
 /* This struct stores the actual metadata data and is a mirror of the data stored in the FRAM. When this struct is updated the METADATA_VERSION numbers must be incremented. */
 typedef struct __attribute__((__packed__)) {
+
+    uint8_t metadata_version_major;
+    uint8_t metadata_version_minor;
+    uint8_t metadata_version_patch;
+
+    /* Was the last shutdown a crash? */
+    bool crashed;
 
     /* Firmware image data */
     bool    secure_firmware_1_valid;
@@ -53,10 +61,6 @@ typedef struct __attribute__((__packed__)) {
     /* Device ID computed from hash of 96-bit unique identifier */
     uint32_t device_id;
 
-    /* Must be at the end of the struct */
-    uint8_t metadata_version_major;
-    uint8_t metadata_version_minor;
-    uint8_t metadata_version_patch;
 } metadata_data_t;
 
 /* This struct stores the actual metadata counters and is a mirror of the data stored in the FRAM. When this struct is updated the METADATA_VERSION numbers must be incremented. */
@@ -80,6 +84,7 @@ extern metadata_handle_t hmeta;
 
 
 metadata_status_t META_Init(metadata_handle_t *meta, bool bank_swap);
+metadata_status_t META_Reinit(metadata_handle_t *self, bool bank_swap);
 metadata_status_t META_Configure(metadata_handle_t *meta, uint8_t *secure_firmware_hash);
 
 metadata_status_t META_set_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash);

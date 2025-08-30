@@ -96,7 +96,8 @@
         "span": "c",
         "secrets.h": "c",
         "platform.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "error.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,

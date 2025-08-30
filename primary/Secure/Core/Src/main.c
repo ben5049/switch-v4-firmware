@@ -25,7 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "boot_main.h"
 #include "config.h"
-#include "logging.h"
+#include "error.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -257,7 +257,7 @@ void MPU_Config(void)
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
   MPU_InitStruct.Number = MPU_REGION_NUMBER0;
   MPU_InitStruct.BaseAddress = 0x0C000000;
-  MPU_InitStruct.LimitAddress = 0x0C01BFFF;
+  MPU_InitStruct.LimitAddress = 0x0C01DFFF;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER0;
   MPU_InitStruct.AccessPermission = MPU_REGION_PRIV_RW;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
@@ -269,7 +269,7 @@ void MPU_Config(void)
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER1;
   MPU_InitStruct.BaseAddress = 0x0C100000;
-  MPU_InitStruct.LimitAddress = 0x0C11BFFF;
+  MPU_InitStruct.LimitAddress = 0x0C11DFFF;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
@@ -350,11 +350,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-    /* User can add his own implementation to report the HAL error return state */
     __disable_irq();
-    LOG_ERROR("Error handler :(\n");
-    while (1) {
-    }
+    error_handler(ERROR_HAL, HAL_ERROR);
   /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT
