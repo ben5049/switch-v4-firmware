@@ -232,7 +232,7 @@ metadata_status_t META_Configure(metadata_handle_t *self, uint8_t *secure_firmwa
     self->metadata.metadata_version_patch = METADATA_VERSION_PATCH;
 
     /* Set the secure firmware hash */
-    META_set_secure_firmware_hash(&hmeta, CURRENT_FLASH_BANK(self->bank_swap), secure_firmware_hash);
+    META_set_s_firmware_hash(&hmeta, CURRENT_FLASH_BANK(self->bank_swap), secure_firmware_hash);
     /* TODO: Set valid separately ^ */
 
     /* Dump the configured metadata */
@@ -323,16 +323,16 @@ metadata_status_t META_dump_counters(metadata_handle_t *self) {
 }
 
 
-metadata_status_t META_set_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash) {
+metadata_status_t META_set_s_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash) {
 
     metadata_status_t status = META_OK;
     uint8_t          *destination_hash;
 
     /* Get the hash destination pointer */
     if (bank == FLASH_BANK_1) {
-        destination_hash = self->metadata.secure_firmware_1_hash;
+        destination_hash = self->metadata.s_firmware_1_hash;
     } else if (bank == FLASH_BANK_2) {
-        destination_hash = self->metadata.secure_firmware_2_hash;
+        destination_hash = self->metadata.s_firmware_2_hash;
     } else {
         status = META_PARAMETER_ERROR;
     }
@@ -343,52 +343,57 @@ metadata_status_t META_set_secure_firmware_hash(metadata_handle_t *self, uint8_t
 
     /* Update the device struct */
     if (bank == FLASH_BANK_1) {
-        self->metadata.secure_firmware_1_valid = true;
+        self->metadata.s_firmware_1_valid = true;
     } else if (bank == FLASH_BANK_2) {
-        self->metadata.secure_firmware_2_valid = true;
+        self->metadata.s_firmware_2_valid = true;
     }
 
-    self->metadata.secure_firmware_1_valid = true;
+    self->metadata.s_firmware_1_valid = true;
     return status;
 }
 
 
-metadata_status_t META_compare_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *identical) {
+metadata_status_t META_compare_s_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid) {
 
     metadata_status_t status      = META_OK;
     uint8_t          *stored_hash = NULL;
 
-    /* Retrieve the stored hash for the bank's secure firmware */
-    if ((bank == FLASH_BANK_1) && self->metadata.secure_firmware_1_valid) {
-        stored_hash = self->metadata.secure_firmware_1_hash;
-    } else if ((bank == FLASH_BANK_2) && self->metadata.secure_firmware_2_valid) {
-        stored_hash = self->metadata.secure_firmware_2_hash;
-    } else {
-        status = META_PARAMETER_ERROR;
-    }
+    /* Check parameters */
+    if ((bank != FLASH_BANK_1) && (bank != FLASH_BANK_2)) status = META_PARAMETER_ERROR;
+    if (hash == NULL) status = META_PARAMETER_ERROR;
     if (status != META_OK) return status;
+
+    /* Retrieve the stored hash for the bank's secure firmware */
+    if ((bank == FLASH_BANK_1) && self->metadata.s_firmware_1_valid) {
+        stored_hash = self->metadata.s_firmware_1_hash;
+    } else if ((bank == FLASH_BANK_2) && self->metadata.s_firmware_2_valid) {
+        stored_hash = self->metadata.s_firmware_2_hash;
+    } else {
+        *valid = false;
+        return status;
+    }
 
     /* Check the retrieved hash is valid */
     if (stored_hash == NULL) status = META_PARAMETER_ERROR;
     if (status != META_OK) return status;
 
     /* Compare the hashes */
-    *identical = memcmp(hash, stored_hash, sizeof(uint8_t)) == 0;
+    *valid = memcmp(hash, stored_hash, sizeof(uint8_t)) == 0;
 
     return status;
 }
 
 
-metadata_status_t META_set_non_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash) {
+metadata_status_t META_set_ns_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash) {
 
     metadata_status_t status = META_OK;
     uint8_t          *destination_hash;
 
     /* Get the hash destination pointer */
     if (bank == FLASH_BANK_1) {
-        destination_hash = self->metadata.non_secure_firmware_1_hash;
+        destination_hash = self->metadata.ns_firmware_1_hash;
     } else if (bank == FLASH_BANK_2) {
-        destination_hash = self->metadata.non_secure_firmware_2_hash;
+        destination_hash = self->metadata.ns_firmware_2_hash;
     } else {
         status = META_PARAMETER_ERROR;
     }
@@ -399,37 +404,42 @@ metadata_status_t META_set_non_secure_firmware_hash(metadata_handle_t *self, uin
 
     /* Update the device struct */
     if (bank == FLASH_BANK_1) {
-        self->metadata.non_secure_firmware_1_valid = true;
+        self->metadata.ns_firmware_1_valid = true;
     } else if (bank == FLASH_BANK_2) {
-        self->metadata.non_secure_firmware_2_valid = true;
+        self->metadata.ns_firmware_2_valid = true;
     }
 
-    self->metadata.secure_firmware_1_valid = true;
+    self->metadata.s_firmware_1_valid = true;
     return status;
 }
 
 
-metadata_status_t META_compare_non_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *identical) {
+metadata_status_t META_compare_ns_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid) {
 
     metadata_status_t status      = META_OK;
     uint8_t          *stored_hash = NULL;
 
-    /* Retrieve the stored hash for the bank's secure firmware */
-    if ((bank == FLASH_BANK_1) && self->metadata.non_secure_firmware_1_valid) {
-        stored_hash = self->metadata.non_secure_firmware_1_hash;
-    } else if ((bank == FLASH_BANK_2) && self->metadata.non_secure_firmware_2_valid) {
-        stored_hash = self->metadata.non_secure_firmware_2_hash;
-    } else {
-        status = META_PARAMETER_ERROR;
-    }
+    /* Check parameters */
+    if ((bank != FLASH_BANK_1) && (bank != FLASH_BANK_2)) status = META_PARAMETER_ERROR;
+    if (hash == NULL) status = META_PARAMETER_ERROR;
     if (status != META_OK) return status;
+
+    /* Retrieve the stored hash for the bank's secure firmware */
+    if ((bank == FLASH_BANK_1) && self->metadata.ns_firmware_1_valid) {
+        stored_hash = self->metadata.ns_firmware_1_hash;
+    } else if ((bank == FLASH_BANK_2) && self->metadata.ns_firmware_2_valid) {
+        stored_hash = self->metadata.ns_firmware_2_hash;
+    } else {
+        *valid = false;
+        return status;
+    }
 
     /* Check the retrieved hash is valid */
     if (stored_hash == NULL) status = META_PARAMETER_ERROR;
     if (status != META_OK) return status;
 
     /* Compare the hashes */
-    *identical = memcmp(hash, stored_hash, SHA256_SIZE) == 0;
+    *valid = memcmp(hash, stored_hash, SHA256_SIZE) == 0;
 
     return status;
 }

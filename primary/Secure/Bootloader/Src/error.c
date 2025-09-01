@@ -13,7 +13,7 @@ void error_handler(error_t major_error_code, uint8_t minor_error_code) {
 
     __disable_irq();
 
-    LOG_ERROR("Error handler :(\n");
+    LOG_ERROR_NO_CHECK("Error handler :(\n");
 
     while (1) {
     }

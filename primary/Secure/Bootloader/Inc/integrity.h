@@ -13,10 +13,14 @@
 #include "stdbool.h"
 #include "hal.h"
 #include "hash.h"
+#include "utils.h"
+
+#define SHA256_SIZE                    32  /* Size in bytes */
+#define INTEGRITY_TIMEOUT_MS           500 /* ms */
 
 
-#define SHA256_SIZE          32  /* Size in bytes */
-#define INTEGRITY_TIMEOUT_MS 500 /* ms */
+#define CHECK_STATUS_INTEGRITY(status) CHECK_STATUS((status), INTEGRITY_OK, ERROR_INTEGRITY)
+
 
 typedef enum {
     INTEGRITY_OK      = HAL_OK,
@@ -39,14 +43,14 @@ typedef enum {
 integrity_status_t INTEGRITY_Init(bool bank_swap, uint8_t *current_bank_secure_digest, uint8_t *other_bank_secure_digest, uint8_t *current_bank_non_secure_digest, uint8_t *other_bank_non_secure_digest);
 
 /* Hash functions */
-integrity_status_t INTEGRITY_compute_secure_firmware_hash(uint8_t bank);
-integrity_status_t INTEGRITY_compute_non_secure_firmware_hash(uint8_t bank);
-uint8_t           *INTEGRITY_get_secure_firmware_hash(uint8_t bank);
-uint8_t           *INTEGRITY_get_non_secure_firmware_hash(uint8_t bank);
+integrity_status_t INTEGRITY_compute_s_firmware_hash(uint8_t bank);
+integrity_status_t INTEGRITY_compute_ns_firmware_hash(uint8_t bank);
+uint8_t           *INTEGRITY_get_s_firmware_hash(uint8_t bank);
+uint8_t           *INTEGRITY_get_ns_firmware_hash(uint8_t bank);
 bool               INTEGRITY_get_hash_in_progress(void);
 
 /* TODO: */
-bool INTEGRITY_check_non_secure_firmware_signature(uint8_t *hash);
+bool INTEGRITY_check_ns_firmware_signature(uint8_t bank);
 
 
 #endif /* INC_INTEGRITY_H_ */

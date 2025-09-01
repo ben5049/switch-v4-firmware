@@ -19,6 +19,8 @@
 
 #define METADATA_ENABLE_ROLLBACK_PROTECTION true
 
+#define CHECK_STATUS_META(status)           CHECK_STATUS((status), META_OK, ERROR_META)
+
 
 typedef enum {
     META_OK      = HAL_OK,
@@ -49,14 +51,14 @@ typedef struct __attribute__((__packed__)) {
     bool crashed;
 
     /* Firmware image data */
-    bool    secure_firmware_1_valid;
-    uint8_t secure_firmware_1_hash[SHA256_SIZE];
-    bool    secure_firmware_2_valid;
-    uint8_t secure_firmware_2_hash[SHA256_SIZE];
-    bool    non_secure_firmware_1_valid;
-    uint8_t non_secure_firmware_1_hash[SHA256_SIZE];
-    bool    non_secure_firmware_2_valid;
-    uint8_t non_secure_firmware_2_hash[SHA256_SIZE];
+    bool    s_firmware_1_valid;
+    uint8_t s_firmware_1_hash[SHA256_SIZE];
+    bool    s_firmware_2_valid;
+    uint8_t s_firmware_2_hash[SHA256_SIZE];
+    bool    ns_firmware_1_valid;
+    uint8_t ns_firmware_1_hash[SHA256_SIZE];
+    bool    ns_firmware_2_valid;
+    uint8_t ns_firmware_2_hash[SHA256_SIZE];
 
     /* Device ID computed from hash of 96-bit unique identifier */
     uint32_t device_id;
@@ -87,10 +89,10 @@ metadata_status_t META_Init(metadata_handle_t *meta, bool bank_swap);
 metadata_status_t META_Reinit(metadata_handle_t *self, bool bank_swap);
 metadata_status_t META_Configure(metadata_handle_t *meta, uint8_t *secure_firmware_hash);
 
-metadata_status_t META_set_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash);
-metadata_status_t META_compare_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *identical);
-metadata_status_t META_set_non_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash);
-metadata_status_t META_compare_non_secure_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *identical);
+metadata_status_t META_set_s_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash);
+metadata_status_t META_compare_s_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid);
+metadata_status_t META_set_ns_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash);
+metadata_status_t META_compare_ns_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid);
 
 metadata_status_t META_load_metadata(metadata_handle_t *self);
 metadata_status_t META_dump_metadata(metadata_handle_t *self);

@@ -10,6 +10,8 @@
 
 #include "memory_tools.h"
 #include "logging.h"
+#include "integrity.h"
+#include "metadata.h"
 
 
 void swap_banks() {
@@ -40,4 +42,37 @@ void enable_backup_domain(void) {
     // PWR_S->BDCR  |= PWR_BDCR_MONEN;
 
     LOG_INFO("Backup domain initialised\n");
+}
+
+
+/* Other secure firmware check */
+bool check_ns_firmware(uint8_t bank) {
+
+    uint8_t status = 0;
+    bool    valid  = true;
+
+    /* Compute the hash */
+    status = INTEGRITY_compute_ns_firmware_hash(bank);
+    CHECK_STATUS_INTEGRITY(status);
+
+    // TODO: check the other firmware properties in hmeta.
+
+    /* Compare the computed hash with the stored hash */
+    status = META_compare_ns_firmware_hash(&hmeta, bank, INTEGRITY_get_ns_firmware_hash(bank), &valid);
+    CHECK_STATUS_META(status);
+
+    /* Update hmeta */
+    if (bank == FLASH_BANK_1) {
+        hmeta.metadata.ns_firmware_1_valid = valid;
+    } else if (bank == FLASH_BANK_2) {
+        hmeta.metadata.ns_firmware_2_valid = valid;
+    }
+
+    /* Return if not valid */
+    if (!valid) return valid;
+
+    /* Check the signature of the non-secure firmware TODO: properly w/ manifest */
+    INTEGRITY_check_ns_firmware_signature(bank);
+
+    return valid;
 }

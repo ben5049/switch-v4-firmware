@@ -103,9 +103,9 @@ static integrity_status_t _INTEGRITY_compute_firmware_hash(integrity_handle_t *s
 
     /* Get the bank address */
     if (((bank == FLASH_BANK_1) && !self->bank_swap) || ((bank == FLASH_BANK_2) && self->bank_swap)) {
-        start_ptr = (uint8_t *) secure ? FLASH_S_BANK1_BASE_ADDR : FLASH_NS_BANK1_BASE_ADDR;
+        start_ptr = (uint8_t *) (secure ? FLASH_S_BANK1_BASE_ADDR : FLASH_NS_BANK1_BASE_ADDR);
     } else if (((bank == FLASH_BANK_1) && self->bank_swap) || ((bank == FLASH_BANK_2) && !self->bank_swap)) {
-        start_ptr = (uint8_t *) secure ? FLASH_S_BANK2_BASE_ADDR : FLASH_NS_BANK2_BASE_ADDR;
+        start_ptr = (uint8_t *) (secure ? FLASH_S_BANK2_BASE_ADDR : FLASH_NS_BANK2_BASE_ADDR);
     } else {
         status = INTEGRITY_PARAMETER_ERROR;
     }
@@ -146,9 +146,7 @@ static integrity_status_t _INTEGRITY_compute_firmware_hash(integrity_handle_t *s
 
     /* Start the hash */
     LOG_INFO("Starting hash\n");
-    status = HAL_HASH_Start(&hhash, start_ptr, size, digest, INTEGRITY_TIMEOUT_MS);
-
-    if (status != HAL_OK) {
+    if (HAL_HASH_Start(&hhash, start_ptr, size, digest, INTEGRITY_TIMEOUT_MS) != HAL_OK) {
 
         status = INTEGRITY_HASHING_ERROR;
         LOG_INFO("Error while hashing\n");
@@ -193,16 +191,16 @@ static integrity_status_t _INTEGRITY_compute_firmware_hash(integrity_handle_t *s
     return status;
 }
 
-integrity_status_t INTEGRITY_compute_secure_firmware_hash(uint8_t bank) {
+integrity_status_t INTEGRITY_compute_s_firmware_hash(uint8_t bank) {
     return _INTEGRITY_compute_firmware_hash(&hintegrity, bank, true);
 }
 
-integrity_status_t INTEGRITY_compute_non_secure_firmware_hash(uint8_t bank) {
+integrity_status_t INTEGRITY_compute_ns_firmware_hash(uint8_t bank) {
     return _INTEGRITY_compute_firmware_hash(&hintegrity, bank, false);
 }
 
 
-static uint8_t *_INTEGRITY_get_secure_firmware_hash(integrity_handle_t *self, uint8_t bank) {
+static uint8_t *_INTEGRITY_get_s_firmware_hash(integrity_handle_t *self, uint8_t bank) {
 
     uint8_t *hash = NULL;
 
@@ -215,8 +213,26 @@ static uint8_t *_INTEGRITY_get_secure_firmware_hash(integrity_handle_t *self, ui
     return hash;
 }
 
-uint8_t *INTEGRITY_get_secure_firmware_hash(uint8_t bank) {
-    return _INTEGRITY_get_secure_firmware_hash(&hintegrity, bank);
+uint8_t *INTEGRITY_get_s_firmware_hash(uint8_t bank) {
+    return _INTEGRITY_get_s_firmware_hash(&hintegrity, bank);
+}
+
+
+static uint8_t *_INTEGRITY_get_ns_firmware_hash(integrity_handle_t *self, uint8_t bank) {
+
+    uint8_t *hash = NULL;
+
+    if ((bank == FLASH_BANK_1) && (self->bank1_secure_digest_state == INTEGRITY_HASH_COMPLETE)) {
+        hash = self->bank1_non_secure_digest;
+    } else if ((bank == FLASH_BANK_2) && (self->bank2_secure_digest_state == INTEGRITY_HASH_COMPLETE)) {
+        hash = self->bank2_non_secure_digest;
+    }
+
+    return hash;
+}
+
+uint8_t *INTEGRITY_get_ns_firmware_hash(uint8_t bank) {
+    return _INTEGRITY_get_ns_firmware_hash(&hintegrity, bank);
 }
 
 
@@ -253,7 +269,7 @@ bool INTEGRITY_get_hash_in_progress() {
 
 
 /* TODO: Idk man */
-bool INTEGRITY_check_non_secure_firmware_signature(uint8_t *hash) {
+bool INTEGRITY_check_ns_firmware_signature(uint8_t bank) {
 
     PKA_ECDSAVerifInTypeDef in = {0};
 
@@ -267,7 +283,7 @@ bool INTEGRITY_check_non_secure_firmware_signature(uint8_t *hash) {
     in.basePointY     = prime256v1_GeneratorY;
     in.primeOrder     = prime256v1_Order;
 
-    Error_Handler();
+    Error_Handler(); // TODO:????
 
     /* Public key of signer (stored in secure flash) */
     set_ecdsa_key_x((uint8_t *) in.pPubKeyCurvePtX);
@@ -278,7 +294,14 @@ bool INTEGRITY_check_non_secure_firmware_signature(uint8_t *hash) {
     //    in.SSign = signature_s;
 
     /* SHA-256 digest of your signed message (manifest = {version || fw_hash}) */
-    in.hash = (uint8_t *) hash;
+    if (bank == FLASH_BANK_1) {
+        in.hash = hintegrity.bank1_non_secure_digest;
+    } else if (bank == FLASH_BANK_2) {
+        in.hash = hintegrity.bank2_non_secure_digest;
+    }
+
+    if (in.hash == NULL)
+        ; // TODO: Error
 
     /* This should take 2,938,000 clock cycles which is 11.8ms. TODO: use interrupts */
     HAL_PKA_ECDSAVerif(&hpka, &in, 200); /* TODO: Check return */
