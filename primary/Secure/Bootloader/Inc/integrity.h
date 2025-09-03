@@ -15,8 +15,8 @@
 #include "hash.h"
 #include "utils.h"
 
-#define SHA256_SIZE                    32  /* Size in bytes */
-#define INTEGRITY_TIMEOUT_MS           500 /* ms */
+#define SHA256_SIZE                    (32)  /* Size in bytes */
+#define INTEGRITY_TIMEOUT_MS           (500) /* ms */
 
 
 #define CHECK_STATUS_INTEGRITY(status) CHECK_STATUS((status), INTEGRITY_OK, ERROR_INTEGRITY)
@@ -50,7 +50,7 @@ uint8_t           *INTEGRITY_get_ns_firmware_hash(uint8_t bank);
 bool               INTEGRITY_get_hash_in_progress(void);
 
 /* TODO: */
-bool INTEGRITY_check_ns_firmware_signature(uint8_t bank);
+bool INTEGRITY_check_firmware_signature(uint8_t *hash, uint8_t *signature_r, uint8_t *signature_s);
 
 
 #endif /* INC_INTEGRITY_H_ */

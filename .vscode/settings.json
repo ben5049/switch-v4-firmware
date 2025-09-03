@@ -100,7 +100,8 @@
         "error.h": "c",
         "memory_tools.h": "c",
         "flash.h": "c",
-        "memory.h": "c"
+        "memory.h": "c",
+        "initializer_list": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,

@@ -103,9 +103,9 @@ static integrity_status_t _INTEGRITY_compute_firmware_hash(integrity_handle_t *s
 
     /* Get the bank address */
     if (((bank == FLASH_BANK_1) && !self->bank_swap) || ((bank == FLASH_BANK_2) && self->bank_swap)) {
-        start_ptr = (uint8_t *) (secure ? FLASH_S_BANK1_BASE_ADDR : FLASH_NS_BANK1_BASE_ADDR);
+        start_ptr = (uint8_t *) (secure ? (FLASH_S_BANK1_BASE_ADDR + FLASH_S_REGION_OFFSET) : (FLASH_NS_BANK1_BASE_ADDR + FLASH_NS_REGION_OFFSET));
     } else if (((bank == FLASH_BANK_1) && self->bank_swap) || ((bank == FLASH_BANK_2) && !self->bank_swap)) {
-        start_ptr = (uint8_t *) (secure ? FLASH_S_BANK2_BASE_ADDR : FLASH_NS_BANK2_BASE_ADDR);
+        start_ptr = (uint8_t *) (secure ? (FLASH_S_BANK2_BASE_ADDR + FLASH_S_REGION_OFFSET) : (FLASH_NS_BANK2_BASE_ADDR + FLASH_NS_REGION_OFFSET));
     } else {
         status = INTEGRITY_PARAMETER_ERROR;
     }
@@ -170,6 +170,7 @@ static integrity_status_t _INTEGRITY_compute_firmware_hash(integrity_handle_t *s
 
     } else {
 
+        /* Hash complete */
         LOG_INFO("Finished hash\n");
 
         /* Update self */
@@ -268,12 +269,12 @@ bool INTEGRITY_get_hash_in_progress() {
 /* ---------------------------------------------------------------------------- */
 
 
-/* TODO: Idk man */
-bool INTEGRITY_check_ns_firmware_signature(uint8_t bank) {
+bool INTEGRITY_check_firmware_signature(uint8_t *hash, uint8_t *signature_r, uint8_t *signature_s) {
 
-    PKA_ECDSAVerifInTypeDef in = {0};
+    integrity_status_t      status = INTEGRITY_OK;
+    PKA_ECDSAVerifInTypeDef in     = {0};
 
-    /* Curve parameters (same as in signing example) */
+    /* Curve parameters */
     in.primeOrderSize = prime256v1_Order_len;
     in.modulusSize    = prime256v1_Prime_len;
     in.coefSign       = prime256v1_A_sign;
@@ -283,28 +284,28 @@ bool INTEGRITY_check_ns_firmware_signature(uint8_t bank) {
     in.basePointY     = prime256v1_GeneratorY;
     in.primeOrder     = prime256v1_Order;
 
-    Error_Handler(); // TODO:????
-
     /* Public key of signer (stored in secure flash) */
-    set_ecdsa_key_x((uint8_t *) in.pPubKeyCurvePtX);
-    set_ecdsa_key_y((uint8_t *) in.pPubKeyCurvePtY);
+    uint8_t key_x[ECDSA_SIZE];
+    uint8_t key_y[ECDSA_SIZE];
+    set_ecdsa_key_x(key_x);
+    set_ecdsa_key_y(key_y);
+    in.pPubKeyCurvePtX = key_x;
+    in.pPubKeyCurvePtY = key_y;
 
-    //    /* Signature values r and s (each 32-byte) */
-    //    in.RSign = signature_r;
-    //    in.SSign = signature_s;
+    /* Signature values r and s (each 32-byte) */
+    in.RSign = signature_r;
+    in.SSign = signature_s;
+    if (in.RSign == NULL) status = INTEGRITY_PARAMETER_ERROR;
+    if (in.SSign == NULL) status = INTEGRITY_PARAMETER_ERROR;
+    if (status != INTEGRITY_OK) return status;
 
-    /* SHA-256 digest of your signed message (manifest = {version || fw_hash}) */
-    if (bank == FLASH_BANK_1) {
-        in.hash = hintegrity.bank1_non_secure_digest;
-    } else if (bank == FLASH_BANK_2) {
-        in.hash = hintegrity.bank2_non_secure_digest;
-    }
+    /* SHA-256 digest of the firmware */
+    in.hash = hash;
+    if (in.hash == NULL) status = INTEGRITY_PARAMETER_ERROR;
+    if (status != INTEGRITY_OK) return status;
 
-    if (in.hash == NULL)
-        ; // TODO: Error
-
-    /* This should take 2,938,000 clock cycles which is 11.8ms. TODO: use interrupts */
-    HAL_PKA_ECDSAVerif(&hpka, &in, 200); /* TODO: Check return */
+    /* This should take 2,938,000 clock cycles which is 11.8ms at 250MHz */
+    HAL_PKA_ECDSAVerif(&hpka, &in, 1000); /* TODO: Check return */
 
     return HAL_PKA_ECDSAVerif_IsValidSignature(&hpka);
 }

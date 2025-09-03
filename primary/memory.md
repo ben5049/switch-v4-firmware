@@ -6,7 +6,7 @@
 The macro `VTOR_TABLE_NS_START_ADDR` must be set to the address of the non-secure vector table. This address is set in `primary\NonSecure\STM32H573IIKXQ_FLASH_MMT_TEMPLATE.ld`:
 
 ```
-FLASH	(rx)	: ORIGIN = 0x08010000, LENGTH = 960K
+FLASH	(rx)	: ORIGIN = 0x08010000, LENGTH = 864K
 ```
 
 The macro can then be set in `Secure/Core/Src/main.c`:

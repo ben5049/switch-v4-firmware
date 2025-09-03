@@ -9,6 +9,9 @@
 #define INC_CONFIG_H_
 
 
+#include "stm32h573xx.h"
+
+
 /* ---------------------------------------------------------------------------- */
 /* General Config */
 /* ---------------------------------------------------------------------------- */
@@ -19,11 +22,11 @@
 /* Flash Config (must be updated if the linker file is changed) */
 /* ---------------------------------------------------------------------------- */
 
-#define FLASH_S_BANK1_BASE_ADDR  0x0c000000
-#define FLASH_S_BANK2_BASE_ADDR  0x0c100000
+#define FLASH_S_BANK1_BASE_ADDR  (FLASH_BASE_S)
+#define FLASH_S_BANK2_BASE_ADDR  (FLASH_BASE_S + FLASH_BANK_SIZE)
 
-#define FLASH_NS_BANK1_BASE_ADDR 0x08000000
-#define FLASH_NS_BANK2_BASE_ADDR 0x08100000
+#define FLASH_NS_BANK1_BASE_ADDR (FLASH_BASE_NS)
+#define FLASH_NS_BANK2_BASE_ADDR (FLASH_BASE_NS + FLASH_BANK_SIZE)
 
 #define FLASH_S_REGION_OFFSET    0x00000000
 #define FLASH_S_REGION_SIZE      (152 * 1024)                                      /* In bytes */
