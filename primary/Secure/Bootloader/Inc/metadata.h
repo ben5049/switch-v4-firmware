@@ -11,6 +11,7 @@
 
 #include "fram.h"
 #include "integrity.h"
+#include "prime256v1.h"
 
 
 #define METADATA_VERSION_MAJOR              0
@@ -67,7 +68,7 @@ typedef struct __attribute__((__packed__)) {
 
 /* This struct stores the actual metadata counters and is a mirror of the data stored in the FRAM. When this struct is updated the METADATA_VERSION numbers must be incremented. */
 typedef struct __attribute__((__packed__)) {
-
+    uint32_t crashes;
 } metadata_counters_t;
 
 typedef struct {
@@ -87,19 +88,19 @@ extern metadata_handle_t hmeta;
 
 metadata_status_t META_Init(metadata_handle_t *meta, bool bank_swap);
 metadata_status_t META_Reinit(metadata_handle_t *self, bool bank_swap);
-metadata_status_t META_Configure(metadata_handle_t *meta, uint8_t *secure_firmware_hash);
+metadata_status_t META_Configure(metadata_handle_t *meta);
 
 metadata_status_t META_set_s_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash);
-metadata_status_t META_compare_s_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid);
+metadata_status_t META_check_s_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid);
 metadata_status_t META_set_ns_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash);
-metadata_status_t META_compare_ns_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid);
+metadata_status_t META_check_ns_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid);
 
 metadata_status_t META_load_metadata(metadata_handle_t *self);
 metadata_status_t META_dump_metadata(metadata_handle_t *self);
 metadata_status_t META_load_counters(metadata_handle_t *self);
 metadata_status_t META_dump_counters(metadata_handle_t *self);
 
-metadata_status_t META_write_log(metadata_handle_t *self, uint16_t addr, uint8_t *data, uint16_t size);
+metadata_status_t META_write_log(metadata_handle_t *self, uint16_t addr, const uint8_t *data, uint16_t size);
 metadata_status_t META_read_log(metadata_handle_t *self, uint16_t addr, uint8_t *data, uint16_t size);
 
 

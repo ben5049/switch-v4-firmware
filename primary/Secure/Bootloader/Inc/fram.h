@@ -87,7 +87,7 @@ fram_status_t FRAM_Init(
 
 fram_status_t FRAM_SetBlockProtection(fram_handle_t *dev, fram_block_protect_t protect);
 
-fram_status_t FRAM_Write(fram_handle_t *dev, uint16_t addr, uint8_t *data, uint16_t size);
+fram_status_t FRAM_Write(fram_handle_t *dev, uint16_t addr, const uint8_t *data, uint16_t size);
 fram_status_t FRAM_Read(fram_handle_t *dev, uint16_t addr, uint8_t *data, uint16_t size);
 fram_status_t FRAM_Test(fram_handle_t *dev, uint16_t addr, uint8_t data);
 

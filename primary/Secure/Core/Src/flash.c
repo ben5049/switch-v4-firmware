@@ -52,7 +52,7 @@ void MX_FLASH_Init(void)
   pOBInit.OptionType = OPTIONBYTE_WMSEC;
   pOBInit.Banks = FLASH_BANK_BOTH;
   pOBInit.WMSecStartSector = 0;
-  pOBInit.WMSecEndSector = 14;
+  pOBInit.WMSecEndSector = 18;
   if (HAL_FLASHEx_OBProgram(&pOBInit) != HAL_OK)
   {
     Error_Handler();
@@ -66,7 +66,7 @@ void MX_FLASH_Init(void)
 
   FLASH_BBSecInitStruct.Bank = FLASH_BANK_1;
   FLASH_BBSecInitStruct.BBAttributesType = FLASH_BB_PRIV|FLASH_BB_SEC;
-  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x00007FFF;
+  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x0007FFFF;
   FLASH_BBSecInitStruct.BBAttributes_array[1] =   0x00000000
                               ;
   FLASH_BBSecInitStruct.BBAttributes_array[2] =   0x00000000;
@@ -76,7 +76,7 @@ void MX_FLASH_Init(void)
     Error_Handler();
   }
   FLASH_BBSecInitStruct.BBAttributesType = FLASH_BB_SEC;
-  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x00008000;
+  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x00080000;
   FLASH_BBSecInitStruct.BBAttributes_array[1] =   0x00000000
                               ;
   FLASH_BBSecInitStruct.BBAttributes_array[2] =   0x00000000;
@@ -86,7 +86,7 @@ void MX_FLASH_Init(void)
     Error_Handler();
   }
   FLASH_BBSecInitStruct.BBAttributesType = FLASH_BB_PRIV;
-  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0xFFFF0000;
+  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0xFFF00000;
   FLASH_BBSecInitStruct.BBAttributes_array[1] =   0xFFFFFFFF
                               ;
   FLASH_BBSecInitStruct.BBAttributes_array[2] =   0xFFFFFFFF;
@@ -97,7 +97,7 @@ void MX_FLASH_Init(void)
   }
   FLASH_BBSecInitStruct.Bank = FLASH_BANK_2;
   FLASH_BBSecInitStruct.BBAttributesType = FLASH_BB_PRIV|FLASH_BB_SEC;
-  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x00007FFF;
+  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x0007FFFF;
   FLASH_BBSecInitStruct.BBAttributes_array[1] =   0x00000000
                               ;
   FLASH_BBSecInitStruct.BBAttributes_array[2] =   0x00000000;
@@ -107,7 +107,7 @@ void MX_FLASH_Init(void)
     Error_Handler();
   }
   FLASH_BBSecInitStruct.BBAttributesType = FLASH_BB_SEC;
-  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x00008000;
+  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0x00080000;
   FLASH_BBSecInitStruct.BBAttributes_array[1] =   0x00000000
                               ;
   FLASH_BBSecInitStruct.BBAttributes_array[2] =   0x00000000;
@@ -117,7 +117,7 @@ void MX_FLASH_Init(void)
     Error_Handler();
   }
   FLASH_BBSecInitStruct.BBAttributesType = FLASH_BB_PRIV;
-  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0xFFFF0000;
+  FLASH_BBSecInitStruct.BBAttributes_array[0] =   0xFFF00000;
   FLASH_BBSecInitStruct.BBAttributes_array[1] =   0xFFFFFFFF
                               ;
   FLASH_BBSecInitStruct.BBAttributes_array[2] =   0xFFFFFFFF;

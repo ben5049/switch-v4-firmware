@@ -39,6 +39,7 @@ __ALIGN_BEGIN static uint8_t other_non_secure_firmware_hash[SHA256_SIZE] __ALIGN
 void boot_main() {
 
     static uint8_t status;
+    static bool    success;
     bool           crash_recovery = hmeta.metadata.crashed;
 
     /* Step 1: Initialise peripherals
@@ -69,13 +70,18 @@ void boot_main() {
     MX_UART4_Init();
     MX_SAES_AES_Init();
 
+    /* Enable writing to the backup SRAM */
+    enable_backup_domain();
+
     /* Enable logging */
     status = log_init(&hlog, log_buffer, LOG_BUFFER_SIZE);
     CHECK_STATUS_LOG(status);
     LOG_INFO("Starting secure firmware\n");
 
-    /* Enable writing to the backup SRAM */
-    enable_backup_domain();
+#ifdef DEBUG // TODO: remove?
+    crash_recovery    = false;
+    hmeta.initialised = false;
+#endif
 
     /* Enable ECC interrupts */
     status = HAL_RAMCFG_EnableNotification(&hramcfg_SRAM2, RAMCFG_IT_ALL);
@@ -84,11 +90,11 @@ void boot_main() {
     CHECK_STATUS(status, HAL_OK, ERROR_HAL);
     status = HAL_RAMCFG_EnableNotification(&hramcfg_BKPRAM, RAMCFG_IT_ALL);
     CHECK_STATUS(status, HAL_OK, ERROR_HAL);
-    LOG_INFO("RAM ECC enabled\n");
+    LOG_INFO("RAM ECC notifications enabled\n");
 
-    /* TODO: Get bank swap (from option bytes?) */
-    bool bank_swap = false;
-    LOG_INFO("Executing from bank %i\n", (uint8_t) bank_swap + 1);
+    /* Get bank swap from option bytes */
+    bool bank_swap = get_bank_swap();
+    LOG_INFO("Executing from bank %u\n", (uint8_t) bank_swap + 1);
 
     /* Check if the metadata module is already initialised (CPU reset, but memory persisted) */
     if (hmeta.initialised == true && !crash_recovery) {
@@ -102,12 +108,14 @@ void boot_main() {
         CHECK_STATUS_META(status);
     }
 
-    /* Check if the last boot was a crash. Startup in reduced mode */
+#ifdef DEBUG // TODO: remove?
+    hmeta.metadata.crashed = false;
+    hmeta.first_boot       = true;
+#endif
+
+    /* Check if the last boot was a crash. TODO: Startup non-secure firmware in crash recovery mode */
     crash_recovery |= hmeta.metadata.crashed;
-    if (crash_recovery) {
-        /* TODO: If last shutdown was a crash, do something with messages */
-        LOG_INFO("Last shutdown was due to a crash\n");
-    }
+    if (crash_recovery) LOG_INFO("Last shutdown was due to a crash\n");
 
     /* Initialise the integrity module and pass in empty buffers for hash digests */
     status = INTEGRITY_Init(bank_swap, current_secure_firmware_hash, other_secure_firmware_hash, current_non_secure_firmware_hash, other_non_secure_firmware_hash);
@@ -120,11 +128,25 @@ void boot_main() {
 
     /* If this is the first boot then configure the device and metadata */
     if (hmeta.first_boot) {
-        status = META_Configure(&hmeta, current_secure_firmware_hash);
+
+        /* Configure metadata */
+        status = META_Configure(&hmeta);
         CHECK_STATUS_META(status);
 
-        // TODO: copy current secure and non-secure firmwares into other bank and check they were written correctly
-        while (1);
+        /* Store the secure firmware hash */
+        status = META_set_s_firmware_hash(&hmeta, CURRENT_FLASH_BANK(bank_swap), current_secure_firmware_hash);
+        CHECK_STATUS_INTEGRITY(status);
+
+        /* Get the non-secure firmware hash and store it */
+        status = INTEGRITY_compute_ns_firmware_hash(CURRENT_FLASH_BANK(bank_swap));
+        CHECK_STATUS_INTEGRITY(status);
+        status = META_set_ns_firmware_hash(&hmeta, CURRENT_FLASH_BANK(bank_swap), current_non_secure_firmware_hash);
+        CHECK_STATUS_INTEGRITY(status);
+
+        /* Copy current secure and non-secure firmwares into the other bank and check they were written correctly */
+        success  = copy_s_firmware_to_other_bank(bank_swap);
+        success &= copy_ns_firmware(FLASH_BANK_1, FLASH_BANK_2);
+        if (!success) error_handler(ERROR_GENERIC, 0);
     }
 
     /* Else this isn't the first boot */
@@ -132,62 +154,55 @@ void boot_main() {
 
         /* Check the current secure firmware hasn't been corrupted or tampered with */
         bool valid = true;
-        status     = META_compare_s_firmware_hash(&hmeta, CURRENT_FLASH_BANK(bank_swap), current_secure_firmware_hash, &valid);
+        status     = META_check_s_firmware_hash(&hmeta, CURRENT_FLASH_BANK(bank_swap), current_secure_firmware_hash, &valid);
         CHECK_STATUS_META(status);
 
-#ifndef DEBUG
         /* If the secure firmware has been corrupted or tampered with then swap banks if the other bank is valid.
-         * Normally this shouldn't return as it needs a system reset for swapping banks take effect. While debugging
-         * ignore hash errors and continue as if valid */
-        if (!valid) {
-
-            // TODO: Check other bank is valid
-
-            swap_banks();
-        }
-#endif
+         * Normally this shouldn't return as it needs a system reset for swapping banks take effect */
+        bool other_valid = bank_swap ? hmeta.metadata.s_firmware_1_valid : hmeta.metadata.s_firmware_2_valid;
+        if (!valid && other_valid) swap_banks();
 
         /* Check the other firmwares haven't been corrupted or tampered with */
 
-        /* Other secure firmware check */
-        {
-            /* Compute the hash */
-            status = INTEGRITY_compute_s_firmware_hash(OTHER_FLASH_BANK(bank_swap));
-            CHECK_STATUS_INTEGRITY(status);
+        /* Calculate hash of the other secure firmware */
+        valid = check_s_firmware(OTHER_FLASH_BANK(bank_swap));
 
-            // TODO: check the other secure firmware properties in hmeta.
-
-            /* Compare the computed hash with the stored hash */
-            status = META_compare_s_firmware_hash(
-                &hmeta,
-                OTHER_FLASH_BANK(bank_swap),
-                INTEGRITY_get_s_firmware_hash(OTHER_FLASH_BANK(bank_swap)),
-                &valid);
-            CHECK_STATUS_META(status);
-
-            /* Other secure firmware is invalid */
-            if (!valid) {
-                // TODO: set other firmware as invalid
-                // TODO: Copy current secure firmware into other bank
-                // Compute hash of secure other to make sure copy was successful
-                // TODO: set other firmware as valid
-            }
+        /* If corrupted then repair */
+        if (!valid) {
+            LOG_INFO("Other secure firmware image invalid. Overwriting\n");
+            success = copy_s_firmware_to_other_bank(bank_swap);
+            if (!success) error_handler(ERROR_GENERIC, 0);
         }
 
-        // Follow above steps for non-secure firmwares
-
+        /* Calculate hash of the non-secure firmwares */
         bool ns_firmware_1_valid = check_ns_firmware(FLASH_BANK_1);
         bool ns_firmware_2_valid = check_ns_firmware(FLASH_BANK_2);
 
+        /* Both firmware images valid */
         if (ns_firmware_1_valid && ns_firmware_2_valid) {
             LOG_INFO("Both non-secure firmware images valid\n");
-        } else if (!ns_firmware_1_valid && ns_firmware_2_valid) {
-            // TODO:
-        } else if (ns_firmware_1_valid && !ns_firmware_2_valid) {
-            // TODO:
-        } else {
+        }
+
+        /* Bank 1 firmware invalid, bank 2 valid: repair */
+        else if (!ns_firmware_1_valid && ns_firmware_2_valid) {
+            LOG_INFO("Non-secure firmware image 1 isn't valid. Overwriting with image 2\n");
+            success = copy_ns_firmware(FLASH_BANK_2, FLASH_BANK_1);
+            if (!success) error_handler(ERROR_GENERIC, 0);
+        }
+
+        /* Bank 2 firmware invalid, bank 1 valid: repair */
+        else if (ns_firmware_1_valid && !ns_firmware_2_valid) {
+            LOG_INFO("Non-secure firmware image 2 isn't valid. Overwriting with image 1\n");
+            success = copy_ns_firmware(FLASH_BANK_1, FLASH_BANK_2);
+            if (!success) error_handler(ERROR_GENERIC, 0);
+        }
+
+        /* Both firmwares invalid. We are cooked */
+        else {
             LOG_INFO("No valid non-secure firmware images\n");
             error_handler(ERROR_GENERIC, 0);
         }
     }
+
+    LOG_INFO("Starting non-secure firmware\n");
 }

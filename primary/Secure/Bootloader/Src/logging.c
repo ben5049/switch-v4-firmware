@@ -9,6 +9,7 @@
 #include "stdio.h"
 #include "stdarg.h"
 #include "stdatomic.h"
+#include "memory.h"
 #include "hal.h"
 #include "usart.h"
 
@@ -45,14 +46,14 @@ int _write(int file, char *ptr, int len) {
 
 log_status_t log_init(log_handle_t *self, uint8_t *log_buffer, uint32_t buffer_size) {
 
-    log_status_t status = LOG_OK;
+    log_status_t status = LOGGING_OK;
 
     _Static_assert(LOG_MAX_ENTRY_SIZE < ((2 << (LOG_LENGTH_SIZE * 8))), "LOG_MAX_MESSAGE_LENGTH is too big");
 
     /* Check arguments */
-    if (buffer_size > 0) status = LOG_PARAMETER_ERROR;                        /* Log buffer size is 0 */
-    if ((buffer_size & (buffer_size - 1)) == 0) status = LOG_PARAMETER_ERROR; /* Log buffer size is not a power of 2 */
-    if (status != LOG_OK) return status;
+    if (buffer_size == 0) status = LOGGING_PARAMETER_ERROR;                       /* Log buffer size is 0 */
+    if ((buffer_size & (buffer_size - 1)) != 0) status = LOGGING_PARAMETER_ERROR; /* Log buffer size is not a power of 2 */
+    if (status != LOGGING_OK) return status;
 
     /* Assign parameters */
     self->log_buffer  = log_buffer;
@@ -63,6 +64,12 @@ log_status_t log_init(log_handle_t *self, uint8_t *log_buffer, uint32_t buffer_s
     self->head_offset = 0;
     self->tail_offset = 0;
 
+#ifdef DEBUG
+    memset(log_buffer, 0, buffer_size);
+#endif
+
+    LOG_INFO("Logging module initialised\n");
+
     return status;
 }
 
@@ -70,7 +77,7 @@ log_status_t log_init(log_handle_t *self, uint8_t *log_buffer, uint32_t buffer_s
 /* Reserve space in the buffer. Note that this space may cross over the end of the buffer */
 static log_status_t log_acquire_space(log_handle_t *self, uint32_t size, uint32_t *old_head_offset, uint32_t *new_head_offset) {
 
-    log_status_t status = LOG_OK;
+    log_status_t status = LOGGING_OK;
     uint8_t      errors = 0;
 
     /* Acquire buffer space to write the message to */
@@ -99,7 +106,7 @@ static log_status_t log_acquire_space(log_handle_t *self, uint32_t size, uint32_
 
             /* After 3 errors return */
             if (errors >= 3) {
-                status = LOG_ERROR;
+                status = LOGGING_ERROR;
                 return status;
             }
 
@@ -121,7 +128,7 @@ static log_status_t log_acquire_space(log_handle_t *self, uint32_t size, uint32_
 
 log_status_t log_write(log_handle_t *self, const char *format, ...) {
 
-    log_status_t status = LOG_OK;
+    log_status_t status = LOGGING_OK;
 
     uint32_t old_head_offset;
     uint32_t new_head_offset;
@@ -135,7 +142,7 @@ log_status_t log_write(log_handle_t *self, const char *format, ...) {
     /* Reserve the maximum space initially. If the message is shorter and isn't interrupted by another
      * log then this will be shrunk later. */
     status = log_acquire_space(self, LOG_MAX_ENTRY_SIZE, &old_head_offset, &new_head_offset);
-    if (status != LOG_OK) return status;
+    if (status != LOGGING_OK) return status;
 
     /* Get the write pointer */
     write_ptr = PTR_FROM_OFFSET(old_head_offset);
@@ -146,7 +153,7 @@ log_status_t log_write(log_handle_t *self, const char *format, ...) {
         /* Set the log type to invalid */
         atomic_store_explicit(write_ptr, LOG_INVALID, memory_order_release);
 
-        /* Write the max length (with wrapp safe behaviour) */
+        /* Write the max length (with wrap safe behaviour) */
         *PTR_FROM_OFFSET(old_head_offset + LOG_TYPE_SIZE) = LOG_MAX_ENTRY_SIZE;
 
         /* Write LOG_EMPTY in the type to publish it */
@@ -154,7 +161,7 @@ log_status_t log_write(log_handle_t *self, const char *format, ...) {
 
         /* Acquire a new buffer */
         status = log_acquire_space(self, LOG_MAX_ENTRY_SIZE, &old_head_offset, &new_head_offset);
-        if (status != LOG_OK) return status;
+        if (status != LOGGING_OK) return status;
 
         /* Get the write pointer */
         write_ptr = PTR_FROM_OFFSET(old_head_offset);
@@ -174,7 +181,7 @@ log_status_t log_write(log_handle_t *self, const char *format, ...) {
     /* Write the message */
     va_list args;
     va_start(args, format);
-    message_length = snprintf((char *) write_ptr + LOG_HEADER_SIZE, LOG_MAX_MESSAGE_LENGTH, format, args);
+    message_length = vsnprintf((char *) write_ptr + LOG_HEADER_SIZE, LOG_MAX_MESSAGE_LENGTH, format, args);
     message_length++; /* Account for the null terminator */
     va_end(args);
 
@@ -201,15 +208,15 @@ log_status_t log_write(log_handle_t *self, const char *format, ...) {
 
 log_status_t log_dump_to_fram(log_handle_t *self, metadata_handle_t *meta) {
 
-    log_status_t status = LOG_OK;
+    log_status_t status = LOGGING_OK;
 
     uint32_t current_offset = self->tail_offset;
     uint32_t addr           = 0;
     uint32_t size;
     uint8_t  type;
 
-    /* Go from the tail to 4KiB from the head. TODO: Check log types */
-    while ((self->head_offset - current_offset) > FRAM_HALF_SIZE) {
+    /* Go from the tail to 4KiB from the head (also leave space for an end log) */
+    while ((self->head_offset - current_offset) > (FRAM_HALF_SIZE - LOG_HEADER_SIZE)) {
         current_offset = NEXT_OFFSET(current_offset);
     }
 
@@ -221,7 +228,7 @@ log_status_t log_dump_to_fram(log_handle_t *self, metadata_handle_t *meta) {
         if (type >= LOG_COMMITTED) {
             size = *PTR_FROM_OFFSET(current_offset + LOG_TYPE_SIZE);
             if (META_write_log(meta, addr, PTR_FROM_OFFSET(current_offset), size) != META_OK) {
-                status = LOG_ERROR;
+                status = LOGGING_ERROR;
                 return status;
             }
             addr += size;
@@ -230,7 +237,36 @@ log_status_t log_dump_to_fram(log_handle_t *self, metadata_handle_t *meta) {
         current_offset = NEXT_OFFSET(current_offset);
     }
 
-    /* TODO: write an end log to signify no more logs */
+    /* Write an end log to signify no more logs */
+    uint8_t end_log[LOG_HEADER_SIZE] = {LOG_END, LOG_HEADER_SIZE, 0, 0, 0, 0};
+    if (META_write_log(meta, addr, end_log, LOG_HEADER_SIZE) != META_OK) {
+        status = LOGGING_ERROR;
+        return status;
+    }
+    addr += LOG_HEADER_SIZE;
+
+    /* Check the end entry hasn't overwritten the end of the buffer */
+    if (addr > FRAM_HALF_SIZE) {
+        status = LOGGING_ERROR;
+        return status;
+    }
 
     return status;
+}
+
+uint8_t u4_to_hex(char *buffer, uint8_t num) {
+
+    if (num < 10) {
+        *buffer = '0' + num;
+    } else {
+        *buffer = 'a' + (num - 10);
+    }
+
+    return 1;
+}
+
+uint8_t u8_to_hex(char *buffer, uint8_t num) {
+    u4_to_hex(buffer, num & 0xf);
+    u4_to_hex(buffer + 1, (num >> 4) & 0xf);
+    return 2;
 }

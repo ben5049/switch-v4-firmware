@@ -50,9 +50,9 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
 /* Start MX regions */
-  FLASH2	(rx)	: ORIGIN = 0x08120000, LENGTH = 896K
+  FLASH2	(rx)	: ORIGIN = 0x08128000, LENGTH = 864K
   TRACE	(xrw)	: ORIGIN = 0x20020000, LENGTH = 128K
-  FLASH	(rx)	: ORIGIN = 0x08020000, LENGTH = 896K
+  FLASH	(rx)	: ORIGIN = 0x08028000, LENGTH = 864K
   ETH	(xrw)	: ORIGIN = 0x20080000, LENGTH = 64K
   RAM	(xrw)	: ORIGIN = 0x20050000, LENGTH = 192K
 /* End MX regions */

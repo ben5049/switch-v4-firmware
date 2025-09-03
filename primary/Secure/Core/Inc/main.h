@@ -90,6 +90,8 @@ void Error_Handler(void);
 #define FRAM_WP_GPIO_Port GPIOI
 #define PHY_CLK_EN_Pin GPIO_PIN_6
 #define PHY_CLK_EN_GPIO_Port GPIOD
+#define STAT_Pin GPIO_PIN_13
+#define STAT_GPIO_Port GPIOH
 #define FRAM_CS_Pin GPIO_PIN_15
 #define FRAM_CS_GPIO_Port GPIOA
 #define SWCH_CS_Pin GPIO_PIN_11

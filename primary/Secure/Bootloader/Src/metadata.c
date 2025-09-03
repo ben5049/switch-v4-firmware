@@ -131,38 +131,39 @@ metadata_status_t META_Init(metadata_handle_t *self, bool bank_swap) {
     LOG_INFO("Device ID = 0x%08lx\n", self->device_id);
     if (self->device_id != self->metadata.device_id) {
         self->first_boot = true;
-    }
+    } else {
 
-    /* Check if the metadata version in the firmware is new */
-    if (METADATA_VERSION_MAJOR > self->metadata.metadata_version_major) {
-        self->first_boot = true; /* New major version */
-    } else if (METADATA_VERSION_MAJOR > self->metadata.metadata_version_minor) {
-        self->first_boot = true; /* New minor version */
-    } else if (METADATA_VERSION_PATCH > self->metadata.metadata_version_patch) {
-        self->first_boot = true; /* New patch version */
+        /* Check if the metadata version in the firmware is new */
+        if (METADATA_VERSION_MAJOR > self->metadata.metadata_version_major) {
+            self->first_boot = true; /* New major version */
+        } else if (METADATA_VERSION_MAJOR > self->metadata.metadata_version_minor) {
+            self->first_boot = true; /* New minor version */
+        } else if (METADATA_VERSION_PATCH > self->metadata.metadata_version_patch) {
+            self->first_boot = true; /* New patch version */
+        }
+
+#if METADATA_ENABLE_ROLLBACK_PROTECTION == true
+        /* Check for rollbacks */
+        if (METADATA_VERSION_MAJOR < self->metadata.metadata_version_major) {
+            status = META_VERSION_ROLLBACK_ERROR;
+            LOG_ERROR("Metadata major version rollback\n");
+            return status;
+        } else if ((METADATA_VERSION_MAJOR == self->metadata.metadata_version_major) &&
+                   (METADATA_VERSION_MINOR < self->metadata.metadata_version_minor)) {
+            LOG_ERROR("Metadata minor version rollback\n");
+            status = META_VERSION_ROLLBACK_ERROR;
+            return status;
+        } else if ((METADATA_VERSION_MAJOR == self->metadata.metadata_version_major) &&
+                   (METADATA_VERSION_MINOR == self->metadata.metadata_version_minor) &&
+                   (METADATA_VERSION_PATCH < self->metadata.metadata_version_patch)) {
+            LOG_ERROR("Metadata patch version rollback\n");
+            status = META_VERSION_ROLLBACK_ERROR;
+            return status;
+        }
+#endif /* METADATA_ENABLE_ROLLBACK_PROTECTION == true */
     }
 
     if (self->first_boot) LOG_INFO("First time booting with current firmware\n");
-
-#if METADATA_ENABLE_ROLLBACK_PROTECTION == true
-    /* Check for rollbacks */
-    if (METADATA_VERSION_MAJOR < self->metadata.metadata_version_major) {
-        status = META_VERSION_ROLLBACK_ERROR;
-        LOG_ERROR("Metadata major version rollback\n");
-        return status;
-    } else if ((METADATA_VERSION_MAJOR == self->metadata.metadata_version_major) &&
-               (METADATA_VERSION_MINOR < self->metadata.metadata_version_minor)) {
-        LOG_ERROR("Metadata minor version rollback\n");
-        status = META_VERSION_ROLLBACK_ERROR;
-        return status;
-    } else if ((METADATA_VERSION_MAJOR == self->metadata.metadata_version_major) &&
-               (METADATA_VERSION_MINOR == self->metadata.metadata_version_minor) &&
-               (METADATA_VERSION_PATCH < self->metadata.metadata_version_patch)) {
-        LOG_ERROR("Metadata patch version rollback\n");
-        status = META_VERSION_ROLLBACK_ERROR;
-        return status;
-    }
-#endif /* METADATA_ENABLE_ROLLBACK_PROTECTION == true */
 
     self->initialised = true;
     LOG_INFO("Metadata module initialised\n");
@@ -216,9 +217,9 @@ metadata_status_t META_Reinit(metadata_handle_t *self, bool bank_swap) {
 
 
 /* Should be called if META_Init() found this was the first boot */
-metadata_status_t META_Configure(metadata_handle_t *self, uint8_t *secure_firmware_hash) {
+metadata_status_t META_Configure(metadata_handle_t *self) {
 
-    metadata_status_t status = META_NOT_IMPLEMENTED_ERROR;
+    metadata_status_t status = META_OK;
 
     /* Clear the counters */
     memset(&self->counters, 0, sizeof(metadata_counters_t));
@@ -230,10 +231,6 @@ metadata_status_t META_Configure(metadata_handle_t *self, uint8_t *secure_firmwa
     self->metadata.metadata_version_major = METADATA_VERSION_MAJOR;
     self->metadata.metadata_version_minor = METADATA_VERSION_MINOR;
     self->metadata.metadata_version_patch = METADATA_VERSION_PATCH;
-
-    /* Set the secure firmware hash */
-    META_set_s_firmware_hash(&hmeta, CURRENT_FLASH_BANK(self->bank_swap), secure_firmware_hash);
-    /* TODO: Set valid separately ^ */
 
     /* Dump the configured metadata */
     status = META_dump_metadata(self);
@@ -253,7 +250,7 @@ metadata_status_t META_load_metadata(metadata_handle_t *self) {
     metadata_status_t            status = META_OK;
     __ALIGN_BEGIN static uint8_t encrypted_metadata[sizeof(metadata_data_t)] __ALIGN_END;
 
-    /* Stream out the encrypted metadata from the FRAM */
+    /* Stream in the encrypted metadata from the FRAM */
     if (FRAM_Read(&self->hfram, META_FRAM_DATA_START_ADDR, encrypted_metadata, sizeof(metadata_data_t)) != FRAM_OK) status = META_FRAM_ERROR;
     if (status != META_OK) return status;
 
@@ -304,7 +301,11 @@ metadata_status_t META_dump_metadata(metadata_handle_t *self) {
 /* Load the event counters from the FRAM */
 metadata_status_t META_load_counters(metadata_handle_t *self) {
 
-    metadata_status_t status = META_NOT_IMPLEMENTED_ERROR;
+    metadata_status_t status = META_OK;
+
+    /* Stream in the counters from the FRAM */
+    if (FRAM_Read(&self->hfram, META_FRAM_COUNTERS_START_ADDR, (uint8_t *) &self->counters, sizeof(metadata_counters_t)) != FRAM_OK) status = META_FRAM_ERROR;
+    if (status != META_OK) return status;
 
     return status;
 }
@@ -313,10 +314,14 @@ metadata_status_t META_load_counters(metadata_handle_t *self) {
 /* Dump the event counters to the FRAM */
 metadata_status_t META_dump_counters(metadata_handle_t *self) {
 
-    metadata_status_t status = META_NOT_IMPLEMENTED_ERROR;
+    metadata_status_t status = META_OK;
 
-    /* Don't dump non-initialised metadata */
+    /* Don't dump non-initialised counters */
     if (self->initialised == false) status = META_NOT_INITIALISED_ERROR;
+    if (status != META_OK) return status;
+
+    /* Stream out the counters to the FRAM */
+    if (FRAM_Write(&self->hfram, META_FRAM_COUNTERS_START_ADDR, (uint8_t *) &self->counters, sizeof(metadata_counters_t)) != FRAM_OK) status = META_FRAM_ERROR;
     if (status != META_OK) return status;
 
     return status;
@@ -353,7 +358,7 @@ metadata_status_t META_set_s_firmware_hash(metadata_handle_t *self, uint8_t bank
 }
 
 
-metadata_status_t META_compare_s_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid) {
+metadata_status_t META_check_s_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid) {
 
     metadata_status_t status      = META_OK;
     uint8_t          *stored_hash = NULL;
@@ -414,7 +419,7 @@ metadata_status_t META_set_ns_firmware_hash(metadata_handle_t *self, uint8_t ban
 }
 
 
-metadata_status_t META_compare_ns_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid) {
+metadata_status_t META_check_ns_firmware_hash(metadata_handle_t *self, uint8_t bank, uint8_t *hash, bool *valid) {
 
     metadata_status_t status      = META_OK;
     uint8_t          *stored_hash = NULL;
@@ -446,7 +451,7 @@ metadata_status_t META_compare_ns_firmware_hash(metadata_handle_t *self, uint8_t
 
 
 /* Write to the first 4kB that is used for logging */
-metadata_status_t META_write_log(metadata_handle_t *self, uint16_t addr, uint8_t *data, uint16_t size) {
+metadata_status_t META_write_log(metadata_handle_t *self, uint16_t addr, const uint8_t *data, uint16_t size) {
 
     metadata_status_t status = META_OK;
 
@@ -487,7 +492,7 @@ metadata_status_t META_read_log(metadata_handle_t *self, uint16_t addr, uint8_t 
         return status;
     }
 
-    /* Write the log */
+    /* Read the log */
     if (FRAM_Read(&self->hfram, addr, data, size) != FRAM_OK) {
         status = META_FRAM_ERROR;
         return status;

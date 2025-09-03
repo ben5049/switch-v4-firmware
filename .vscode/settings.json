@@ -97,7 +97,10 @@
         "secrets.h": "c",
         "platform.h": "c",
         "stdio.h": "c",
-        "error.h": "c"
+        "error.h": "c",
+        "memory_tools.h": "c",
+        "flash.h": "c",
+        "memory.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,

@@ -15,6 +15,7 @@
 
 #include "utils.h"
 #include "error.h"
+#include "metadata.h"
 
 
 #define LOG_INFO(format, ...)                     _LOG(format, ##__VA_ARGS__)
@@ -35,7 +36,7 @@
         printf("%10lu: ", HAL_GetTick()); /* TODO: Add UART toggle macro */ \
         printf(format, ##__VA_ARGS__);    /* TODO: Add UART toggle macro */ \
         log_status_t _s = log_write(&hlog, format, ##__VA_ARGS__);          \
-        CHECK_STATUS(_s, LOG_OK, ERROR_LOG);                                \
+        CHECK_STATUS(_s, LOGGING_OK, ERROR_LOG);                            \
     } while (0)
 
 #define _LOG_NO_CHECK(format, ...)                                          \
@@ -47,18 +48,22 @@
 
 #define _LOG_SHA256(format, hash_ptr, ...)                                                       \
     do {                                                                                         \
+        printf("%10lu: ", HAL_GetTick());           /* TODO: Add UART toggle macro */            \
         char  _hash_buf[2 + (2 * SHA256_SIZE) + 1]; /* "0x" + "XX" per byte + null terminator */ \
         char *_p  = _hash_buf;                                                                   \
-        _p       += sprintf(_p, "0x");                                                           \
+        _p[0]     = '0';                                                                         \
+        _p[1]     = 'x';                                                                         \
+        _p       += 2;                                                                           \
         for (uint_fast8_t i = 0; i < SHA256_SIZE; i++) {                                         \
-            _p += sprintf(_p, "%02x", ((uint8_t *) hash_ptr)[i]);                                \
+            _p += u8_to_hex(_p, hash_ptr[i]);                                                    \
         }                                                                                        \
+        *_p = 0;                                                                                 \
         printf(format, _hash_buf, ##__VA_ARGS__); /* TODO: Add UART toggle macro */              \
         log_status_t _s = log_write(&hlog, format, _hash_buf, ##__VA_ARGS__);                    \
-        CHECK_STATUS(_s, LOG_OK, ERROR_LOG);                                                     \
+        CHECK_STATUS(_s, LOGGING_OK, ERROR_LOG);                                                 \
     } while (0)
 
-#define CHECK_STATUS_LOG(status) CHECK_STATUS((status), LOG_OK, ERROR_LOG)
+#define CHECK_STATUS_LOG(status) CHECK_STATUS((status), LOGGING_OK, ERROR_LOG)
 
 
 #define LOG_BUFFER_SIZE          (128 * 1024)
@@ -73,15 +78,16 @@
 
 #define LOG_INVALID              (0)
 #define LOG_EMPTY                (1)
-#define LOG_COMMITTED            (2)
+#define LOG_END                  (2)
+#define LOG_COMMITTED            (3)
 
 
 typedef enum {
-    LOG_OK      = HAL_OK,
-    LOG_ERROR   = HAL_ERROR,
-    LOG_BUSY    = HAL_BUSY,
-    LOG_TIMEOUT = HAL_TIMEOUT,
-    LOG_PARAMETER_ERROR,
+    LOGGING_OK      = HAL_OK,
+    LOGGING_ERROR   = HAL_ERROR,
+    LOGGING_BUSY    = HAL_BUSY,
+    LOGGING_TIMEOUT = HAL_TIMEOUT,
+    LOGGING_PARAMETER_ERROR,
 } log_status_t;
 
 typedef struct {
@@ -98,6 +104,10 @@ extern log_handle_t hlog;
 
 log_status_t log_init(log_handle_t *self, uint8_t *log_buffer, uint32_t buffer_size);
 log_status_t log_write(log_handle_t *self, const char *format, ...);
+log_status_t log_dump_to_fram(log_handle_t *self, metadata_handle_t *meta);
+
+uint8_t u4_to_hex(char *buffer, uint8_t num);
+uint8_t u8_to_hex(char *buffer, uint8_t num);
 
 
 #endif /* INC_LOGGING_H_ */

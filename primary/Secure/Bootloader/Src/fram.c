@@ -268,7 +268,7 @@ fram_status_t FRAM_SetBlockProtection(fram_handle_t *dev, fram_block_protect_t p
 }
 
 
-fram_status_t FRAM_Write(fram_handle_t *dev, uint16_t addr, uint8_t *data, uint16_t size) {
+fram_status_t FRAM_Write(fram_handle_t *dev, uint16_t addr, const uint8_t *data, uint16_t size) {
 
     fram_status_t status = FRAM_OK;
     uint8_t       opcode = FRAM_OPCODE_WRITE;
