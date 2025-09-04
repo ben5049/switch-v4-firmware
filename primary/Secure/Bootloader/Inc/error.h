@@ -30,6 +30,7 @@ typedef enum {
     ERROR_LOG,
     ERROR_META,
     ERROR_INTEGRITY,
+    ERROR_MEM,
 } error_t;
 
 

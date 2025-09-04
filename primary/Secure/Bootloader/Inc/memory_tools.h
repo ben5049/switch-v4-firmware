@@ -11,6 +11,10 @@
 #include "stdint.h"
 #include "stdbool.h"
 #include "flash.h"
+#include "logging.h"
+
+
+#define CHECK_STATUS_MEM(status) CHECK_STATUS((status), MEM_OK, ERROR_MEM)
 
 
 typedef enum {

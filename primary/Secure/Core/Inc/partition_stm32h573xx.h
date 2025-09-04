@@ -537,7 +537,7 @@
 //   <o.17> DTS_IRQn              <1=> Non-Secure state
 //   <o.18> RNG_IRQn              <0=> Secure state
 //   <o.19> OTFDEC1_IRQn          <0=> Secure state
-//   <o.20> AES_IRQn              <0=> Secure state
+//   <o.20> AES_IRQn              <1=> Non-Secure state
 //   <o.21> HASH_IRQn             <0=> Secure state
 //   <o.22> PKA_IRQn              <0=> Secure state
 //   <o.23> CEC_IRQn              <0=> Secure state
@@ -550,7 +550,7 @@
 //   <o.30> I2C4_ER_IRQn          <0=> Secure state
 //   <o.31> LPTIM3_IRQn           <0=> Secure state
 */
-#define NVIC_INIT_ITNS3_VAL      0x00020D80
+#define NVIC_INIT_ITNS3_VAL      0x00120D80
 
 /*
 //   </e>

@@ -1,0 +1,71 @@
+/*
+ * state_machine.c
+ *
+ *  Created on: Sep 3, 2025
+ *      Author: bens1
+ */
+
+#include "main.h"
+#include "eth.h"
+
+#include "state_machine.h"
+#include "tx_app.h"
+#include "nx_app.h"
+#include "nx_link_thread.h"
+#include "switch_thread.h"
+#include "switch_callbacks.h"
+#include "phy_thread.h"
+#include "stp_thread.h"
+#include "comms_thread.h"
+#include "ptp_thread.h"
+#include "config.h"
+#include "utils.h"
+
+
+TX_THREAD            state_machine_thread_handle;
+uint8_t              state_machine_thread_stack[STATE_MACHINE_THREAD_STACK_SIZE];
+TX_EVENT_FLAGS_GROUP state_machine_events_handle;
+
+
+void state_machine_thread_entry(uint32_t initial_input) {
+
+    uint32_t    event_flags;
+    tx_status_t status = TX_SUCCESS;
+
+    /* Startup sequence */
+
+    /* Switch starts up first because its REFCLK is needed for ethernet and therefore PHY MDIO and all networking */
+    status = tx_thread_resume(&switch_thread_handle);
+    if (status != TX_SUCCESS) Error_Handler();
+
+    /* Wait for the switch to be initialised (from switch_thread_entry) */
+    status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_SWITCH_INITIALISED_EVENT, TX_OR, &event_flags, TX_WAIT_FOREVER);
+    if (status != TX_SUCCESS) Error_Handler();
+
+    /* The ethernet MAC can now be initialised */
+    MX_ETH_Init();
+
+    /* Start the PHYs, STP thread, NetX networking threads */
+    status = tx_thread_resume(&phy_thread_handle);
+    if (status != TX_SUCCESS) Error_Handler();
+    status = tx_thread_resume(&stp_thread_handle);
+    if (status != TX_SUCCESS) Error_Handler();
+    status = tx_thread_resume(&nx_link_thread_handle);
+    if (status != TX_SUCCESS) Error_Handler();
+    status = tx_thread_resume(&nx_app_thread_handle);
+    if (status != TX_SUCCESS) Error_Handler();
+
+    /* Wait for the network to be initialised (from nx_app_thread_entry) */
+    status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_NX_INITIALISED_EVENT, TX_OR, &event_flags, TX_WAIT_FOREVER);
+    if (status != TX_SUCCESS) Error_Handler();
+
+    /* Start the threads that require networking */
+    status = tx_thread_resume(&comms_thread_handle);
+    if (status != TX_SUCCESS) Error_Handler();
+    status = tx_thread_resume(&ptp_thread_handle);
+    if (status != TX_SUCCESS) Error_Handler();
+
+    while (1) {
+        tx_thread_sleep_ms(1000);
+    }
+}

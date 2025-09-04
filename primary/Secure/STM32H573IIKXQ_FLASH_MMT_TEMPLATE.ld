@@ -39,9 +39,8 @@ ENTRY(Reset_Handler)
 /* Highest address of the user mode stack */
 _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 
-_Min_Heap_Size = 0x200; /* required amount of heap */
+_Min_Heap_Size = 0x400; /* required amount of heap */
 _Min_Stack_Size = 0x400; /* required amount of stack */
-
 /* Start user variables */
 
 /* End user variables */
@@ -69,7 +68,6 @@ SECTIONS
   {
     . = ALIGN(4);
     KEEP(*(.isr_vector)) /* Startup code */
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -86,7 +84,6 @@ SECTIONS
     KEEP (*(.init))
     KEEP (*(.fini))
 
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH
@@ -97,7 +94,6 @@ SECTIONS
     . = ALIGN(4);
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -105,7 +101,6 @@ SECTIONS
   {
     . = ALIGN(4);
     *(.ARM.extab* .gnu.linkonce.armextab.*)
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -115,7 +110,6 @@ SECTIONS
     __exidx_start = .;
     *(.ARM.exidx*)
     __exidx_end = .;
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -125,7 +119,6 @@ SECTIONS
     PROVIDE_HIDDEN (__preinit_array_start = .);
     KEEP (*(.preinit_array*))
     PROVIDE_HIDDEN (__preinit_array_end = .);
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -136,7 +129,6 @@ SECTIONS
     KEEP (*(SORT(.init_array.*)))
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -147,7 +139,6 @@ SECTIONS
     KEEP (*(SORT(.fini_array.*)))
     KEEP (*(.fini_array*))
     PROVIDE_HIDDEN (__fini_array_end = .);
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH
 
@@ -164,7 +155,6 @@ SECTIONS
     *(.RamFunc)        /* .RamFunc sections */
     *(.RamFunc*)       /* .RamFunc* sections */
 
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
 
@@ -174,7 +164,6 @@ SECTIONS
   {
     . = ALIGN(4);
     *(.gnu.sgstubs*)   /* Secure Gateway stubs */
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
   } >FLASH_NSC
 
@@ -189,7 +178,6 @@ SECTIONS
     *(.bss*)
     *(COMMON)
 
-    FILL(0xDEADC0DE)
     . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
@@ -203,7 +191,6 @@ SECTIONS
     PROVIDE ( _end = . );
     . = . + _Min_Heap_Size;
     . = . + _Min_Stack_Size;
-    FILL(0xDEADC0DE)
     . = ALIGN(8);
   } >RAM
 
@@ -233,7 +220,7 @@ SECTIONS
   } >FLASH_NSC2
 
  /*  Unitialized BACKUP section into "BACKUP" BACKUP type memory [MMT section] */
- .BACKUP_Section (NOLOAD):
+ .BACKUP_Section :
   {
     . = ALIGN(4);
     KEEP (*(.BACKUP_Section))
@@ -241,7 +228,7 @@ SECTIONS
   } >BACKUP
 
  /*  Unitialized LOG section into "LOG" LOG type memory [MMT section] */
- .LOG_Section (NOLOAD):
+ .LOG_Section :
   {
     . = ALIGN(4);
     KEEP (*(.LOG_Section))

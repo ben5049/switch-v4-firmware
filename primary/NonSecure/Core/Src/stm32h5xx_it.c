@@ -55,6 +55,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern CRYP_HandleTypeDef hcryp;
 extern DTS_HandleTypeDef hdts;
 extern ETH_HandleTypeDef heth;
 extern SPI_HandleTypeDef hspi2;
@@ -282,6 +283,20 @@ void DTS_IRQHandler(void)
   /* USER CODE BEGIN DTS_IRQn 1 */
 
   /* USER CODE END DTS_IRQn 1 */
+}
+
+/**
+  * @brief This function handles AES global interrupt.
+  */
+void AES_IRQHandler(void)
+{
+  /* USER CODE BEGIN AES_IRQn 0 */
+
+  /* USER CODE END AES_IRQn 0 */
+  HAL_CRYP_IRQHandler(&hcryp);
+  /* USER CODE BEGIN AES_IRQn 1 */
+
+  /* USER CODE END AES_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

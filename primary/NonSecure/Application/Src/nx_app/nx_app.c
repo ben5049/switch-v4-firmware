@@ -14,10 +14,12 @@
 #include "main.h"
 
 #include "nx_app.h"
+#include "tx_app.h"
 #include "ptp_thread.h"
 #include "ptp_callbacks.h"
 #include "config.h"
 #include "comms_thread.h"
+#include "state_machine.h"
 
 
 #define NULL_ADDRESS 0
@@ -28,7 +30,7 @@ uint32_t ip_address;
 uint32_t net_mask;
 
 NX_PACKET_POOL nx_packet_pool;
-static uint8_t nx_packet_pool_memory[NX_APP_PACKET_POOL_SIZE] __attribute__((section(".ETH_Section"))) ;
+static uint8_t nx_packet_pool_memory[NX_APP_PACKET_POOL_SIZE] __attribute__((section(".ETH_Section")));
 
 NX_DHCP      dhcp_client;
 TX_SEMAPHORE dhcp_semaphore_handle;
@@ -107,30 +109,24 @@ static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
 
 void nx_app_thread_entry(uint32_t initial_input) {
 
-    nx_status_t status = NX_SUCCESS;
+    nx_status_t nx_status = NX_SUCCESS;
+    tx_status_t tx_status = TX_SUCCESS;
 
     /* Register the IP address change callback */
-    status = nx_ip_address_change_notify(&nx_ip_instance, ip_address_change_notify_callback, NULL);
-    if (status != NX_SUCCESS) {
-        Error_Handler();
-    }
+    nx_status = nx_ip_address_change_notify(&nx_ip_instance, ip_address_change_notify_callback, NULL);
+    if (nx_status != NX_SUCCESS) Error_Handler();
 
     /* Start the DHCP client */
-    status = nx_dhcp_start(&dhcp_client);
-    if (status != NX_SUCCESS) {
-        Error_Handler();
-    }
+    nx_status = nx_dhcp_start(&dhcp_client);
+    if (nx_status != NX_SUCCESS) Error_Handler();
 
     /* Wait until an IP address is ready */
-    if (tx_semaphore_get(&dhcp_semaphore_handle, TX_WAIT_FOREVER) != TX_SUCCESS) {
-        Error_Handler();
-    }
+    tx_status = tx_semaphore_get(&dhcp_semaphore_handle, TX_WAIT_FOREVER);
+    if (tx_status != TX_SUCCESS) Error_Handler();
 
-    /* TODO: Start any threads that require networking after this is done such as the comms thread (not stp though) */
-
-    /* the network is correctly initialized, start certain threads */
-    tx_thread_resume(&comms_thread_handle);
-    tx_thread_resume(&ptp_thread_handle);
+    /* Notify the state machine that the network has been initialised */
+    tx_status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_NX_INITIALISED_EVENT, TX_OR);
+    if (tx_status != TX_SUCCESS) Error_Handler();
 
     /* This thread is no longer needed */
     tx_thread_relinquish();

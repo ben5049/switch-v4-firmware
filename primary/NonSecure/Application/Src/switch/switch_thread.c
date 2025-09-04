@@ -13,6 +13,8 @@
 #include "sja1105.h"
 #include "sja1105q_default_conf.h"
 #include "utils.h"
+#include "state_machine.h"
+
 
 #define CHECK(func)                                        \
     do {                                                   \
@@ -169,6 +171,9 @@ void switch_thread_entry(uint32_t initial_input) {
 
     /* Initialise the switch */
     CHECK(SJA1105_Init(&hsja1105, &sja1105_conf, &sja1105_callbacks, fixed_length_table_buffer, sja1105_static_conf, sja1105_static_conf_size));
+
+    /* Notify the state machine that the switch is initialised (this means RMII REFCLK is on which is a bottleneck to almost every other thread) */
+    if (tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_SWITCH_INITIALISED_EVENT, TX_OR) != TX_SUCCESS) Error_Handler();
 
     /* Set the speed of the dynamic ports. TODO: This should be after PHY auto-negotiaion */
     CHECK(SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY0, SJA1105_SPEED_1G));

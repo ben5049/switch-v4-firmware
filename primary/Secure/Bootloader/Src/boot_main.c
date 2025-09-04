@@ -39,7 +39,6 @@ __ALIGN_BEGIN static uint8_t other_non_secure_firmware_hash[SHA256_SIZE] __ALIGN
 void boot_main() {
 
     static uint8_t status;
-    static bool    success;
     bool           crash_recovery = hmeta.metadata.crashed;
 
     /* Step 1: Initialise peripherals
@@ -144,9 +143,10 @@ void boot_main() {
         CHECK_STATUS_INTEGRITY(status);
 
         /* Copy current secure and non-secure firmwares into the other bank and check they were written correctly */
-        success  = copy_s_firmware_to_other_bank(bank_swap);
-        success &= copy_ns_firmware(FLASH_BANK_1, FLASH_BANK_2);
-        if (!success) error_handler(ERROR_GENERIC, 0);
+        status = copy_s_firmware_to_other_bank(bank_swap);
+        CHECK_STATUS_MEM(status);
+        status = copy_ns_firmware(FLASH_BANK_1, FLASH_BANK_2);
+        CHECK_STATUS_MEM(status);
     }
 
     /* Else this isn't the first boot */
@@ -160,7 +160,12 @@ void boot_main() {
         /* If the secure firmware has been corrupted or tampered with then swap banks if the other bank is valid.
          * Normally this shouldn't return as it needs a system reset for swapping banks take effect */
         bool other_valid = bank_swap ? hmeta.metadata.s_firmware_1_valid : hmeta.metadata.s_firmware_2_valid;
-        if (!valid && other_valid) swap_banks();
+        if (!valid && other_valid) {
+            swap_banks();
+            error_handler(ERROR_GENERIC, 0);
+        } else {
+            error_handler(ERROR_GENERIC, 0);
+        }
 
         /* Check the other firmwares haven't been corrupted or tampered with */
 
@@ -170,8 +175,8 @@ void boot_main() {
         /* If corrupted then repair */
         if (!valid) {
             LOG_INFO("Other secure firmware image invalid. Overwriting\n");
-            success = copy_s_firmware_to_other_bank(bank_swap);
-            if (!success) error_handler(ERROR_GENERIC, 0);
+            status = copy_s_firmware_to_other_bank(bank_swap);
+            CHECK_STATUS_MEM(status);
         }
 
         /* Calculate hash of the non-secure firmwares */
@@ -186,15 +191,15 @@ void boot_main() {
         /* Bank 1 firmware invalid, bank 2 valid: repair */
         else if (!ns_firmware_1_valid && ns_firmware_2_valid) {
             LOG_INFO("Non-secure firmware image 1 isn't valid. Overwriting with image 2\n");
-            success = copy_ns_firmware(FLASH_BANK_2, FLASH_BANK_1);
-            if (!success) error_handler(ERROR_GENERIC, 0);
+            status = copy_ns_firmware(FLASH_BANK_2, FLASH_BANK_1);
+            CHECK_STATUS_MEM(status);
         }
 
         /* Bank 2 firmware invalid, bank 1 valid: repair */
         else if (ns_firmware_1_valid && !ns_firmware_2_valid) {
             LOG_INFO("Non-secure firmware image 2 isn't valid. Overwriting with image 1\n");
-            success = copy_ns_firmware(FLASH_BANK_1, FLASH_BANK_2);
-            if (!success) error_handler(ERROR_GENERIC, 0);
+            status = copy_ns_firmware(FLASH_BANK_1, FLASH_BANK_2);
+            CHECK_STATUS_MEM(status);
         }
 
         /* Both firmwares invalid. We are cooked */
@@ -205,4 +210,9 @@ void boot_main() {
     }
 
     LOG_INFO("Starting non-secure firmware\n");
+
+    /* Secure SysTick should be suspended before calling non-secure init */
+    /* in order to avoid wakeing up from a sleep mode entered by non-secure firmware. */
+    /* The Secure SysTick shall be resumed on non-secure callable functions */
+    HAL_SuspendTick();
 }

@@ -14,32 +14,25 @@
 #include "icache.h"
 #include "spi.h"
 #include "gpio.h"
+#include "gpdma.h"
+#include "aes.h"
 
 #include "app_main.h"
+#include "switch_thread.h"
 
 
-// int main(void) {
+void app_main(void) {
 
-//     /* -------------------- MCU Configuration -------------------- */
+    /* Make sure shared structs start uninitialised */
+    hsja1105.initialised = false;
+    // TODO: same with PHYs
 
-//     /* Reset of all peripherals, Initialises the Flash interface and the Systick */
-//     HAL_Init();
-
-//     /* Configure the system clock */
-//     SystemClock_Config();
-
-//     /* Initialise all configured peripherals */
-//     MX_GPIO_Init();
-//     MX_SPI1_Init();
-//     MX_SPI2_Init();
-//     MX_ETH_Init();
-//     MX_ICACHE_Init();
-//     MX_CRC_Init();
-//     MX_DTS_Init();
-
-//     /* Initialise the RTOS */
-//     MX_ThreadX_Init();
-
-//     /* We should never get here as control is now taken by the scheduler */
-//     while (1);
-// }
+    /* Initialise all configured peripherals */
+    MX_GPIO_Init();
+    MX_GPDMA1_Init();
+    MX_CRC_Init();
+    MX_DTS_Init();
+    MX_ICACHE_Init();
+    MX_SPI2_Init();
+    MX_AES_Init();
+}

@@ -17,6 +17,20 @@ extern "C" {
 
 
 /* ---------------------------------------------------------------------------- */
+/* Common Config */
+/* ---------------------------------------------------------------------------- */
+
+#define LOGGING_STACK_SIZE (512) /* Any thread that calls secure logging functions should allocate this ammount of secure stack */
+
+/* ---------------------------------------------------------------------------- */
+/* State Machine Config */
+/* ---------------------------------------------------------------------------- */
+
+#define STATE_MACHINE_THREAD_STACK_SIZE         (1024)
+#define STATE_MACHINE_THREAD_PRIORITY           (15)
+#define STATE_MACHINE_THREAD_PREMPTION_PRIORITY (15)
+
+/* ---------------------------------------------------------------------------- */
 /* Networking Common Config */
 /* ---------------------------------------------------------------------------- */
 
