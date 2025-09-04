@@ -34,18 +34,9 @@ void state_machine_thread_entry(uint32_t initial_input) {
 
     /* Startup sequence */
 
-    /* Switch starts up first because its REFCLK is needed for ethernet and therefore PHY MDIO and all networking */
+    /* Start the PHYs, STP thread, NetX networking threads */
     status = tx_thread_resume(&switch_thread_handle);
     if (status != TX_SUCCESS) Error_Handler();
-
-    /* Wait for the switch to be initialised (from switch_thread_entry) */
-    status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_SWITCH_INITIALISED_EVENT, TX_OR, &event_flags, TX_WAIT_FOREVER);
-    if (status != TX_SUCCESS) Error_Handler();
-
-    /* The ethernet MAC can now be initialised */
-    MX_ETH_Init();
-
-    /* Start the PHYs, STP thread, NetX networking threads */
     status = tx_thread_resume(&phy_thread_handle);
     if (status != TX_SUCCESS) Error_Handler();
     status = tx_thread_resume(&stp_thread_handle);

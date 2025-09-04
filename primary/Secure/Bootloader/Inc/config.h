@@ -31,10 +31,10 @@
 #define FLASH_S_REGION_OFFSET    0x00000000
 #define FLASH_S_REGION_SIZE      (152 * 1024)                                      /* In bytes */
 
-#define FLASH_NSC_REGION_OFFSET  (FLASH_S_REGION_OFFSET + FLASH_S_REGION_SIZE)     /* = 0x0000e000 */
+#define FLASH_NSC_REGION_OFFSET  (FLASH_S_REGION_OFFSET + FLASH_S_REGION_SIZE)     /* = 0x00026000 */
 #define FLASH_NSC_REGION_SIZE    (8 * 1024)                                        /* In bytes */
 
-#define FLASH_NS_REGION_OFFSET   (FLASH_NSC_REGION_OFFSET + FLASH_NSC_REGION_SIZE) /* = 0x00010000 */
+#define FLASH_NS_REGION_OFFSET   (FLASH_NSC_REGION_OFFSET + FLASH_NSC_REGION_SIZE) /* = 0x00028000 */
 #define FLASH_NS_REGION_SIZE     (864 * 1024)                                      /* In bytes */
 
 

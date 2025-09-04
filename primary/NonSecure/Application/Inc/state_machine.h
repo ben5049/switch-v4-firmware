@@ -15,9 +15,8 @@
 #include "config.h"
 
 
-#define STATE_MACHINE_ALL_EVENTS               ((ULONG) 0xffffffff)
-#define STATE_MACHINE_SWITCH_INITIALISED_EVENT ((ULONG) 1 << 0)
-#define STATE_MACHINE_NX_INITIALISED_EVENT     ((ULONG) 1 << 0)
+#define STATE_MACHINE_ALL_EVENTS           ((ULONG) 0xffffffff)
+#define STATE_MACHINE_NX_INITIALISED_EVENT ((ULONG) 1 << 0)
 
 
 extern TX_THREAD            state_machine_thread_handle;

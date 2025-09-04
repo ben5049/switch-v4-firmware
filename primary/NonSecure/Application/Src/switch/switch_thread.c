@@ -1,5 +1,5 @@
 /*
- * switch.c
+ * switch_thread.c
  *
  *  Created on: Jul 28, 2025
  *      Author: bens1
@@ -25,11 +25,10 @@
 uint8_t   switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
 TX_THREAD switch_thread_handle;
 
-sja1105_handle_t     hsja1105;
 atomic_uint_fast32_t sja1105_error_counter = 0;
 
-static const uint32_t *sja1105_static_conf;
-static uint32_t        sja1105_static_conf_size;
+extern const uint32_t *sja1105_static_conf;
+extern uint32_t        sja1105_static_conf_size;
 
 /* Imported variables */
 extern SPI_HandleTypeDef hspi2;
@@ -137,48 +136,8 @@ static void sja1105_check_status_msg(sja1105_handle_t *dev, sja1105_status_t to_
 
 void switch_thread_entry(uint32_t initial_input) {
 
-    static sja1105_config_t sja1105_conf;
-    static uint32_t         fixed_length_table_buffer[SJA1105_FIXED_BUFFER_SIZE] __ALIGNED(32);
     static sja1105_status_t status;
     static int16_t          temp_x10;
-
-    /* Initialise the ThreadX byte pool */
-    switch_byte_pool_init();
-
-    /* Set the general switch parameters */
-    sja1105_conf.variant      = VARIANT_SJA1105Q;
-    sja1105_conf.spi_handle   = &hspi2;
-    sja1105_conf.cs_port      = SWCH_CS_GPIO_Port;
-    sja1105_conf.cs_pin       = SWCH_CS_Pin;
-    sja1105_conf.rst_port     = SWCH_RST_GPIO_Port;
-    sja1105_conf.rst_pin      = SWCH_RST_Pin;
-    sja1105_conf.timeout      = 100;
-    sja1105_conf.mgmt_timeout = 1000;
-    sja1105_conf.host_port    = PORT_HOST;
-    sja1105_conf.skew_clocks  = true;
-    sja1105_conf.switch_id    = 0;
-
-    /* Configure port speeds and interfaces */
-    CHECK(SJA1105_PortConfigure(&sja1105_conf, PORT_88Q2112_PHY0, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
-    CHECK(SJA1105_PortConfigure(&sja1105_conf, PORT_88Q2112_PHY1, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
-    CHECK(SJA1105_PortConfigure(&sja1105_conf, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8));
-    CHECK(SJA1105_PortConfigure(&sja1105_conf, PORT_LAN8671_PHY, SJA1105_INTERFACE_RMII, SJA1105_MODE_MAC, true, SJA1105_SPEED_10M, SJA1105_IO_3V3));
-    CHECK(SJA1105_PortConfigure(&sja1105_conf, PORT_HOST, SJA1105_INTERFACE_RMII, SJA1105_MODE_PHY, true, SJA1105_SPEED_100M, SJA1105_IO_3V3));
-
-    /* Set the static config to the default */
-    sja1105_static_conf      = swv4_sja1105_static_config_default;
-    sja1105_static_conf_size = SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE;
-
-    /* Initialise the switch */
-    CHECK(SJA1105_Init(&hsja1105, &sja1105_conf, &sja1105_callbacks, fixed_length_table_buffer, sja1105_static_conf, sja1105_static_conf_size));
-
-    /* Notify the state machine that the switch is initialised (this means RMII REFCLK is on which is a bottleneck to almost every other thread) */
-    if (tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_SWITCH_INITIALISED_EVENT, TX_OR) != TX_SUCCESS) Error_Handler();
-
-    /* Set the speed of the dynamic ports. TODO: This should be after PHY auto-negotiaion */
-    CHECK(SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY0, SJA1105_SPEED_1G));
-    CHECK(SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY1, SJA1105_SPEED_1G));
-    CHECK(SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY2, SJA1105_SPEED_1G));
 
     while (1) {
 

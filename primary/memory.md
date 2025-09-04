@@ -6,7 +6,7 @@
 The macro `VTOR_TABLE_NS_START_ADDR` must be set to the address of the non-secure vector table. This address is set in `primary\NonSecure\STM32H573IIKXQ_FLASH_MMT_TEMPLATE.ld`:
 
 ```
-FLASH	(rx)	: ORIGIN = 0x08010000, LENGTH = 864K
+FLASH	(rx)	: ORIGIN = 0x08028000, LENGTH = 864K
 ```
 
 The macro can then be set in `Secure/Core/Src/main.c`:
@@ -22,7 +22,7 @@ The macro can then be set in `Secure/Core/Src/main.c`:
 /* Caution: address must correspond to non-secure internal Flash where is     */
 /*          mapped in the non-secure vector table                             */
 
-#define VTOR_TABLE_NS_START_ADDR (FLASH_NS_BANK1_BASE_ADDR + FLASH_NS_REGION_OFFSET) /* = 0x08010000 */
+#define VTOR_TABLE_NS_START_ADDR (FLASH_NS_BANK1_BASE_ADDR + FLASH_NS_REGION_OFFSET) /* = 0x08028000 */
 
 /* USER CODE END VTOR_TABLE*/
 ```

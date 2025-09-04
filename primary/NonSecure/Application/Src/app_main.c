@@ -35,4 +35,10 @@ void app_main(void) {
     MX_ICACHE_Init();
     MX_SPI2_Init();
     MX_AES_Init();
+
+    /* Initialise the switch */
+    if (switch_init(&hsja1105) != SJA1105_OK) Error_Handler();
+
+    /* Ethernet MAC can now be initialised (requires switch REFCLK) */
+    MX_ETH_Init();
 }

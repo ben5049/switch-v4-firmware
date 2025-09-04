@@ -36,9 +36,12 @@ extern uint8_t              switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
 extern TX_THREAD            switch_thread_handle;
 extern atomic_uint_fast32_t sja1105_error_counter;
 extern sja1105_handle_t     hsja1105;
+extern const uint32_t      *sja1105_static_conf;
+extern uint32_t             sja1105_static_conf_size;
 
 /* Exported functions*/
-void switch_thread_entry(uint32_t initial_input);
+void             switch_thread_entry(uint32_t initial_input);
+sja1105_status_t switch_init(sja1105_handle_t *dev);
 
 
 #ifdef __cplusplus

@@ -89,10 +89,6 @@ nx_status_t nx_user_init(TX_BYTE_POOL *byte_pool) {
     status = nx_dhcp_create(&dhcp_client, &nx_ip_instance, "DHCP Client");
     if (status != NX_SUCCESS) return status;
 
-    /* Create the PTP client */
-    status = nx_ptp_client_create(&ptp_client, &nx_ip_instance, 0, &nx_packet_pool, NX_INTERNAL_PTP_THREAD_PRIORITY, (UCHAR *) nx_internal_ptp_stack, sizeof(nx_internal_ptp_stack), ptp_clock_callback, NX_NULL);
-    if (status != NX_SUCCESS) return status;
-
     return status;
 }
 
@@ -123,6 +119,10 @@ void nx_app_thread_entry(uint32_t initial_input) {
     /* Wait until an IP address is ready */
     tx_status = tx_semaphore_get(&dhcp_semaphore_handle, TX_WAIT_FOREVER);
     if (tx_status != TX_SUCCESS) Error_Handler();
+
+    /* Create the PTP client */
+    nx_status = nx_ptp_client_create(&ptp_client, &nx_ip_instance, 0, &nx_packet_pool, NX_INTERNAL_PTP_THREAD_PRIORITY, (UCHAR *) nx_internal_ptp_stack, sizeof(nx_internal_ptp_stack), ptp_clock_callback, NX_NULL);
+    if (nx_status != NX_SUCCESS) Error_Handler();
 
     /* Notify the state machine that the network has been initialised */
     tx_status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_NX_INITIALISED_EVENT, TX_OR);

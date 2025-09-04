@@ -15,7 +15,7 @@ extern "C" {
 
 #include "stdint.h"
 
-#define SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE 948
+#define SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE (948 / sizeof(uint32_t)) /* Should be the number of uint32_t (not bytes) */
 
 static const uint32_t swv4_sja1105_static_config_default[SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE] = {
 
