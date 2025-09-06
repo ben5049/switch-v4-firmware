@@ -112,7 +112,7 @@ extern "C" {
 #define STP_THREAD_PRIORITY           (15)
 #define STP_THREAD_PREMPTION_PRIORITY (15)
 
-#define STP_MEM_POOL_SIZE             (1024 * sizeof(uint8_t))
+#define STP_MEM_POOL_SIZE             (2 * 1024 * sizeof(uint8_t))
 
 /* ---------------------------------------------------------------------------- */
 /* Commmunications Config */

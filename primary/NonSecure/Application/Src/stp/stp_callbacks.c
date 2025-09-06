@@ -26,7 +26,7 @@ static TX_BYTE_POOL stp_byte_pool;
 
 
 UINT stp_byte_pool_init() {
-    return tx_byte_pool_create(&stp_byte_pool, "STP memory pool", stp_byte_pool_buffer, STP_MEM_POOL_SIZE);
+	return tx_byte_pool_create(&stp_byte_pool, "STP memory pool", stp_byte_pool_buffer, STP_MEM_POOL_SIZE);
 }
 
 
@@ -196,9 +196,8 @@ static void* stp_allocAndZeroMemory(unsigned int size) {
 
     void* memory_ptr;
 
-    if (tx_byte_allocate(&stp_byte_pool, &memory_ptr, size, TX_NO_WAIT) != TX_SUCCESS) {
-        Error_Handler();
-    }
+    int status = tx_byte_allocate(&stp_byte_pool, &memory_ptr, size, TX_NO_WAIT);
+    if (status != TX_SUCCESS) Error_Handler();
 
     memset(memory_ptr, 0, size);
 
