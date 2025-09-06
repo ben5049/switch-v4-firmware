@@ -209,10 +209,15 @@ void boot_main() {
         }
     }
 
+    /* Erase SRAM3 to prevent ECC errors due to uninitialised memory */
+    LOG_INFO("Erasing SRAM3\n");
+    status = HAL_RAMCFG_Erase(&hramcfg_SRAM3);
+    CHECK_STATUS(status, HAL_OK, ERROR_HAL);
+
     LOG_INFO("Starting non-secure firmware\n");
 
-    /* Secure SysTick should be suspended before calling non-secure init */
-    /* in order to avoid wakeing up from a sleep mode entered by non-secure firmware. */
-    /* The Secure SysTick shall be resumed on non-secure callable functions */
+    /* Secure SysTick should be suspended before calling non-secure init in
+     * order to avoid waking up from a sleep mode entered by non-secure firmware.
+     * The Secure SysTick shall be resumed on non-secure callable functions */
     HAL_SuspendTick();
 }

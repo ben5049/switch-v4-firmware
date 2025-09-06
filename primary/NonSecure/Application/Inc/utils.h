@@ -32,6 +32,9 @@ bool compare_mac_addrs_with_mask(const uint8_t* addr1, const uint8_t* addr2, con
 uint32_t tx_thread_sleep_ms(uint32_t ms);
 uint32_t tx_time_get_ms();
 
+void delay_ns(uint32_t ns);
+
+
 #ifdef __cplusplus
 }
 #endif

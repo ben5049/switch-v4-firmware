@@ -54,15 +54,7 @@ static void sja1105_delay_ms(sja1105_handle_t *dev, uint32_t ms) {
 }
 
 static void sja1105_delay_ns(sja1105_handle_t *dev, uint32_t ns) {
-
-    /* CPU runs at 250MHz so one instruction is 4ns.
-     * The loop contains a NOP, ADDS, CMP and branch instruction per cycle.
-     * This means the loop delay is 4 * 4ns = 16ns.
-     * This is true for O3 but will take longer for O0.
-     */
-    for (uint32_t t = 0; t < ns; t += 16) {
-        __NOP();
-    }
+    delay_ns(ns);
 }
 
 static sja1105_status_t sja1105_take_mutex(sja1105_handle_t *dev, uint32_t timeout) {

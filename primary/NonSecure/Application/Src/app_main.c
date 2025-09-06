@@ -19,6 +19,7 @@
 
 #include "app_main.h"
 #include "switch_thread.h"
+#include "utils.h"
 
 
 void app_main(void) {
@@ -35,6 +36,17 @@ void app_main(void) {
     MX_ICACHE_Init();
     MX_SPI2_Init();
     MX_AES_Init();
+
+    /* Change to FPWM mode for more accurate 3.3V rail. TODO: make into function */
+    __disable_irq();
+    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, RESET);
+    delay_ns(500);
+    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, SET);
+    delay_ns(500);
+    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, RESET);
+    delay_ns(500);
+    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, SET);
+    __enable_irq();
 
     /* Initialise the switch */
     if (switch_init(&hsja1105) != SJA1105_OK) Error_Handler();

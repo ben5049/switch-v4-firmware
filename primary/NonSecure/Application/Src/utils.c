@@ -35,3 +35,16 @@ uint32_t tx_thread_sleep_ms(uint32_t ms) {
 uint32_t tx_time_get_ms() {
     return (uint32_t) TICKS_TO_MS((uint64_t) tx_time_get()); /* Cast to 64-bit uint to prevent premature overflow */
 }
+
+
+void delay_ns(uint32_t ns) {
+
+    /* CPU runs at 250MHz so one instruction is 4ns.
+     * The loop contains a NOP, ADDS, CMP and branch instruction per cycle.
+     * This means the loop delay is 4 * 4ns = 16ns.
+     * This is true for O3 but will take longer for O0.
+     */
+    for (uint32_t t = 0; t < ns; t += 16) {
+        __NOP();
+    }
+}

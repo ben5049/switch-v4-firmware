@@ -202,6 +202,10 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
+  /** Enables the Clock Security System
+  */
+  HAL_RCC_EnableCSS();
   HAL_RCC_ConfigAttributes(RCC_RMVF, RCC_SEC_NPRIV);
 
   /** Configure the programming delay

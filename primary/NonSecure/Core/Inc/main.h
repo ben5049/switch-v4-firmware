@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define MODE_3V3_Pin GPIO_PIN_5
+#define MODE_3V3_GPIO_Port GPIOI
 #define PHY2_INT_Pin GPIO_PIN_14
 #define PHY2_INT_GPIO_Port GPIOG
 #define PHY2_INT_EXTI_IRQn EXTI14_IRQn

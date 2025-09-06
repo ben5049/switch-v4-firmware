@@ -61,3 +61,20 @@ void MX_SAES_AES_Init(void) {
     ...
 }
 ```
+
+### NMI
+
+```C
+#include "error.h"
+
+...
+
+void NMI_Handler(void) {
+    /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
+    nmi_handler();
+    /* USER CODE END NonMaskableInt_IRQn 0 */
+    /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
+
+    /* USER CODE END NonMaskableInt_IRQn 1 */
+}
+```

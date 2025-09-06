@@ -35,6 +35,7 @@ typedef enum {
 
 
 void error_handler(error_t major_error_code, uint8_t minor_error_code);
+void nmi_handler(void);
 
 
 #ifdef __cplusplus
