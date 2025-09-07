@@ -142,15 +142,21 @@ void switch_thread_entry(uint32_t initial_input) {
     while (1) {
 
         /* Perform regular maintenance */
-        CHECK(SJA1105_CheckStatusRegisters(&hsja1105));
-        CHECK(SJA1105_ManagementRouteFree(&hsja1105, false));
+        status = SJA1105_CheckStatusRegisters(&hsja1105);
+        if (status != SJA1105_OK) Error_Handler();
+        status = SJA1105_ManagementRouteFree(&hsja1105, false);
+        if (status != SJA1105_OK) Error_Handler();
+
         /* TODO: Add byte pool maintenance */
 
         /* TODO: Ocassionally check no important MAC addresses have been learned by accident (PTP, STP, etc)*/
 
         /* Read the temperature */
-        CHECK(SJA1105_ReadTemperatureX10(&hsja1105, &temp_x10));
+        status = SJA1105_ReadTemperatureX10(&hsja1105, &temp_x10);
+        if (status != SJA1105_OK) Error_Handler();
 
         tx_thread_sleep_ms(500);
+
+        /* TODO: If the current thread holds the switch mutex when it shouldn't report an error */
     }
 }

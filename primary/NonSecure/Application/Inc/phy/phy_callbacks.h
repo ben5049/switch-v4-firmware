@@ -20,6 +20,8 @@ extern "C" {
 extern const phy_callbacks_t phy_callbacks_88q2112;
 extern const phy_callbacks_t phy_callbacks_lan8671;
 
+extern TX_MUTEX phy_mutex_handle;
+
 
 #ifdef __cplusplus
 }

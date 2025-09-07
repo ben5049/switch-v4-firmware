@@ -11,6 +11,7 @@
 #include "switch_thread.h"
 #include "switch_callbacks.h"
 #include "phy_thread.h"
+#include "phy_callbacks.h"
 #include "stp_thread.h"
 #include "comms_thread.h"
 #include "ptp_thread.h"
@@ -25,6 +26,7 @@ void tx_user_init(void *memory_ptr) {
 
     /* Create mutexes */
     tx_mutex_create(&sja1105_mutex_handle, "sja1105_mutex", TX_INHERIT);
+    tx_mutex_create(&phy_mutex_handle, "phy_mutex", TX_INHERIT);
 
     /* Create semaphores */
     tx_semaphore_create(&dhcp_semaphore_handle, "dhcp_semaphore", 0);

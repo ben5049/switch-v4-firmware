@@ -98,7 +98,7 @@ extern "C" {
 /* ---------------------------------------------------------------------------- */
 
 #define NUM_PHYS                      (4)
-#define PHY_TIMEOUT                   (100) /* Default timeout for PHY operations in ms */
+#define PHY_TIMEOUT_MS                (100) /* Default timeout for PHY operations in ms */
 
 #define PHY_THREAD_STACK_SIZE         (1024)
 #define PHY_THREAD_PRIORITY           (15)

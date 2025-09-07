@@ -32,7 +32,7 @@
         "stp_callbacks.h": "c",
         "comms_thread.h": "c",
         "stp_thread.h": "c",
-        "app_main.h": "c",
+        "app_setup.h": "c",
         "nx_user_init.h": "c",
         "config.h": "c",
         "nx_app.h": "c",
@@ -106,7 +106,8 @@
         "state_machine.h": "c",
         "icache.h": "c",
         "eth.h": "c",
-        "sau.h": "c"
+        "sau.h": "c",
+        "phy_thread.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,

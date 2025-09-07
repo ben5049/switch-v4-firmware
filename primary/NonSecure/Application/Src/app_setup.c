@@ -1,10 +1,11 @@
 /*
- * app_main.c
+ * app_setup.c
  *
  *  Created on: 17 Aug 2025
  *      Author: bens1
  */
 
+#include <app_setup.h>
 #include "main.h"
 #include "app_threadx.h"
 #include "main.h"
@@ -17,16 +18,19 @@
 #include "gpdma.h"
 #include "aes.h"
 
-#include "app_main.h"
 #include "switch_thread.h"
+#include "phy_thread.h"
 #include "utils.h"
 
 
-void app_main(void) {
+void app_setup(void) {
 
     /* Make sure shared structs start uninitialised */
     hsja1105.initialised = false;
-    // TODO: same with PHYs
+    hphy0.state          = PHY_STATE_88Q211X_UNCONFIGURED;
+    hphy1.state          = PHY_STATE_88Q211X_UNCONFIGURED;
+    hphy2.state          = PHY_STATE_88Q211X_UNCONFIGURED;
+    // hphy3.state          = PHY_STATE_88Q211X_UNCONFIGURED; // TODO:
 
     /* Initialise all configured peripherals */
     MX_GPIO_Init();
