@@ -220,7 +220,7 @@ SECTIONS
   } >FLASH_NSC2
 
  /*  Unitialized BACKUP section into "BACKUP" BACKUP type memory [MMT section] */
- .BACKUP_Section :
+ .BACKUP_Section (NOLOAD):
   {
     . = ALIGN(4);
     KEEP (*(.BACKUP_Section))
@@ -228,7 +228,7 @@ SECTIONS
   } >BACKUP
 
  /*  Unitialized LOG section into "LOG" LOG type memory [MMT section] */
- .LOG_Section :
+ .LOG_Section (NOLOAD):
   {
     . = ALIGN(4);
     KEEP (*(.LOG_Section))

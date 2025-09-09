@@ -30,9 +30,6 @@ extern "C" {
 #define BPDU_LLC_SIZE               (3)
 #define BPDU_HEADER_SIZE            (BPDU_DST_ADDR_SIZE + BPDU_SRC_ADDR_SIZE + BPDU_SIZE_OR_ETHERTYPE_SIZE + BPDU_LLC_SIZE)
 
-#define NX_STP_ALL_EVENTS           ((ULONG) 0xffffffff)
-#define NX_STP_BPDU_REC_EVENT       ((ULONG) 0x00000008)
-
 
 typedef struct {
     NX_PACKET            *tx_packet_ptr;

@@ -21,7 +21,7 @@ int32_t nx_eth_phy_init(void) {
 
     int32_t ret = ETH_PHY_STATUS_OK;
 
-    /* Check the initialised flag and return an error if not initialised */
+    /* Check the switch initialised flag */
     if (!hsja1105.initialised) ret = ETH_PHY_STATUS_ERROR;
 
     return ret;
@@ -40,24 +40,7 @@ int32_t nx_eth_phy_get_link_state(void) {
         return linkstate;
     }
 
-    /* Check the forwarding state */
-    status = SJA1105_PortGetForwarding(&hsja1105, hsja1105.config->host_port, &forwarding);
-    if (status != SJA1105_OK) {
-        linkstate = ETH_PHY_STATUS_LINK_ERROR;
-        return linkstate;
-    } else if (!forwarding) {
-        linkstate = ETH_PHY_STATUS_LINK_DOWN;
-        return linkstate;
-    }
-
-    /* Otherwise get the speed */
-    status = SJA1105_PortGetSpeed(&hsja1105, hsja1105.config->host_port, &speed);
-    if (status != SJA1105_OK) {
-        linkstate = ETH_PHY_STATUS_LINK_ERROR;
-        return linkstate;
-    }
-
-    switch (speed) {
+    switch (hsja1105.config->ports[PORT_HOST].speed) {
         case SJA1105_SPEED_10M:
             linkstate = ETH_PHY_STATUS_10MBITS_FULLDUPLEX;
             break;

@@ -8,13 +8,18 @@
 #include "stdint.h"
 #include "hal.h"
 #include "tx_api.h"
+#include "main.h"
 
 #include "88q211x.h"
 #include "phy_callbacks.h"
+#include "phy_thread.h"
+#include "stp_thread.h"
 #include "utils.h"
+#include "tx_app.h"
 
 
-TX_MUTEX phy_mutex_handle;
+TX_MUTEX             phy_mutex_handle;
+TX_EVENT_FLAGS_GROUP phy_events_handle;
 
 extern ETH_HandleTypeDef heth;
 
@@ -232,16 +237,39 @@ static phy_status_t phy_callback_give_mutex(void *context) {
     return status;
 }
 
+static phy_status_t phy_callback_link_status_change(bool linkup, void *context) {
+
+    tx_status_t status = TX_SUCCESS;
+
+    /* Notify the STP thread */
+    if (context == &hphy0) {
+        status = tx_event_flags_set(&stp_events_handle, STP_PORT0_LINK_STATE_CHANGE_EVENT, TX_OR);
+    } else if (context == &hphy1) {
+        status = tx_event_flags_set(&stp_events_handle, STP_PORT1_LINK_STATE_CHANGE_EVENT, TX_OR);
+    } else if (context == &hphy2) {
+        status = tx_event_flags_set(&stp_events_handle, STP_PORT2_LINK_STATE_CHANGE_EVENT, TX_OR);
+    } else if (context == &hphy3) {
+        status = tx_event_flags_set(&stp_events_handle, STP_PORT3_LINK_STATE_CHANGE_EVENT, TX_OR);
+    }
+
+    /* Return the status */
+    if (status != TX_SUCCESS) {
+        return PHY_ERROR;
+    } else {
+        return PHY_OK;
+    }
+}
+
 
 const phy_callbacks_t phy_callbacks_88q2112 = {
-    .callback_read_reg    = &phy_88q2112_callback_read_reg,
-    .callback_write_reg   = &phy_88q2112_callback_write_reg,
-    .callback_get_time_ms = &phy_callback_get_time_ms,
-    .callback_delay_ms    = &phy_callback_delay_ms,
-    .callback_delay_ns    = &phy_callback_delay_ns,
-    .callback_take_mutex  = &phy_callback_take_mutex,
-    .callback_give_mutex  = &phy_callback_give_mutex,
-};
+    .callback_read_reg           = &phy_88q2112_callback_read_reg,
+    .callback_write_reg          = &phy_88q2112_callback_write_reg,
+    .callback_get_time_ms        = &phy_callback_get_time_ms,
+    .callback_delay_ms           = &phy_callback_delay_ms,
+    .callback_delay_ns           = &phy_callback_delay_ns,
+    .callback_take_mutex         = &phy_callback_take_mutex,
+    .callback_give_mutex         = &phy_callback_give_mutex,
+    .callback_link_status_change = &phy_callback_link_status_change};
 
 
 const phy_callbacks_t phy_callbacks_lan8671 = {
@@ -253,3 +281,37 @@ const phy_callbacks_t phy_callbacks_lan8671 = {
     .callback_take_mutex  = &phy_callback_take_mutex,
     .callback_give_mutex  = &phy_callback_give_mutex,
 };
+
+
+void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
+
+    tx_status_t status       = TX_SUCCESS;
+    uint32_t    flags_to_set = 0;
+
+    switch (GPIO_Pin) {
+
+        case (PHY0_INT_Pin):
+            flags_to_set |= PHY_PHY0_EVENT;
+            break;
+
+        case (PHY1_INT_Pin):
+            flags_to_set |= PHY_PHY1_EVENT;
+            break;
+
+        case (PHY2_INT_Pin):
+            flags_to_set |= PHY_PHY2_EVENT;
+            break;
+
+        case (PHY3_INT_Pin):
+            flags_to_set |= PHY_PHY3_EVENT;
+            break;
+
+        default:
+            Error_Handler();
+            break;
+    }
+
+    /* Set the flag */
+    status = tx_event_flags_set(&phy_events_handle, flags_to_set, TX_OR);
+    if (status != TX_SUCCESS) Error_Handler();
+}

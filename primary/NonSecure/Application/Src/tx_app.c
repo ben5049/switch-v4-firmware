@@ -34,6 +34,7 @@ void tx_user_init(void *memory_ptr) {
     /* Create event flags */
     tx_event_flags_create(&state_machine_events_handle, "state_machine_events_handle");
     tx_event_flags_create(&stp_events_handle, "stp_events_handle");
+    tx_event_flags_create(&phy_events_handle, "phy_events_handle");
 
     /* Create queues */
     tx_queue_create(&ptp_tx_queue_handle, "ptp_tx_queue", sizeof(nx_ptp_tx_info_t), ptp_tx_queue_stack, PTP_TX_QUEUE_SIZE);

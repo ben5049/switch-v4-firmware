@@ -103,6 +103,7 @@ extern "C" {
 #define PHY_THREAD_STACK_SIZE         (1024)
 #define PHY_THREAD_PRIORITY           (15)
 #define PHY_THREAD_PREMPTION_PRIORITY (15)
+#define PHY_THREAD_INTERVAL           (1000) /* Execute once per second */
 
 /* ---------------------------------------------------------------------------- */
 /* STP Config */

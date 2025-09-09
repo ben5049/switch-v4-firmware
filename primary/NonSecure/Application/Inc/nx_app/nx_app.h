@@ -18,6 +18,7 @@ extern "C" {
 #include "nx_api.h"
 #include "nxd_dhcp_client.h"
 #include "nxd_ptp_client.h"
+#include "nx_stm32_eth_driver.h"
 
 #include "config.h"
 
@@ -89,6 +90,8 @@ typedef enum {
     NX_STATUS_OPTION_HEADER_ERROR  = NX_OPTION_HEADER_ERROR,
     NX_STATUS_CONTINUE             = NX_CONTINUE,
     NX_STATUS_TCPIP_OFFLOAD_ERROR  = NX_TCPIP_OFFLOAD_ERROR,
+
+    NX_STATUS_DRIVER_ERROR = 90,
 
     NX_STATUS_DHCP_ERROR                     = NX_DHCP_ERROR,
     NX_STATUS_DHCP_NO_RESPONSE               = NX_DHCP_NO_RESPONSE,

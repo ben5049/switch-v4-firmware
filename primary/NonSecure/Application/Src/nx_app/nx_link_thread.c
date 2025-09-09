@@ -14,6 +14,8 @@
 #include "nx_app.h"
 #include "config.h"
 #include "utils.h"
+#include "tx_app.h"
+#include "state_machine.h"
 
 
 TX_THREAD nx_link_thread_handle;
@@ -27,7 +29,8 @@ void nx_link_thread_entry(uint32_t thread_input) {
 
     nx_ip_status_t actual_status;
     nx_status_t    status;
-    bool           linkdown = false;
+    tx_status_t    tx_status;
+    bool           linkdown = true;
 
     while (1) {
 
@@ -41,7 +44,11 @@ void nx_link_thread_entry(uint32_t thread_input) {
                 linkdown = false;
 
                 /* Send request to enable PHY link */
-                nx_ip_driver_direct_command(&nx_ip_instance, NX_LINK_ENABLE, (uint32_t *) &actual_status);
+                nx_ip_driver_direct_command(&nx_ip_instance, NX_LINK_ENABLE, (uint32_t *) &actual_status); /* TODO: Check return */
+
+                /* Notify the state machine that the link is up */
+                tx_status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_NX_LINK_UP_EVENT, TX_OR);
+                if (tx_status != TX_SUCCESS) Error_Handler();
 
                 /* Send request to check if an address is resolved */
                 status = nx_ip_interface_status_check(&nx_ip_instance, 0, NX_IP_ADDRESS_RESOLVED, (uint32_t *) &actual_status, 10);

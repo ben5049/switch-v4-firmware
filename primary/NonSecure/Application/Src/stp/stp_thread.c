@@ -16,9 +16,12 @@
 #include "stp_callbacks.h"
 #include "nx_stp.h"
 #include "nx_app.h"
+#include "tx_app.h"
 #include "config.h"
 #include "utils.h"
 #include "switch_thread.h"
+#include "phy_thread.h"
+#include "phy_common.h"
 
 
 uint8_t              stp_thread_stack[STP_THREAD_STACK_SIZE];
@@ -109,8 +112,10 @@ static void validate_and_process_bpdu(const uint8_t* data, uint16_t size) {
 
 void stp_thread_entry(uint32_t initial_input) {
 
-    uint32_t   event_flags;
-    NX_PACKET* received_packet;
+    uint32_t    event_flags;
+    NX_PACKET*  received_packet;
+    tx_status_t tx_status = TX_SUCCESS;
+    nx_status_t nx_status = NX_SUCCESS;
 
     static const uint8_t mac_address[6] = {
         MAC_ADDR_OCTET1,
@@ -121,50 +126,93 @@ void stp_thread_entry(uint32_t initial_input) {
         MAC_ADDR_OCTET6};
 
     /* Create the NetX STP instance used to send BPDUs */
-    nx_stp_init(&nx_ip_instance, "nx_stp_instance", &stp_events_handle);
+    nx_status = nx_stp_init(&nx_ip_instance, "nx_stp_instance", &stp_events_handle);
+    if (nx_status != NX_SUCCESS) Error_Handler();
 
     /* Initialise the STP ThreadX byte pool */
-    if (stp_byte_pool_init() != TX_SUCCESS) Error_Handler();
+    tx_status = stp_byte_pool_init();
+    if (tx_status != TX_SUCCESS) Error_Handler();
 
     /* Create and start the bridge */
     bridge = STP_CreateBridge(5, 0, NUM_VLANS, &stp_callbacks, mac_address, 100);
     STP_StartBridge(bridge, tx_time_get_ms());
 
-    /* Setup timing control variables */
+    /* Setup timing control variables (done in ticks) */
     uint32_t current_time   = tx_time_get();
     uint32_t next_wake_time = current_time + TX_TIMER_TICKS_PER_SECOND;
+
+    /* The host port is always enabled by default */
+    STP_OnPortEnabled(bridge, PORT_HOST, 100, true, tx_time_get_ms());
+
+    // TODO: poll ports to check for link up before STP started
 
     while (1) {
 
         /* Sleep until the next wake time while also monitoring for received BPDUs */
-        current_time = tx_time_get_ms();
+        current_time = tx_time_get();
         if (current_time < next_wake_time) {
 
             /* Wait for a BPDU */
-            tx_event_flags_get(&stp_events_handle, NX_STP_BPDU_REC_EVENT, TX_OR_CLEAR, &event_flags, next_wake_time - current_time);
+            tx_status = tx_event_flags_get(&stp_events_handle, STP_ALL_EVENTS, TX_OR_CLEAR, &event_flags, next_wake_time - current_time);
+            if ((tx_status != TX_SUCCESS) && (tx_status != TX_NO_EVENTS)) Error_Handler();
 
-            /* If at least one BPDU was received then process it */
-            if (event_flags & NX_STP_BPDU_REC_EVENT) {
+            /* Process events */
+            if (event_flags && (tx_status != TX_NO_EVENTS)) {
 
-                TX_INTERRUPT_SAVE_AREA
+                /* If at least one BPDU was received then process it */
+                if (event_flags & STP_BPDU_REC_EVENT) {
 
-                /* Iterate through all BPDUs in the queue */
-                while (nx_stp.rx_packet_queue_head != NULL) {
+                    TX_INTERRUPT_SAVE_AREA
 
-                    /* Disable interrupts */
-                    TX_DISABLE
+                    /* Iterate through all BPDUs in the queue */
+                    while (nx_stp.rx_packet_queue_head != NULL) {
 
-                    /* Pickup the first packet and move the head to the next packet */
-                    received_packet             = nx_stp.rx_packet_queue_head;
-                    nx_stp.rx_packet_queue_head = received_packet->nx_packet_queue_next;
-                    if (nx_stp.rx_packet_queue_head == NX_NULL) nx_stp.rx_packet_queue_tail = NX_NULL;
+                        /* Disable interrupts */
+                        TX_DISABLE
 
-                    /* Restore interrupts */
-                    TX_RESTORE
+                        /* Pickup the first packet and move the head to the next packet */
+                        received_packet             = nx_stp.rx_packet_queue_head;
+                        nx_stp.rx_packet_queue_head = received_packet->nx_packet_queue_next;
+                        if (nx_stp.rx_packet_queue_head == NX_NULL) nx_stp.rx_packet_queue_tail = NX_NULL;
 
-                    /* Process and release the BPDU */
-                    validate_and_process_bpdu(received_packet->nx_packet_prepend_ptr, received_packet->nx_packet_length);
-                    _nx_packet_release(received_packet);
+                        /* Restore interrupts */
+                        TX_RESTORE
+
+                        /* Process and release the BPDU */
+                        validate_and_process_bpdu(received_packet->nx_packet_prepend_ptr, received_packet->nx_packet_length); // TODO: Check return codes
+                        nx_status = _nx_packet_release(received_packet);
+                        if (nx_status != NX_SUCCESS) Error_Handler();
+                    }
+                }
+
+                /* Process link up/down events */
+                if (event_flags & STP_PORT0_LINK_STATE_CHANGE_EVENT) {
+                    if (hphy0.linkup && !STP_GetPortEnabled(bridge, PORT_88Q2112_PHY0)) {
+                        STP_OnPortEnabled(bridge, PORT_88Q2112_PHY0, PHY_GET_SPEED_MBPS(hphy0), true, tx_time_get_ms());
+                    } else {
+                        STP_OnPortDisabled(bridge, PORT_88Q2112_PHY0, tx_time_get_ms());
+                    }
+                }
+                if (event_flags & STP_PORT1_LINK_STATE_CHANGE_EVENT) {
+                    if (hphy1.linkup && !STP_GetPortEnabled(bridge, PORT_88Q2112_PHY1)) {
+                        STP_OnPortEnabled(bridge, PORT_88Q2112_PHY1, PHY_GET_SPEED_MBPS(hphy1), true, tx_time_get_ms());
+                    } else {
+                        STP_OnPortDisabled(bridge, PORT_88Q2112_PHY1, tx_time_get_ms());
+                    }
+                }
+                if (event_flags & STP_PORT2_LINK_STATE_CHANGE_EVENT) {
+                    if (hphy2.linkup && !STP_GetPortEnabled(bridge, PORT_88Q2112_PHY2)) {
+                        STP_OnPortEnabled(bridge, PORT_88Q2112_PHY2, PHY_GET_SPEED_MBPS(hphy2), true, tx_time_get_ms());
+                    } else {
+                        STP_OnPortDisabled(bridge, PORT_88Q2112_PHY2, tx_time_get_ms());
+                    }
+                }
+                if (event_flags & STP_PORT3_LINK_STATE_CHANGE_EVENT) {
+                    if (hphy3.linkup && !STP_GetPortEnabled(bridge, PORT_LAN8671_PHY)) {
+                        STP_OnPortEnabled(bridge, PORT_LAN8671_PHY, 10, false, tx_time_get_ms());
+                    } else {
+                        STP_OnPortDisabled(bridge, PORT_LAN8671_PHY, tx_time_get_ms());
+                    }
                 }
 
                 /* Go to the start of the loop and go back to sleep if necessary */
@@ -176,6 +224,11 @@ void stp_thread_entry(uint32_t initial_input) {
 
         /* Schedule next wake time in one second */
         next_wake_time += TX_TIMER_TICKS_PER_SECOND;
+
+        // /* TODO: Fix */
+        // if (hphy0.linkup && !STP_GetPortEnabled(bridge, PORT_88Q2112_PHY0)) {
+        //     STP_OnPortEnabled(bridge, PORT_88Q2112_PHY0, PHY_GET_SPEED_MBPS(hphy0), true, tx_time_get_ms());
+        // }
 
         /* Do any necessary STP work */
         STP_OnOneSecondTick(bridge, tx_time_get_ms());

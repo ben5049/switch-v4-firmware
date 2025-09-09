@@ -44,29 +44,29 @@ nx_status_t nx_stp_init(NX_IP *ip_ptr, char *name, TX_EVENT_FLAGS_GROUP *events)
 
 nx_status_t nx_stp_allocate_packet() {
 
-    nx_status_t status     = NX_STATUS_SUCCESS;
-    NX_PACKET  *packet_ptr = nx_stp.tx_packet_ptr;
+    nx_status_t status     = NX_SUCCESS;
+    NX_PACKET **packet_ptr = &nx_stp.tx_packet_ptr;
 
     /* Check NetX has been initialised */
     if (nx_stp.ip_ptr->nx_ip_initialize_done != NX_TRUE) status = NX_STATUS_NOT_ENABLED;
-    if (status != NX_STATUS_SUCCESS) return status;
+    if (status != NX_SUCCESS) return status;
 
     /* Check a packet hasn't already been allocated */
-    if (packet_ptr != NULL) status = NX_STATUS_PTR_ERROR;
-    if (status != NX_STATUS_SUCCESS) return status;
+    if (*packet_ptr != NULL) status = NX_STATUS_PTR_ERROR;
+    if (status != NX_SUCCESS) return status;
 
     /* Allocate a packet */
-    status = nx_packet_allocate(&nx_packet_pool, &(packet_ptr), NX_PHYSICAL_HEADER, TX_WAIT_FOREVER);
-    if (status != NX_STATUS_SUCCESS) return status;
+    status = nx_packet_allocate(&nx_packet_pool, packet_ptr, NX_PHYSICAL_HEADER, TX_WAIT_FOREVER);
+    if (status != NX_SUCCESS) return status;
 
     /* Check there is available space in the packet for the header */
-    if ((ULONG) (packet_ptr->nx_packet_prepend_ptr - packet_ptr->nx_packet_data_start) < (BPDU_HEADER_SIZE - BPDU_LLC_SIZE)) status = NX_STATUS_PACKET_OFFSET_ERROR;
-    if (status != NX_STATUS_SUCCESS) return status;
+    if ((ULONG) ((*packet_ptr)->nx_packet_prepend_ptr - (*packet_ptr)->nx_packet_data_start) < (BPDU_HEADER_SIZE - BPDU_LLC_SIZE)) status = NX_STATUS_PACKET_OFFSET_ERROR;
+    if (status != NX_SUCCESS) return status;
 
     /* Assign the interface (this is done so the send request is passed to the ethernet driver).
      * Note that interface 1 is the loopback interface so use the first actual interface (0).
      */
-    nx_stp.tx_packet_ptr->nx_packet_address.nx_packet_interface_ptr = &nx_stp.ip_ptr->nx_ip_interface[PRIMARY_INTERFACE];
+    nx_stp.tx_packet_ptr->nx_packet_address.nx_packet_interface_ptr = &(nx_stp.ip_ptr->nx_ip_interface[PRIMARY_INTERFACE]);
 
     return status;
 }
@@ -74,7 +74,7 @@ nx_status_t nx_stp_allocate_packet() {
 
 nx_status_t nx_stp_send_packet() {
 
-    nx_status_t status     = NX_STATUS_SUCCESS;
+    nx_status_t status     = NX_SUCCESS;
     NX_PACKET  *packet_ptr = nx_stp.tx_packet_ptr;
     uint32_t   *ethernet_frame_ptr;
 
@@ -146,7 +146,7 @@ nx_status_t nx_stp_packet_deferred_receive(NX_IP *ip_ptr, NX_PACKET *packet_ptr)
         TX_RESTORE
 
         /* Wake up STP thread to process the STP deferred receive */
-        status = tx_event_flags_set(nx_stp.events, NX_STP_BPDU_REC_EVENT, TX_OR);
+        status = tx_event_flags_set(nx_stp.events, STP_BPDU_REC_EVENT, TX_OR);
     }
 
     return status;

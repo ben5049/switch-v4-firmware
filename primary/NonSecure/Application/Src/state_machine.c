@@ -39,12 +39,21 @@ void state_machine_thread_entry(uint32_t initial_input) {
     if (status != TX_SUCCESS) Error_Handler();
     status = tx_thread_resume(&phy_thread_handle);
     if (status != TX_SUCCESS) Error_Handler();
-    status = tx_thread_resume(&stp_thread_handle);
-    if (status != TX_SUCCESS) Error_Handler();
     status = tx_thread_resume(&nx_link_thread_handle);
     if (status != TX_SUCCESS) Error_Handler();
     status = tx_thread_resume(&nx_app_thread_handle);
     if (status != TX_SUCCESS) Error_Handler();
+
+    /* -------------------- Link Up -------------------- */
+
+    /* Wait for the link to be up (from nx_link_thread_entry) */
+    status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_NX_LINK_UP_EVENT, TX_OR, &event_flags, TX_WAIT_FOREVER);
+    if (status != TX_SUCCESS) Error_Handler();
+
+    status = tx_thread_resume(&stp_thread_handle);
+    if (status != TX_SUCCESS) Error_Handler();
+
+    /* -------------------- Network Up -------------------- */
 
     /* Wait for the network to be initialised (from nx_app_thread_entry) */
     status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_NX_INITIALISED_EVENT, TX_OR, &event_flags, TX_WAIT_FOREVER);

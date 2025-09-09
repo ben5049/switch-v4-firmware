@@ -20,6 +20,15 @@ extern "C" {
 #include "nx_app.h"
 
 
+#define STP_ALL_EVENTS                    ((ULONG) 0xffffffff)
+#define STP_BPDU_REC_EVENT                (1 < 0)
+#define STP_PORT0_LINK_STATE_CHANGE_EVENT (1 < 1)
+#define STP_PORT1_LINK_STATE_CHANGE_EVENT (1 < 2)
+#define STP_PORT2_LINK_STATE_CHANGE_EVENT (1 < 3)
+#define STP_PORT3_LINK_STATE_CHANGE_EVENT (1 < 4)
+#define STP_PORT4_LINK_STATE_CHANGE_EVENT (1 < 5)
+
+
 typedef struct STP_BRIDGE STP_BRIDGE;
 
 

@@ -26,7 +26,7 @@ static TX_BYTE_POOL stp_byte_pool;
 
 
 UINT stp_byte_pool_init() {
-	return tx_byte_pool_create(&stp_byte_pool, "STP memory pool", stp_byte_pool_buffer, STP_MEM_POOL_SIZE);
+    return tx_byte_pool_create(&stp_byte_pool, "STP memory pool", stp_byte_pool_buffer, STP_MEM_POOL_SIZE);
 }
 
 
@@ -119,7 +119,7 @@ static void* stp_transmitGetBuffer(const struct STP_BRIDGE* bridge, unsigned int
 
     /* Allocate the packet */
     if (nx_stp_allocate_packet() != NX_SUCCESS) Error_Handler();
-    NX_PACKET* packet_ptr = packet_ptr;
+    NX_PACKET* packet_ptr = nx_stp.tx_packet_ptr;
     uint8_t    offset     = 0;
 
     /* Take the mutex while building the packet (this is released in transmitReleaseBuffer()) */
