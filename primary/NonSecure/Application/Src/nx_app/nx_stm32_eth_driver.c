@@ -1581,10 +1581,11 @@ static UINT _nx_driver_hardware_initialize(NX_IP_DRIVER *driver_req_ptr) {
 static UINT _nx_driver_hardware_enable(NX_IP_DRIVER *driver_req_ptr) {
 
     /* Call STM32 library to start Ethernet operation.  */
-    HAL_ETH_Start_IT(&eth_handle);
-
-    /* Return success!  */
-    return (NX_SUCCESS);
+    if (HAL_ETH_Start_IT(&eth_handle) == HAL_OK) {
+        return (NX_SUCCESS);
+    } else {
+        return (NX_DRIVER_ERROR);
+    }
 }
 
 
@@ -2069,6 +2070,16 @@ void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth) {
         /* Call NetX deferred driver processing.  */
         _nx_ip_driver_deferred_processing(nx_driver_information.nx_driver_information_ip_ptr);
     }
+}
+
+void HAL_ETH_ErrorCallback(ETH_HandleTypeDef *heth) {
+
+    /* Clear the Receive Buffer Unavailable fault (clear by setting to 1) */
+    if (heth->DMAErrorCode & ETH_DMACSR_RBU) {
+        CLEAR_BIT(heth->DMAErrorCode, (ETH_DMACSR_RBU | ETH_DMACSR_AIS));
+    }
+
+    while (1);
 }
 
 /****** DRIVER SPECIFIC ****** Start of part/vendor specific internal driver functions.  */

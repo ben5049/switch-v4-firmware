@@ -30,9 +30,6 @@ int32_t nx_eth_phy_init(void) {
 int32_t nx_eth_phy_get_link_state(void) {
 
     int32_t          linkstate = ETH_PHY_STATUS_LINK_ERROR;
-    sja1105_status_t status    = SJA1105_OK;
-    sja1105_speed_t  speed;
-    bool             forwarding;
 
     /* If SJA1105 isn't initialised return link down */
     if (!hsja1105.initialised) {

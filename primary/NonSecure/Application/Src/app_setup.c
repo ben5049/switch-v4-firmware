@@ -53,7 +53,8 @@ void app_setup(void) {
     __enable_irq();
 
     /* Initialise the switch */
-    if (switch_init(&hsja1105) != SJA1105_OK) Error_Handler();
+    sja1105_status_t switch_status = switch_init(&hsja1105);
+    if (switch_status != SJA1105_OK) Error_Handler();
 
     /* Ethernet MAC can now be initialised (requires switch REFCLK) */
     MX_ETH_Init();

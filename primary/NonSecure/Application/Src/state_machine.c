@@ -50,8 +50,10 @@ void state_machine_thread_entry(uint32_t initial_input) {
     status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_NX_LINK_UP_EVENT, TX_OR, &event_flags, TX_WAIT_FOREVER);
     if (status != TX_SUCCESS) Error_Handler();
 
+#if ENABLE_STP_THREAD == true
     status = tx_thread_resume(&stp_thread_handle);
     if (status != TX_SUCCESS) Error_Handler();
+#endif
 
     /* -------------------- Network Up -------------------- */
 
