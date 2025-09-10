@@ -32,6 +32,7 @@
 #include "nx_stp.h"
 #include "stp_callbacks.h"
 #include "utils.h"
+#include "main.h"
 
 #endif /* NX_STM32_ETH_DRIVER_H */
 
@@ -2074,12 +2075,12 @@ void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth) {
 
 void HAL_ETH_ErrorCallback(ETH_HandleTypeDef *heth) {
 
-    /* Clear the Receive Buffer Unavailable fault (clear by setting to 1) */
+    /* Clear the Receive Buffer Unavailable fault */
     if (heth->DMAErrorCode & ETH_DMACSR_RBU) {
         CLEAR_BIT(heth->DMAErrorCode, (ETH_DMACSR_RBU | ETH_DMACSR_AIS));
     }
 
-    while (1);
+    Error_Handler();
 }
 
 /****** DRIVER SPECIFIC ****** Start of part/vendor specific internal driver functions.  */

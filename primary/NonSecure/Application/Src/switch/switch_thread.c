@@ -142,8 +142,8 @@ void switch_thread_entry(uint32_t initial_input) {
     while (1) {
 
         /* Perform regular maintenance */
-        status = SJA1105_CheckStatusRegisters(&hsja1105); // TODO: look into buffer shifting issue
-        if (status != SJA1105_OK) Error_Handler();
+        // status = SJA1105_CheckStatusRegisters(&hsja1105); // TODO: look into buffer shifting issue
+        //        if (status != SJA1105_OK) Error_Handler();
         status = SJA1105_ManagementRouteFree(&hsja1105, false);
         if (status != SJA1105_OK) Error_Handler();
 
