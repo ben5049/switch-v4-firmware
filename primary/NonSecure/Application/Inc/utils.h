@@ -34,6 +34,8 @@ uint32_t tx_time_get_ms();
 
 void delay_ns(uint32_t ns);
 
+void set_3v3_regulator_to_FPWM(void);
+
 
 #ifdef __cplusplus
 }

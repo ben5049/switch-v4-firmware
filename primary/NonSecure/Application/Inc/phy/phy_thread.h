@@ -29,8 +29,12 @@ extern phy_handle_88q211x_t hphy1;
 extern phy_handle_88q211x_t hphy2;
 extern phy_handle_lan867x_t hphy3;
 
+extern void *phy_handles[NUM_PHYS];
 
-void phy_thread_entry(uint32_t initial_input);
+
+/* Exported functions*/
+phy_status_t phys_init(void);
+void         phy_thread_entry(uint32_t initial_input);
 
 
 #ifdef __cplusplus

@@ -176,7 +176,7 @@ static phy_status_t phy_lan8671_callback_write_reg(uint8_t phy_addr, uint8_t mmd
 
 static uint32_t phy_callback_get_time_ms(void *context) {
 
-    /* Use kernel time if it has been started */
+    /* Use kernel time only if it has been started */
     if (tx_thread_identify() == TX_NULL) {
         return HAL_GetTick();
     } else {
@@ -187,7 +187,7 @@ static uint32_t phy_callback_get_time_ms(void *context) {
 
 static void phy_callback_delay_ms(uint32_t ms, void *context) {
 
-    /* Use kernel time if it has been started */
+    /* Use kernel time only if it has been started */
     if (tx_thread_identify() == TX_NULL) {
         HAL_Delay(ms);
     } else {
@@ -241,6 +241,9 @@ static phy_status_t phy_callback_link_status_change(bool linkup, void *context) 
 
     tx_status_t status = TX_SUCCESS;
 
+    /* Don't send notification if the kernel hasn't started */
+    if (tx_thread_identify() == TX_NULL) return PHY_OK;
+
     /* Notify the STP thread */
     if (context == &hphy0) {
         status = tx_event_flags_set(&stp_events_handle, STP_PORT0_LINK_STATE_CHANGE_EVENT, TX_OR);
@@ -287,6 +290,9 @@ void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 
     tx_status_t status       = TX_SUCCESS;
     uint32_t    flags_to_set = 0;
+
+    /* Return if the kernel hasn't started */
+    if (tx_thread_identify() == TX_NULL) return;
 
     switch (GPIO_Pin) {
 

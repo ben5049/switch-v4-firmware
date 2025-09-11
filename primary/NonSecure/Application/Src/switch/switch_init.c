@@ -15,7 +15,9 @@
 #include "utils.h"
 
 
-sja1105_handle_t hsja1105;
+sja1105_handle_t        hsja1105;
+static sja1105_config_t sja1105_conf;
+static uint32_t         fixed_length_table_buffer[SJA1105_FIXED_BUFFER_SIZE] __ALIGNED(32);
 
 const uint32_t *sja1105_static_conf;
 uint32_t        sja1105_static_conf_size;
@@ -26,9 +28,7 @@ extern SPI_HandleTypeDef hspi2;
 
 sja1105_status_t switch_init(sja1105_handle_t *dev) {
 
-    static sja1105_config_t sja1105_conf;
-    static uint32_t         fixed_length_table_buffer[SJA1105_FIXED_BUFFER_SIZE] __ALIGNED(32);
-    static sja1105_status_t status;
+    sja1105_status_t status;
 
     /* Initialise the ThreadX byte pool */
     status = switch_byte_pool_init();

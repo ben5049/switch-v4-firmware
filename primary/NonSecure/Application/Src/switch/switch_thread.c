@@ -5,6 +5,7 @@
  *      Author: bens1
  */
 
+#include "stdint.h"
 #include "stdatomic.h"
 
 #include "main.h"
@@ -27,11 +28,6 @@ TX_THREAD switch_thread_handle;
 
 atomic_uint_fast32_t sja1105_error_counter = 0;
 
-extern const uint32_t *sja1105_static_conf;
-extern uint32_t        sja1105_static_conf_size;
-
-/* Imported variables */
-extern SPI_HandleTypeDef hspi2;
 
 /* Private function prototypes */
 // static void sja1105_check_status_msg(sja1105_handle_t *dev, sja1105_status_t to_check, bool recurse);
@@ -136,14 +132,14 @@ extern SPI_HandleTypeDef hspi2;
 
 void switch_thread_entry(uint32_t initial_input) {
 
-    static sja1105_status_t status;
-    static int16_t          temp_x10;
+    sja1105_status_t status;
+    int16_t          temperature;
 
     while (1) {
 
         /* Perform regular maintenance */
-        // status = SJA1105_CheckStatusRegisters(&hsja1105); // TODO: look into buffer shifting issue
-        //        if (status != SJA1105_OK) Error_Handler();
+        status = SJA1105_CheckStatusRegisters(&hsja1105); // TODO: look into buffer shifting issue
+        // if (status != SJA1105_OK) Error_Handler();
         status = SJA1105_ManagementRouteFree(&hsja1105, false);
         if (status != SJA1105_OK) Error_Handler();
 
@@ -152,8 +148,9 @@ void switch_thread_entry(uint32_t initial_input) {
         /* TODO: Occasionally check no important MAC addresses have been learned by accident (PTP, STP, etc)*/
 
         /* Read the temperature */
-        status = SJA1105_ReadTemperatureX10(&hsja1105, &temp_x10);
+        status = SJA1105_ReadTemperatureX10(&hsja1105, &temperature);
         if (status != SJA1105_OK) Error_Handler();
+        temperature /= 10;
 
         tx_thread_sleep_ms(500);
 

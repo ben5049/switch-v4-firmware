@@ -25,32 +25,21 @@
 
 void app_setup(void) {
 
-    /* Make sure shared structs start uninitialised */
-    hsja1105.initialised = false;
-    hphy0.state          = PHY_STATE_88Q211X_UNCONFIGURED;
-    hphy1.state          = PHY_STATE_88Q211X_UNCONFIGURED;
-    hphy2.state          = PHY_STATE_88Q211X_UNCONFIGURED;
-    // hphy3.state          = PHY_STATE_88Q211X_UNCONFIGURED; // TODO:
+    /* Reset shared structs */
+    memset(&hsja1105, 0, sizeof(sja1105_handle_t));
+    memset(&hphy0, 0, sizeof(phy_handle_88q211x_t));
+    memset(&hphy1, 0, sizeof(phy_handle_88q211x_t));
+    memset(&hphy2, 0, sizeof(phy_handle_88q211x_t));
+    memset(&hphy3, 0, sizeof(phy_handle_lan867x_t)); // TODO:
 
-    /* Initialise all configured peripherals */
+    /* Initialise important peripherals */
     MX_GPIO_Init();
-    MX_GPDMA1_Init();
-    MX_CRC_Init();
-    MX_DTS_Init();
     MX_ICACHE_Init();
+    MX_CRC_Init();
     MX_SPI2_Init();
-    MX_AES_Init();
 
-    /* Change to FPWM mode for more accurate 3.3V rail. TODO: make into function */
-    __disable_irq();
-    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, RESET);
-    delay_ns(500);
-    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, SET);
-    delay_ns(500);
-    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, RESET);
-    delay_ns(500);
-    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, SET);
-    __enable_irq();
+    /* Change to FPWM mode for more accurate 3.3V rail (needed by PHYs) */
+    set_3v3_regulator_to_FPWM();
 
     /* Initialise the switch */
     sja1105_status_t switch_status = switch_init(&hsja1105);
@@ -58,4 +47,9 @@ void app_setup(void) {
 
     /* Ethernet MAC can now be initialised (requires switch REFCLK) */
     MX_ETH_Init();
+
+    /* Initialise less important peripherals */
+    MX_GPDMA1_Init();
+    MX_DTS_Init();
+    MX_AES_Init();
 }

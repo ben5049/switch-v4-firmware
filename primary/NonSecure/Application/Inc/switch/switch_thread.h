@@ -40,8 +40,8 @@ extern const uint32_t      *sja1105_static_conf;
 extern uint32_t             sja1105_static_conf_size;
 
 /* Exported functions*/
-void             switch_thread_entry(uint32_t initial_input);
 sja1105_status_t switch_init(sja1105_handle_t *dev);
+void             switch_thread_entry(uint32_t initial_input);
 
 
 #ifdef __cplusplus

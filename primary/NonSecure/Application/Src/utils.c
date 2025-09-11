@@ -5,8 +5,10 @@
  *      Author: bens1
  */
 
-#include "config.h"
+#include "main.h"
+
 #include "utils.h"
+#include "config.h"
 #include "sja1105.h"
 
 
@@ -47,4 +49,16 @@ void delay_ns(uint32_t ns) {
     for (uint32_t t = 0; t < ns; t += 16) {
         __NOP();
     }
+}
+
+void set_3v3_regulator_to_FPWM() {
+    __disable_irq();
+    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, RESET);
+    delay_ns(500);
+    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, SET);
+    delay_ns(500);
+    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, RESET);
+    delay_ns(500);
+    HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, SET);
+    __enable_irq();
 }

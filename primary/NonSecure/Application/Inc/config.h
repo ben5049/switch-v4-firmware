@@ -20,7 +20,7 @@ extern "C" {
 /* Thread Enables */
 /* ---------------------------------------------------------------------------- */
 
-#define ENABLE_STP_THREAD false
+#define ENABLE_STP_THREAD false /* TODO: fix this thread. Each time it calls for a flush the 50MHz REF_CLK is reset which is probably very bad */
 
 /* ---------------------------------------------------------------------------- */
 /* Common Config */
@@ -33,8 +33,8 @@ extern "C" {
 /* ---------------------------------------------------------------------------- */
 
 #define STATE_MACHINE_THREAD_STACK_SIZE         (1024)
-#define STATE_MACHINE_THREAD_PRIORITY           (15)
-#define STATE_MACHINE_THREAD_PREMPTION_PRIORITY (15)
+#define STATE_MACHINE_THREAD_PRIORITY           (13)
+#define STATE_MACHINE_THREAD_PREMPTION_PRIORITY (13)
 
 /* ---------------------------------------------------------------------------- */
 /* Networking Common Config */
@@ -71,7 +71,7 @@ extern "C" {
 /* ---------------------------------------------------------------------------- */
 
 #define NX_LINK_THREAD_STACK_SIZE            (2 * 1024)
-#define NX_LINK_THREAD_PRIORITY              (10)
+#define NX_LINK_THREAD_PRIORITY              (9)
 
 #define NX_APP_CABLE_CONNECTION_CHECK_PERIOD (1000) /* Interval between link checks in ms */
 
@@ -93,7 +93,7 @@ extern "C" {
 /* Switch Config */
 /* ---------------------------------------------------------------------------- */
 
-#define SWITCH_THREAD_STACK_SIZE         (1024)
+#define SWITCH_THREAD_STACK_SIZE         (2 * 1024)
 #define SWITCH_THREAD_PRIORITY           (15)
 #define SWITCH_THREAD_PREMPTION_PRIORITY (15)
 
@@ -116,8 +116,8 @@ extern "C" {
 /* ---------------------------------------------------------------------------- */
 
 #define STP_THREAD_STACK_SIZE         (1024)
-#define STP_THREAD_PRIORITY           (15)
-#define STP_THREAD_PREMPTION_PRIORITY (15)
+#define STP_THREAD_PRIORITY           (12)
+#define STP_THREAD_PREMPTION_PRIORITY (12)
 
 #define STP_MEM_POOL_SIZE             (2 * 1024 * sizeof(uint8_t))
 
