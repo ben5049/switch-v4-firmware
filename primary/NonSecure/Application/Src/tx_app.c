@@ -19,8 +19,10 @@
 #include "config.h"
 
 
+/* TODO: Check all function return values */
+
 /* This function should be called once in App_ThreadX_Init */
-void tx_user_init(void *memory_ptr) {
+void tx_setup(void *memory_ptr) {
 
     uint8_t thread_number = 1;
 
@@ -29,7 +31,6 @@ void tx_user_init(void *memory_ptr) {
     tx_mutex_create(&phy_mutex_handle, "phy_mutex", TX_INHERIT);
 
     /* Create semaphores */
-    tx_semaphore_create(&dhcp_semaphore_handle, "dhcp_semaphore", 0);
 
     /* Create event flags */
     tx_event_flags_create(&state_machine_events_handle, "state_machine_events_handle");
@@ -41,7 +42,6 @@ void tx_user_init(void *memory_ptr) {
 
     /* Create threads */ // clang-format off
     tx_thread_create(&state_machine_thread_handle,  "state_machine_thread",  state_machine_thread_entry, thread_number++, state_machine_thread_stack,  STATE_MACHINE_THREAD_STACK_SIZE,  STATE_MACHINE_THREAD_PRIORITY,  STATE_MACHINE_THREAD_PRIORITY,           TX_NO_TIME_SLICE, TX_AUTO_START);
-    tx_thread_create(&nx_app_thread_handle,         "nx_app_thread",         nx_app_thread_entry,        thread_number++, nx_app_thread_stack,         NX_APP_THREAD_STACK_SIZE,         NX_APP_THREAD_PRIORITY,         NX_APP_THREAD_PRIORITY,                  TX_NO_TIME_SLICE, TX_DONT_START);
     tx_thread_create(&nx_link_thread_handle,        "nx_link_thread",        nx_link_thread_entry,       thread_number++, nx_link_thread_stack,        NX_LINK_THREAD_STACK_SIZE,        NX_LINK_THREAD_PRIORITY,        NX_LINK_THREAD_PRIORITY,                 TX_NO_TIME_SLICE, TX_DONT_START);
     tx_thread_create(&switch_thread_handle,         "switch_thread",         switch_thread_entry,        thread_number++, switch_thread_stack,         SWITCH_THREAD_STACK_SIZE,         SWITCH_THREAD_PRIORITY,         SWITCH_THREAD_PREMPTION_PRIORITY,        1,                TX_DONT_START);
     tx_thread_create(&phy_thread_handle,            "phy_thread",            phy_thread_entry,           thread_number++, phy_thread_stack,            PHY_THREAD_STACK_SIZE,            PHY_THREAD_PRIORITY,            PHY_THREAD_PREMPTION_PRIORITY,           1,                TX_DONT_START);
@@ -51,7 +51,6 @@ void tx_user_init(void *memory_ptr) {
 
     /* Any threads that call secure functions must allocate secure stack (including logging, so all of them) */ // clang-format off
     tx_thread_secure_stack_allocate(&state_machine_thread_handle,  LOGGING_STACK_SIZE);
-    tx_thread_secure_stack_allocate(&nx_app_thread_handle,         LOGGING_STACK_SIZE);
     tx_thread_secure_stack_allocate(&nx_link_thread_handle,        LOGGING_STACK_SIZE);
     tx_thread_secure_stack_allocate(&switch_thread_handle,         LOGGING_STACK_SIZE);
     tx_thread_secure_stack_allocate(&phy_thread_handle,            LOGGING_STACK_SIZE);

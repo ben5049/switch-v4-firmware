@@ -22,113 +22,62 @@
 #include "state_machine.h"
 
 
-#define NULL_ADDRESS 0
-
-
-NX_IP    nx_ip_instance;
-uint32_t ip_address;
-uint32_t net_mask;
+NX_IP nx_ip_instance;
 
 NX_PACKET_POOL nx_packet_pool;
 static uint8_t nx_packet_pool_memory[NX_APP_PACKET_POOL_SIZE] __attribute__((section(".ETH_Section")));
 
-NX_DHCP      dhcp_client;
-TX_SEMAPHORE dhcp_semaphore_handle;
-
-NX_PTP_CLIENT  ptp_client;
-static uint8_t nx_internal_ptp_stack[NX_INTERNAL_PTP_THREAD_STACK_SIZE];
-
-TX_THREAD nx_app_thread_handle;
-uint8_t   nx_app_thread_stack[NX_APP_THREAD_STACK_SIZE];
+NX_DHCP dhcp_client;
 
 
 /* This function should be called once in MX_NetXDuo_Init */
-nx_status_t nx_user_init(TX_BYTE_POOL *byte_pool) {
+nx_status_t nx_setup(TX_BYTE_POOL *byte_pool) {
 
-    nx_status_t status = NX_STATUS_SUCCESS;
+    tx_status_t tx_status = TX_STATUS_SUCCESS;
+    nx_status_t nx_status = NX_STATUS_SUCCESS;
+
+    uint8_t *pointer;
 
     /* Initialize the NetXDuo system. */
-    uint8_t *pointer;
     nx_system_initialize();
 
     /* Create the Packet pool to be used for packet allocation,
      * If extra NX_PACKET are to be used the NX_APP_PACKET_POOL_SIZE should be increased
      */
-    status = nx_packet_pool_create(&nx_packet_pool, "NetXDuo App Pool", DEFAULT_PAYLOAD_SIZE, nx_packet_pool_memory, NX_APP_PACKET_POOL_SIZE);
-    if (status != NX_SUCCESS) return status;
+    nx_status = nx_packet_pool_create(&nx_packet_pool, "NetXDuo App Pool", DEFAULT_PAYLOAD_SIZE, nx_packet_pool_memory, NX_APP_PACKET_POOL_SIZE);
+    if (nx_status != NX_SUCCESS) return nx_status;
 
     /* Allocate the memory for nx_ip_instance */
-    status = (tx_byte_allocate(byte_pool, (void **) &pointer, NX_INTERNAL_IP_THREAD_STACK_SIZE, TX_NO_WAIT) != TX_SUCCESS);
-    if (status != NX_SUCCESS) return status;
+    tx_status = tx_byte_allocate(byte_pool, (void **) &pointer, NX_INTERNAL_IP_THREAD_STACK_SIZE, TX_NO_WAIT);
+    if (tx_status != TX_SUCCESS) return NX_STATUS_POOL_ERROR;
 
     /* Create the main NX_IP instance */
-    status = nx_ip_create(&nx_ip_instance, "NetX Ip instance", NX_DEFAULT_IP_ADDRESS, NX_DEFAULT_NET_MASK, &nx_packet_pool, nx_stm32_eth_driver, pointer, NX_INTERNAL_IP_THREAD_STACK_SIZE, NX_INTERNAL_IP_THREAD_PRIORITY);
-    if (status != NX_SUCCESS) return status;
+    nx_status = nx_ip_create(&nx_ip_instance, "NetX Ip instance", NX_DEFAULT_IP_ADDRESS, NX_DEFAULT_NET_MASK, &nx_packet_pool, nx_stm32_eth_driver, pointer, NX_INTERNAL_IP_THREAD_STACK_SIZE, NX_INTERNAL_IP_THREAD_PRIORITY);
+    if (nx_status != NX_SUCCESS) return nx_status;
 
     /* Allocate the memory for ARP */
-    status = (tx_byte_allocate(byte_pool, (void **) &pointer, DEFAULT_ARP_CACHE_SIZE, TX_NO_WAIT) != TX_SUCCESS);
-    if (status != NX_SUCCESS) return status;
+    tx_status = tx_byte_allocate(byte_pool, (void **) &pointer, DEFAULT_ARP_CACHE_SIZE, TX_NO_WAIT);
+    if (tx_status != TX_SUCCESS) return NX_STATUS_POOL_ERROR;
 
     /* Enable ARP and provide the ARP cache size for the IP instance */
-    status = nx_arp_enable(&nx_ip_instance, (void *) pointer, DEFAULT_ARP_CACHE_SIZE);
-    if (status != NX_SUCCESS) return status;
+    nx_status = nx_arp_enable(&nx_ip_instance, (void *) pointer, DEFAULT_ARP_CACHE_SIZE);
+    if (nx_status != NX_SUCCESS) return nx_status;
 
     /* Enable the ICMP */
-    status = nx_icmp_enable(&nx_ip_instance);
-    if (status != NX_SUCCESS) return status;
+    nx_status = nx_icmp_enable(&nx_ip_instance);
+    if (nx_status != NX_SUCCESS) return nx_status;
 
     /* Enable TCP */
-    status = nx_tcp_enable(&nx_ip_instance);
-    if (status != NX_SUCCESS) return status;
+    nx_status = nx_tcp_enable(&nx_ip_instance);
+    if (nx_status != NX_SUCCESS) return nx_status;
 
     /* Enable UDP required for DHCP communication */
-    status = nx_udp_enable(&nx_ip_instance);
-    if (status != NX_SUCCESS) return status;
+    nx_status = nx_udp_enable(&nx_ip_instance);
+    if (nx_status != NX_SUCCESS) return nx_status;
 
     /* Create the DHCP client */
-    status = nx_dhcp_create(&dhcp_client, &nx_ip_instance, "DHCP Client");
-    if (status != NX_SUCCESS) return status;
+    nx_status = nx_dhcp_create(&dhcp_client, &nx_ip_instance, "DHCP Client");
+    if (nx_status != NX_SUCCESS) return nx_status;
 
-    return status;
-}
-
-
-static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
-    if (nx_ip_address_get(&nx_ip_instance, &ip_address, &net_mask) != NX_SUCCESS) {
-        Error_Handler();
-    }
-    if (ip_address != NULL_ADDRESS) {
-        tx_semaphore_put(&dhcp_semaphore_handle);
-    }
-}
-
-
-void nx_app_thread_entry(uint32_t initial_input) {
-
-    nx_status_t nx_status = NX_SUCCESS;
-    tx_status_t tx_status = TX_SUCCESS;
-
-    /* Register the IP address change callback */
-    nx_status = nx_ip_address_change_notify(&nx_ip_instance, ip_address_change_notify_callback, NULL);
-    if (nx_status != NX_SUCCESS) Error_Handler();
-
-    /* Start the DHCP client */
-    nx_status = nx_dhcp_start(&dhcp_client);
-    if (nx_status != NX_SUCCESS) Error_Handler();
-
-    /* Wait until an IP address is ready */
-    tx_status = tx_semaphore_get(&dhcp_semaphore_handle, TX_WAIT_FOREVER);
-    if (tx_status != TX_SUCCESS) Error_Handler();
-
-    /* Create the PTP client */
-    nx_status = nx_ptp_client_create(&ptp_client, &nx_ip_instance, 0, &nx_packet_pool, NX_INTERNAL_PTP_THREAD_PRIORITY, (UCHAR *) nx_internal_ptp_stack, sizeof(nx_internal_ptp_stack), ptp_clock_callback, NX_NULL);
-    if (nx_status != NX_SUCCESS) Error_Handler();
-
-    /* Notify the state machine that the network has been initialised */
-    tx_status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_NX_INITIALISED_EVENT, TX_OR);
-    if (tx_status != TX_SUCCESS) Error_Handler();
-
-    /* This thread is no longer needed */
-    tx_thread_relinquish();
-    return;
+    return nx_status;
 }

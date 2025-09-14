@@ -35,13 +35,11 @@ void state_machine_thread_entry(uint32_t initial_input) {
     /* Startup sequence */
 
     /* Start the PHYs, STP thread, NetX networking threads */
-    status = tx_thread_resume(&switch_thread_handle);
-    if (status != TX_SUCCESS) Error_Handler();
     status = tx_thread_resume(&phy_thread_handle);
     if (status != TX_SUCCESS) Error_Handler();
     status = tx_thread_resume(&nx_link_thread_handle);
     if (status != TX_SUCCESS) Error_Handler();
-    status = tx_thread_resume(&nx_app_thread_handle);
+    status = tx_thread_resume(&switch_thread_handle);
     if (status != TX_SUCCESS) Error_Handler();
 
     /* -------------------- Link Up -------------------- */
@@ -57,8 +55,8 @@ void state_machine_thread_entry(uint32_t initial_input) {
 
     /* -------------------- Network Up -------------------- */
 
-    /* Wait for the network to be initialised (from nx_app_thread_entry) */
-    status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_NX_INITIALISED_EVENT, TX_OR, &event_flags, TX_WAIT_FOREVER);
+    /* Wait for the network to be initialised and an IP address assigned */
+    status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED_EVENT, TX_OR, &event_flags, TX_WAIT_FOREVER);
     if (status != TX_SUCCESS) Error_Handler();
 
     /* Start the threads that require networking */

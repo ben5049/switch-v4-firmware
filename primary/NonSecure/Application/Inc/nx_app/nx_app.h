@@ -136,16 +136,10 @@ typedef enum {
 
 extern NX_IP          nx_ip_instance;
 extern NX_PACKET_POOL nx_packet_pool;
-extern TX_THREAD      nx_app_thread_handle;
-extern uint8_t        nx_app_thread_stack[NX_APP_THREAD_STACK_SIZE];
 extern NX_DHCP        dhcp_client;
-extern TX_SEMAPHORE   dhcp_semaphore_handle;
-extern NX_PTP_CLIENT  ptp_client;
 
-void nx_app_thread_entry(uint32_t initial_input);
-void nx_link_thread_entry(uint32_t initial_input);
 
-nx_status_t nx_user_init(TX_BYTE_POOL *byte_pool);
+nx_status_t nx_setup(TX_BYTE_POOL *byte_pool);
 
 
 #ifdef __cplusplus

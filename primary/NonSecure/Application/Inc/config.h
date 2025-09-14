@@ -72,6 +72,8 @@ extern "C" {
 #define PORT3_SPEED_MBPS                 (10)   /* 10BASE-T1S (10 Mbps) */
 #define PORT4_SPEED_MBPS                 (100)  /* Host (10 or 100 Mbps) */
 
+#define PHY_LINK_REQUIRED_FOR_NX_LINK    (true) /* Setting this to false means NetXduo will only require the switch to be initialed to count as having a link up. Default = true*/
+
 /* ---------------------------------------------------------------------------- */
 /* Link Config */
 /* ---------------------------------------------------------------------------- */

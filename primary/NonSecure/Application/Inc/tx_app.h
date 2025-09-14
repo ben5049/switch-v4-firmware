@@ -57,7 +57,7 @@ typedef enum {
 } tx_status_t;
 
 
-void tx_user_init(void *memory_ptr);
+void tx_setup(void *memory_ptr);
 
 
 #ifdef __cplusplus

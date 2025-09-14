@@ -47,7 +47,7 @@ UINT MX_NetXDuo_Init(VOID *memory_ptr) {
     ...
 
     /* USER CODE BEGIN 0 */
-    ret = nx_user_init(memory_ptr);
+    ret = nx_setup(memory_ptr);
     /* USER CODE END 0 */
 
     ...

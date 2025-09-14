@@ -33,7 +33,7 @@
         "comms_thread.h": "c",
         "stp_thread.h": "c",
         "app_setup.h": "c",
-        "nx_user_init.h": "c",
+        "nx_setup.h": "c",
         "config.h": "c",
         "nx_app.h": "c",
         "switch_callbacks.h": "c",

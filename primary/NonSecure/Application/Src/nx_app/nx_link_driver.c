@@ -14,9 +14,9 @@
 
 #include "nx_app.h"
 #include "switch_thread.h"
+#include "phy_thread.h"
 
 
-/* TODO: Rethink this, both the PHYs and the switch need to be initialised */
 int32_t nx_eth_phy_init(void) {
 
     int32_t ret = ETH_PHY_STATUS_OK;
@@ -27,13 +27,16 @@ int32_t nx_eth_phy_init(void) {
     return ret;
 }
 
+
 int32_t nx_eth_phy_get_link_state(void) {
 
-    int32_t          linkstate = ETH_PHY_STATUS_LINK_ERROR;
+    int32_t linkstate = ETH_PHY_STATUS_LINK_ERROR;
 
-    /* If SJA1105 isn't initialised return link down */
-    if (!hsja1105.initialised) {
-        int32_t linkstate = ETH_PHY_STATUS_LINK_DOWN;
+    /* If SJA1105 isn't initialised or none of the PHYs have links then return link down */
+    bool phy_link_up         = hphy0.linkup || hphy1.linkup || hphy2.linkup || hphy3.linkup;
+    bool external_connection = hsja1105.initialised && (phy_link_up || !PHY_LINK_REQUIRED_FOR_NX_LINK);
+    if (!external_connection) {
+        linkstate = ETH_PHY_STATUS_LINK_DOWN;
         return linkstate;
     }
 
@@ -58,11 +61,4 @@ int32_t nx_eth_phy_get_link_state(void) {
     }
 
     return linkstate;
-}
-
-nx_eth_phy_handle_t nx_eth_phy_get_handle(void) {
-
-    nx_eth_phy_handle_t handle = &hsja1105;
-
-    return handle;
 }

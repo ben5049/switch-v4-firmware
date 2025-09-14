@@ -37,10 +37,13 @@ typedef struct {
 
 extern SHORT ptp_utc_offset;
 
+extern NX_PTP_CLIENT ptp_client;
+
 extern TX_THREAD ptp_thread_handle;
 extern uint8_t   ptp_thread_stack[PTP_THREAD_STACK_SIZE];
-extern TX_QUEUE  ptp_tx_queue_handle;
-extern uint8_t   ptp_tx_queue_stack[PTP_TX_QUEUE_SIZE * sizeof(nx_ptp_tx_info_t)];
+
+extern TX_QUEUE ptp_tx_queue_handle;
+extern uint8_t  ptp_tx_queue_stack[PTP_TX_QUEUE_SIZE * sizeof(nx_ptp_tx_info_t)];
 
 void ptp_thread_entry(uint32_t initial_input);
 

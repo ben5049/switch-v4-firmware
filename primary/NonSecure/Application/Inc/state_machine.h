@@ -15,9 +15,9 @@
 #include "config.h"
 
 
-#define STATE_MACHINE_ALL_EVENTS           ((ULONG) 0xffffffff)
-#define STATE_MACHINE_NX_LINK_UP_EVENT     ((ULONG) 1 << 0)
-#define STATE_MACHINE_NX_INITIALISED_EVENT ((ULONG) 1 << 1)
+#define STATE_MACHINE_ALL_EVENTS                   ((ULONG) 0xffffffff)
+#define STATE_MACHINE_NX_LINK_UP_EVENT             ((ULONG) 1 << 0)
+#define STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED_EVENT ((ULONG) 1 << 1)
 
 
 extern TX_THREAD            state_machine_thread_handle;

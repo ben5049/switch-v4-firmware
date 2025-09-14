@@ -11,6 +11,7 @@
 #include "tx_api.h"
 #include "nx_api.h"
 #include "nxd_ptp_client.h"
+#include "main.h"
 
 #include "nx_app.h"
 #include "ptp_callbacks.h"
@@ -20,32 +21,38 @@
 
 SHORT ptp_utc_offset = 0;
 
+NX_PTP_CLIENT  ptp_client;
+static uint8_t nx_internal_ptp_stack[NX_INTERNAL_PTP_THREAD_STACK_SIZE];
+
 TX_THREAD ptp_thread_handle;
 uint8_t   ptp_thread_stack[PTP_THREAD_STACK_SIZE];
 
 TX_QUEUE ptp_tx_queue_handle; /* Stores the timestamps and pointers to sent packets */
 uint8_t  ptp_tx_queue_stack[PTP_TX_QUEUE_SIZE * sizeof(nx_ptp_tx_info_t)];
 
-
 /* This Thread starts the PTP client, processes transmitted timestamps, and prints status information */
 void ptp_thread_entry(uint32_t initial_input) {
 
-    TX_INTERRUPT_SAVE_AREA
+    nx_status_t      status = NX_STATUS_SUCCESS;
+    nx_ptp_tx_info_t tx_info;
+    NX_PACKET       *packet_ptr = NULL;
+    NX_PTP_TIME      timestamp;
 
-    static nx_status_t      status = NX_STATUS_SUCCESS;
-    static nx_ptp_tx_info_t tx_info;
-    static NX_PACKET       *packet_ptr;
-    static NX_PTP_TIME      timestamp;
+    NX_PTP_TIME      time;
+    NX_PTP_DATE_TIME date;
 
-    static NX_PTP_TIME      time;
-    static NX_PTP_DATE_TIME date;
+    uint32_t next_print_time = 0;
+    uint32_t current_time    = 0;
 
-    static uint32_t next_print_time;
-    static uint32_t current_time;
+    /* Create the PTP client */
+    status = nx_ptp_client_create(&ptp_client, &nx_ip_instance, 0, &nx_packet_pool, NX_INTERNAL_PTP_THREAD_PRIORITY, (UCHAR *) nx_internal_ptp_stack, sizeof(nx_internal_ptp_stack), ptp_clock_callback, NX_NULL);
+    if (status != NX_SUCCESS) Error_Handler();
 
     /* Start the PTP client */
-    nx_ptp_client_start(&ptp_client, NX_NULL, 0, 0, 0, ptp_event_callback, NX_NULL);
-    nx_ptp_client_master_enable(&ptp_client, NX_PTP_CLIENT_ROLE_SLAVE_AND_MASTER, NX_PTP_CLIENT_MASTER_PRIORITY, PTP_CLIENT_MASTER_SUB_PRIORITY, NX_PTP_CLIENT_MASTER_CLOCK_CLASS, NX_PTP_CLIENT_MASTER_ACCURACY, NX_PTP_CLIENT_MASTER_CLOCK_VARIANCE, NX_PTP_CLIENT_MASTER_CLOCK_STEPS_REMOVED, NX_NULL); /* Enable master mode with the lowest priority so it is only used as a last restort. TODO: Randomise or make different */
+    status = nx_ptp_client_start(&ptp_client, NX_NULL, 0, 0, 0, ptp_event_callback, NX_NULL);
+    if (status != NX_SUCCESS) Error_Handler();
+    status = nx_ptp_client_master_enable(&ptp_client, NX_PTP_CLIENT_ROLE_SLAVE_AND_MASTER, NX_PTP_CLIENT_MASTER_PRIORITY, PTP_CLIENT_MASTER_SUB_PRIORITY, NX_PTP_CLIENT_MASTER_CLOCK_CLASS, NX_PTP_CLIENT_MASTER_ACCURACY, NX_PTP_CLIENT_MASTER_CLOCK_VARIANCE, NX_PTP_CLIENT_MASTER_CLOCK_STEPS_REMOVED, NX_NULL); /* Enable master mode with the lowest priority so it is only used as a last restort. TODO: Randomise or make different */
+    if (status != NX_SUCCESS) Error_Handler();
 
     while (1) {
 
@@ -54,6 +61,8 @@ void ptp_thread_entry(uint32_t initial_input) {
 
         /* Successfully transmitted packet: update the PTP client */
         if (status == NX_SUCCESS) {
+
+            TX_INTERRUPT_SAVE_AREA
 
             /* TODO: Check this logic */
 
@@ -118,6 +127,12 @@ void ptp_thread_entry(uint32_t initial_input) {
 #endif /* defined(NX_PTP_ENABLE_MASTER) || defined(NX_PTP_ENABLE_REVERSE_SYNC) */
 
             TX_RESTORE
+
+        }
+
+        /* An error occured */
+        else if (status != TX_QUEUE_EMPTY) {
+            Error_Handler();
         }
     }
 
@@ -126,8 +141,10 @@ void ptp_thread_entry(uint32_t initial_input) {
     /* Get, convert, and print the PTP time (this ironically uses the non-precise threadx time to delay between prints) */
     current_time = tx_time_get_ms();
     if (current_time >= next_print_time) {
-        nx_ptp_client_time_get(&ptp_client, &time);
-        nx_ptp_client_utility_convert_time_to_date(&time, -ptp_utc_offset, &date);
+        status = nx_ptp_client_time_get(&ptp_client, &time);
+        if (status != NX_SUCCESS) Error_Handler();
+        status = nx_ptp_client_utility_convert_time_to_date(&time, -ptp_utc_offset, &date);
+        if (status != NX_SUCCESS) Error_Handler();
         printf("%2u/%02u/%u %02u:%02u:%02u.%09lu\r\n", date.day, date.month, date.year, date.hour, date.minute, date.second, date.nanosecond);
         next_print_time = current_time + PTP_PRINT_TIME_INTERVAL;
     }
