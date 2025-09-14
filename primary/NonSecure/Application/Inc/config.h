@@ -62,9 +62,15 @@ extern "C" {
 #define NX_APP_THREAD_STACK_SIZE         (2 * 1024)
 #define NX_APP_THREAD_PRIORITY           (10)
 
-#define NUM_VLANS                        (8) /* Currently only used for STP (unused due to RSTP not MSTP) */
+#define NUM_VLANS                        (8)    /* Currently only used for STP (unused due to RSTP not MSTP) */
 
-#define PRIMARY_INTERFACE                (0)
+#define PRIMARY_INTERFACE                (0)    /* Primary NetXduo interface (0 = first normal interface, 1 = loopback) */
+
+#define PORT0_SPEED_MBPS                 (100)  /* 88Q2112 #1 (100 or 1000 Mbps) */
+#define PORT1_SPEED_MBPS                 (1000) /* 88Q2112 #2 (100 or 1000 Mbps) */
+#define PORT2_SPEED_MBPS                 (1000) /* 88Q2112 #3 (100 or 1000 Mbps) */
+#define PORT3_SPEED_MBPS                 (10)   /* 10BASE-T1S (10 Mbps) */
+#define PORT4_SPEED_MBPS                 (100)  /* Host (10 or 100 Mbps) */
 
 /* ---------------------------------------------------------------------------- */
 /* Link Config */

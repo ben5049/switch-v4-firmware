@@ -54,9 +54,9 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     if (status != SJA1105_OK) return status;
     status = SJA1105_PortConfigure(&sja1105_conf, PORT_88Q2112_PHY2, SJA1105_INTERFACE_RGMII, SJA1105_MODE_MAC, false, SJA1105_SPEED_DYNAMIC, SJA1105_IO_1V8);
     if (status != SJA1105_OK) return status;
-    status = SJA1105_PortConfigure(&sja1105_conf, PORT_LAN8671_PHY, SJA1105_INTERFACE_RMII, SJA1105_MODE_MAC, true, SJA1105_SPEED_10M, SJA1105_IO_3V3);
+    status = SJA1105_PortConfigure(&sja1105_conf, PORT_LAN8671_PHY, SJA1105_INTERFACE_RMII, SJA1105_MODE_MAC, true, SJA1105_SPEED_MBPS_TO_ENUM(PORT3_SPEED_MBPS), SJA1105_IO_3V3);
     if (status != SJA1105_OK) return status;
-    status = SJA1105_PortConfigure(&sja1105_conf, PORT_HOST, SJA1105_INTERFACE_RMII, SJA1105_MODE_PHY, true, SJA1105_SPEED_100M, SJA1105_IO_3V3);
+    status = SJA1105_PortConfigure(&sja1105_conf, PORT_HOST, SJA1105_INTERFACE_RMII, SJA1105_MODE_PHY, true, SJA1105_SPEED_MBPS_TO_ENUM(PORT4_SPEED_MBPS), SJA1105_IO_3V3);
     if (status != SJA1105_OK) return status;
 
     /* Set the static config to the default */
@@ -68,11 +68,11 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     if (status != SJA1105_OK) return status;
 
     /* Set the speed of the dynamic ports. TODO: This should be after PHY auto-negotiaion */
-    status = SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY0, SJA1105_SPEED_1G);
+    status = SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY0, SJA1105_SPEED_MBPS_TO_ENUM(PORT0_SPEED_MBPS));
     if (status != SJA1105_OK) return status;
-    status = SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY1, SJA1105_SPEED_1G);
+    status = SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY1, SJA1105_SPEED_MBPS_TO_ENUM(PORT1_SPEED_MBPS));
     if (status != SJA1105_OK) return status;
-    status = SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY2, SJA1105_SPEED_1G);
+    status = SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY2, SJA1105_SPEED_MBPS_TO_ENUM(PORT2_SPEED_MBPS));
     if (status != SJA1105_OK) return status;
 
     return status;
