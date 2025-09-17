@@ -1,7 +1,7 @@
 /*
  * swv4_sja1105_static_config_default.h
  *
- *  Created on: Aug 11, 2025
+ *  Created on: Sep 17, 2025
  *      Author: SJA1105X_CONFIG-GENTOOL
  *
  */
@@ -31,18 +31,18 @@ static const uint32_t swv4_sja1105_static_config_default[SWV4_SJA1105_STATIC_CON
     0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff,
     0xfefb0000, 0x13ffffff, 0xfefb0000, 0x13ffffff, 0xfefb0000, 0xa3ffffff, 0xfefb0000, 0xa7ffffff,
     0xfefb0000, 0xabffffff, 0xfefb0000, 0xafffffff, 0xfefb0000, 0xb3ffffff, 0x99ce35dc, 0x07000000,
-    0x00000012, 0x2d129c6d, 0x00000000, 0x003ff000, 0x00000000, 0x003fff80, 0x08000000, 0x003fff80,
+    0x00000012, 0x2d129c6d, 0x08000000, 0x003ff000, 0x00000000, 0x003fff80, 0x08000000, 0x003fff80,
     0x10000000, 0x003fff80, 0x18000000, 0x003fff80, 0x20000000, 0x003fff80, 0x28000000, 0x003fff80,
-    0x30000000, 0x003fff80, 0x38000000, 0x003fff80, 0xcf47cb6b, 0x08000000, 0x0000001a, 0x6af62353,
+    0x30000000, 0x003fff80, 0x38000000, 0x003fff80, 0xd1d937ce, 0x08000000, 0x0000001a, 0x6af62353,
     0x10000000, 0xf7bdf58d, 0x10000000, 0xef7bf58d, 0x10000000, 0xdef7f58d, 0x10000000, 0xbdeff58d,
     0x10000000, 0x7fdff58d, 0x00000000, 0x00000000, 0x92000000, 0x00000024, 0x24000000, 0x00000049,
     0xb6000000, 0x0000006d, 0x48000000, 0x00000092, 0xda000000, 0x000000b6, 0x6c000000, 0x000000db,
-    0xfe000000, 0x000000ff, 0x0978a15d, 0x09000000, 0x00000028, 0x0db43ac9, 0x80000000, 0xfe000003,
-    0x00000001, 0x08fc0100, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000003,
-    0x00000001, 0x08fc0100, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000003,
-    0x00000001, 0x08fc0100, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000003,
-    0x00000001, 0x08fc0106, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000003,
-    0x00000001, 0x08fc0104, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x6c3cf923, 0x0d000000,
+    0xfe000000, 0x000000ff, 0x0978a15d, 0x09000000, 0x00000028, 0x0db43ac9, 0x80000000, 0xfe000403,
+    0x00000001, 0x08fc0100, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000403,
+    0x00000001, 0x08fc0100, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000403,
+    0x00000001, 0x08fc0100, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000403,
+    0x00000001, 0x08fc0106, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x80000000, 0xfe000403,
+    0x00000001, 0x08fc0104, 0xbf404fe4, 0xe017fb02, 0x06ff40cf, 0xfff03bfc, 0x68129904, 0x0d000000,
     0x00000004, 0x12d08c8f, 0x02000000, 0x00000020, 0x02004008, 0x00000401, 0xc64dd7f3, 0x0e000000,
     0x00000003, 0xc8a7cee6, 0x2c18c000, 0x0b02c0b0, 0x02c0b02c, 0xa07ddb76, 0x10000000, 0x00000004,
     0x8aa0dfbc, 0x80000000, 0x0df03ffb, 0xb2b78098, 0x40980df7, 0xe6c9318c, 0x11000000, 0x0000000b,
@@ -519,7 +519,7 @@ Table ID: 7 #entries: 9
 | VMEMB_PORT |   31  |  5  |   49   |
 |  VLAN_BC   |   31  |  5  |   44   |
 |  TAG_PORT  |   0   |  5  |   39   |
-|   VLANID   |   0   |  12 |   27   |
+|   VLANID   |   1   |  12 |   27   |
 +------------+-------+-----+--------+
 ======= entry #1 =======
 +------------+-------+-----+--------+
@@ -853,7 +853,7 @@ Table ID: 9 #entries: 5
 | TP_DELOUT  |   0   |  16 |   65   |
 |   MAXAGE   |  255  |  8  |   57   |
 |  VLANPRIO  |   0   |  3  |   54   |
-|   VLANID   |   0   |  12 |   42   |
+|   VLANID   |   1   |  12 |   42   |
 |  ING_MIRR  |   0   |  1  |   41   |
 |  EGR_MIRR  |   0   |  1  |   40   |
 | DRPNONA664 |   0   |  1  |   39   |
@@ -905,7 +905,7 @@ Table ID: 9 #entries: 5
 | TP_DELOUT  |   0   |  16 |   65   |
 |   MAXAGE   |  255  |  8  |   57   |
 |  VLANPRIO  |   0   |  3  |   54   |
-|   VLANID   |   0   |  12 |   42   |
+|   VLANID   |   1   |  12 |   42   |
 |  ING_MIRR  |   0   |  1  |   41   |
 |  EGR_MIRR  |   0   |  1  |   40   |
 | DRPNONA664 |   0   |  1  |   39   |
@@ -957,7 +957,7 @@ Table ID: 9 #entries: 5
 | TP_DELOUT  |   0   |  16 |   65   |
 |   MAXAGE   |  255  |  8  |   57   |
 |  VLANPRIO  |   0   |  3  |   54   |
-|   VLANID   |   0   |  12 |   42   |
+|   VLANID   |   1   |  12 |   42   |
 |  ING_MIRR  |   0   |  1  |   41   |
 |  EGR_MIRR  |   0   |  1  |   40   |
 | DRPNONA664 |   0   |  1  |   39   |
@@ -1009,7 +1009,7 @@ Table ID: 9 #entries: 5
 | TP_DELOUT  |   0   |  16 |   65   |
 |   MAXAGE   |  255  |  8  |   57   |
 |  VLANPRIO  |   0   |  3  |   54   |
-|   VLANID   |   0   |  12 |   42   |
+|   VLANID   |   1   |  12 |   42   |
 |  ING_MIRR  |   0   |  1  |   41   |
 |  EGR_MIRR  |   0   |  1  |   40   |
 | DRPNONA664 |   0   |  1  |   39   |
@@ -1061,7 +1061,7 @@ Table ID: 9 #entries: 5
 | TP_DELOUT  |   0   |  16 |   65   |
 |   MAXAGE   |  255  |  8  |   57   |
 |  VLANPRIO  |   0   |  3  |   54   |
-|   VLANID   |   0   |  12 |   42   |
+|   VLANID   |   1   |  12 |   42   |
 |  ING_MIRR  |   0   |  1  |   41   |
 |  EGR_MIRR  |   0   |  1  |   40   |
 | DRPNONA664 |   0   |  1  |   39   |
