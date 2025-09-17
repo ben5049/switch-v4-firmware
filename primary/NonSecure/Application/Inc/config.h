@@ -66,7 +66,7 @@ extern "C" {
 
 #define PRIMARY_INTERFACE                (0)    /* Primary NetXduo interface (0 = first normal interface, 1 = loopback) */
 
-#define PORT0_SPEED_MBPS                 (100)  /* 88Q2112 #1 (100 or 1000 Mbps) */
+#define PORT0_SPEED_MBPS                 (1000) /* 88Q2112 #1 (100 or 1000 Mbps) */
 #define PORT1_SPEED_MBPS                 (1000) /* 88Q2112 #2 (100 or 1000 Mbps) */
 #define PORT2_SPEED_MBPS                 (1000) /* 88Q2112 #3 (100 or 1000 Mbps) */
 #define PORT3_SPEED_MBPS                 (10)   /* 10BASE-T1S (10 Mbps) */

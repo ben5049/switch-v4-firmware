@@ -48,7 +48,7 @@ phy_status_t phys_init() {
     phy_config_1.timeout               = PHY_TIMEOUT_MS;
     phy_config_1.interface             = PHY_INTERFACE_RGMII;
     phy_config_1.default_speed         = PHY_SPEED_MBPS_TO_ENUM(PORT1_SPEED_MBPS);
-    phy_config_1.default_role          = PHY_ROLE_MASTER;
+    phy_config_1.default_role          = PHY_ROLE_SLAVE;
     phy_config_1.tx_clk_internal_delay = true;
     phy_config_1.rx_clk_internal_delay = true;
     phy_config_1.fifo_size             = PHY_FIFO_SIZE_88Q211X_15KB;
@@ -58,7 +58,7 @@ phy_status_t phys_init() {
     phy_config_2.timeout               = PHY_TIMEOUT_MS;
     phy_config_2.interface             = PHY_INTERFACE_RGMII;
     phy_config_2.default_speed         = PHY_SPEED_MBPS_TO_ENUM(PORT2_SPEED_MBPS);
-    phy_config_2.default_role          = PHY_ROLE_MASTER;
+    phy_config_2.default_role          = PHY_ROLE_SLAVE;
     phy_config_2.tx_clk_internal_delay = true;
     phy_config_2.rx_clk_internal_delay = true;
     phy_config_2.fifo_size             = PHY_FIFO_SIZE_88Q211X_15KB;
@@ -90,6 +90,14 @@ phy_status_t phys_init() {
     //    status = PHY_Init(&hphy3, &phy_config_3, &phy_callbacks_lan8671, &hphy3); TODO: Implement
     //    if (status != PHY_OK) Error_Handler();
 
+    /* Enable interrupts TODO: Fix */
+    status = PHY_88Q211X_EnableInterrupts(&hphy0);
+    if (status != PHY_OK) Error_Handler();
+    status = PHY_88Q211X_EnableInterrupts(&hphy1);
+    if (status != PHY_OK) Error_Handler();
+    status = PHY_88Q211X_EnableInterrupts(&hphy2);
+    if (status != PHY_OK) Error_Handler();
+
     /* Enable the temperature sensors */
     status = PHY_88Q211X_EnableTemperatureSensor(&hphy0);
     if (status != PHY_OK) Error_Handler();
@@ -101,8 +109,8 @@ phy_status_t phys_init() {
     /* TODO: Perform other configuration */
 
     /* TODO: Testing config */
-    // status = PHY_88Q211X_EnableIEEEPowerDown(&hphy0);
-    // if (status != PHY_OK) Error_Handler();
+    //    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy0);
+    //    if (status != PHY_OK) Error_Handler();
     status = PHY_88Q211X_EnableIEEEPowerDown(&hphy1);
     if (status != PHY_OK) Error_Handler();
     status = PHY_88Q211X_EnableIEEEPowerDown(&hphy2);

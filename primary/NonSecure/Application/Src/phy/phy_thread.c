@@ -33,25 +33,17 @@ void phy_thread_entry(uint32_t initial_input) {
 
     UNUSED(cable_state); // TODO: Use
 
-    /* Initialise PHYs (requires Ethernet MAC) */
+    /* Initialise PHYs */
     phy_status = phys_init();
-    if (phy_status != PHY_OK) Error_Handler();
-
-    /* Enable interrupts TODO: Fix */
-    phy_status = PHY_88Q211X_EnableInterrupts(&hphy0);
-    if (phy_status != PHY_OK) Error_Handler();
-    phy_status = PHY_88Q211X_EnableInterrupts(&hphy1);
-    if (phy_status != PHY_OK) Error_Handler();
-    phy_status = PHY_88Q211X_EnableInterrupts(&hphy2);
     if (phy_status != PHY_OK) Error_Handler();
 
     /* Check if any links are up (also call the corresponding callback which is needed because the link can go up before the interrupt is enabled) */
     phy_status = PHY_88Q211X_GetLinkState(&hphy0, &link_up);
     if (phy_status != PHY_OK) Error_Handler();
-    phy_status = PHY_88Q211X_GetLinkState(&hphy1, &link_up);
-    if (phy_status != PHY_OK) Error_Handler();
-    phy_status = PHY_88Q211X_GetLinkState(&hphy2, &link_up);
-    if (phy_status != PHY_OK) Error_Handler();
+    // phy_status = PHY_88Q211X_GetLinkState(&hphy1, &link_up);
+    // if (phy_status != PHY_OK) Error_Handler();
+    // phy_status = PHY_88Q211X_GetLinkState(&hphy2, &link_up);
+    // if (phy_status != PHY_OK) Error_Handler();
 
     /* Setup timing control variables (done in ms) */
     uint32_t current_time   = tx_time_get_ms();
@@ -101,10 +93,10 @@ void phy_thread_entry(uint32_t initial_input) {
         /* Read temperatures */
         phy_status = PHY_88Q211X_ReadTemperature(&hphy0, &temperature);
         if (phy_status != PHY_OK) Error_Handler();
-        phy_status = PHY_88Q211X_ReadTemperature(&hphy1, &temperature);
-        if (phy_status != PHY_OK) Error_Handler();
-        phy_status = PHY_88Q211X_ReadTemperature(&hphy2, &temperature);
-        if (phy_status != PHY_OK) Error_Handler();
+        // phy_status = PHY_88Q211X_ReadTemperature(&hphy1, &temperature);
+        // if (phy_status != PHY_OK) Error_Handler();
+        // phy_status = PHY_88Q211X_ReadTemperature(&hphy2, &temperature);
+        // if (phy_status != PHY_OK) Error_Handler();
 
         /* Poll link states in case an interrupt is missed */
         phy_status = PHY_88Q211X_GetLinkState(&hphy0, &link_up);
@@ -114,6 +106,16 @@ void phy_thread_entry(uint32_t initial_input) {
         // phy_status = PHY_88Q211X_GetLinkState(&hphy2, &link_up);
         // if (phy_status != PHY_OK) Error_Handler();
 
+        phy_fault_t fault = PHY_FAULT_NONE;
+        phy_status         = PHY_88Q211X_CheckFaults(&hphy0, &fault);
+        // phy_status         = PHY_88Q211X_CheckFaults(&hphy1, &fault1);
+        // phy_status         = PHY_88Q211X_CheckFaults(&hphy2, &fault2);
+        //        if (fault != PHY_FAULT_NONE) {
+        //            phy_status = PHY_88Q211X_Start100MBIST(&hphy0);
+        //            if (phy_status != PHY_OK) Error_Handler();
+        //            phy_status = PHY_88Q211X_Get100MBISTResults(&hphy0, &error);
+        //            if (phy_status != PHY_OK) Error_Handler();
+        //        }
 
         /* TODO: Move VCT to after a timeout if there is no link (to prioritise startup speed), also the PHY probably needs to be reset after due to magic numbers in undocumented registers */
         // /* Start the virtual cable tests (this can take up to 500ms) */
