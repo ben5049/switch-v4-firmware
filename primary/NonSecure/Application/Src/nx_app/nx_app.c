@@ -22,12 +22,12 @@
 #include "state_machine.h"
 
 
-NX_IP nx_ip_instance;
+NX_IP nx_ip_instance __attribute__((section(".ETH_Section")));
 
-NX_PACKET_POOL nx_packet_pool;
+NX_PACKET_POOL nx_packet_pool __attribute__((section(".ETH_Section")));
 static uint8_t nx_packet_pool_memory[NX_APP_PACKET_POOL_SIZE] __attribute__((section(".ETH_Section")));
 
-NX_DHCP dhcp_client;
+NX_DHCP dhcp_client __attribute__((section(".ETH_Section")));
 
 
 /* This function should be called once in MX_NetXDuo_Init */

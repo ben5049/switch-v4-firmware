@@ -21,8 +21,8 @@
 
 SHORT ptp_utc_offset = 0;
 
-NX_PTP_CLIENT  ptp_client;
-static uint8_t nx_internal_ptp_stack[NX_INTERNAL_PTP_THREAD_STACK_SIZE];
+NX_PTP_CLIENT  ptp_client __attribute__((section(".ETH_Section")));
+static uint8_t nx_internal_ptp_stack[NX_INTERNAL_PTP_THREAD_STACK_SIZE] __attribute__((section(".ETH_Section")));
 
 TX_THREAD ptp_thread_handle;
 uint8_t   ptp_thread_stack[PTP_THREAD_STACK_SIZE];
