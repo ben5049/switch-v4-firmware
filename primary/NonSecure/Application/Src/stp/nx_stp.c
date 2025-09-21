@@ -34,7 +34,7 @@ nx_status_t nx_stp_init(NX_IP *ip_ptr, char *name, TX_EVENT_FLAGS_GROUP *events)
     /* Join the multicast group for spanning tree protocols */
     nx_link_multicast_join(
         ip_ptr,
-        PRIMARY_INTERFACE,
+        ETH_INTERFACE_NUM,
         (uint32_t) ((bpdu_dest_address[0] << 8) | bpdu_dest_address[1]),
         (uint32_t) ((bpdu_dest_address[2] << 24) | (bpdu_dest_address[3] << 16) | (bpdu_dest_address[4] << 8) | bpdu_dest_address[5]));
 
@@ -66,7 +66,7 @@ nx_status_t nx_stp_allocate_packet() {
     /* Assign the interface (this is done so the send request is passed to the ethernet driver).
      * Note that interface 1 is the loopback interface so use the first actual interface (0).
      */
-    nx_stp.tx_packet_ptr->nx_packet_address.nx_packet_interface_ptr = &(nx_stp.ip_ptr->nx_ip_interface[PRIMARY_INTERFACE]);
+    nx_stp.tx_packet_ptr->nx_packet_address.nx_packet_interface_ptr = &(nx_stp.ip_ptr->nx_ip_interface[ETH_INTERFACE_NUM]);
 
     return status;
 }
@@ -100,7 +100,7 @@ nx_status_t nx_stp_send_packet() {
     ethernet_frame_ptr++;
 
     /* Send the packet */
-    status = nx_link_raw_packet_send(nx_stp.ip_ptr, PRIMARY_INTERFACE, packet_ptr);
+    status = nx_link_raw_packet_send(nx_stp.ip_ptr, ETH_INTERFACE_NUM, packet_ptr);
 
     /* Clear packet pointer to prevent retransmission */
     nx_stp.tx_packet_ptr = NULL;

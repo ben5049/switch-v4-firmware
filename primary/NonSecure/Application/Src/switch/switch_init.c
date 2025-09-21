@@ -42,49 +42,47 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     sja1105_conf.cs_pin       = SWCH_CS_Pin;
     sja1105_conf.rst_port     = SWCH_RST_GPIO_Port;
     sja1105_conf.rst_pin      = SWCH_RST_Pin;
-    sja1105_conf.timeout      = 100;
-    sja1105_conf.mgmt_timeout = 1000;
+    sja1105_conf.timeout      = SWITCH_TIMEOUT_MS;
+    sja1105_conf.mgmt_timeout = SWITCH_MANAGMENT_ROUTE_TIMEOUT_MS;
     sja1105_conf.host_port    = PORT_HOST;
-    sja1105_conf.skew_clocks  = true;
+    sja1105_conf.skew_clocks  = true; /* Improves EMI performance */
     sja1105_conf.switch_id    = 0;
 
     /* Port 0 config */
-    port_config.port_num           = PORT_88Q2112_PHY0;
-    port_config.interface          = SJA1105_INTERFACE_RGMII;
-    port_config.mode               = SJA1105_MODE_MAC;
-    port_config.output_rmii_refclk = false;
-    port_config.speed              = SJA1105_SPEED_DYNAMIC;
-    port_config.voltage            = SJA1105_IO_1V8;
-    status                         = SJA1105_PortConfigure(&sja1105_conf, &port_config);
+    port_config.port_num  = PORT_88Q2112_PHY0;
+    port_config.interface = SJA1105_INTERFACE_RGMII;
+    port_config.mode      = SJA1105_MODE_MAC;
+    port_config.speed     = SJA1105_SPEED_DYNAMIC;
+    port_config.voltage   = SJA1105_IO_1V8;
+    status                = SJA1105_PortConfigure(&sja1105_conf, &port_config);
     if (status != SJA1105_OK) return status;
 
     /* Port 1 config */
-    port_config.port_num           = PORT_88Q2112_PHY1;
-    port_config.interface          = SJA1105_INTERFACE_RGMII;
-    port_config.mode               = SJA1105_MODE_MAC;
-    port_config.output_rmii_refclk = false;
-    port_config.speed              = SJA1105_SPEED_DYNAMIC;
-    port_config.voltage            = SJA1105_IO_1V8;
-    status                         = SJA1105_PortConfigure(&sja1105_conf, &port_config);
+    port_config.port_num  = PORT_88Q2112_PHY1;
+    port_config.interface = SJA1105_INTERFACE_RGMII;
+    port_config.mode      = SJA1105_MODE_MAC;
+    port_config.speed     = SJA1105_SPEED_DYNAMIC;
+    port_config.voltage   = SJA1105_IO_1V8;
+    status                = SJA1105_PortConfigure(&sja1105_conf, &port_config);
     if (status != SJA1105_OK) return status;
 
     /* Port 2 config */
-    port_config.port_num           = PORT_88Q2112_PHY2;
-    port_config.interface          = SJA1105_INTERFACE_RGMII;
-    port_config.mode               = SJA1105_MODE_MAC;
-    port_config.output_rmii_refclk = false;
-    port_config.speed              = SJA1105_SPEED_DYNAMIC;
-    port_config.voltage            = SJA1105_IO_1V8;
-    status                         = SJA1105_PortConfigure(&sja1105_conf, &port_config);
+    port_config.port_num  = PORT_88Q2112_PHY2;
+    port_config.interface = SJA1105_INTERFACE_RGMII;
+    port_config.mode      = SJA1105_MODE_MAC;
+    port_config.speed     = SJA1105_SPEED_DYNAMIC;
+    port_config.voltage   = SJA1105_IO_1V8;
+    status                = SJA1105_PortConfigure(&sja1105_conf, &port_config);
     if (status != SJA1105_OK) return status;
 
     /* Port 3 config */
     port_config.port_num           = PORT_LAN8671_PHY;
     port_config.interface          = SJA1105_INTERFACE_RMII;
     port_config.mode               = SJA1105_MODE_MAC;
-    port_config.output_rmii_refclk = true;
     port_config.speed              = SJA1105_SPEED_MBPS_TO_ENUM(PORT3_SPEED_MBPS);
     port_config.voltage            = SJA1105_IO_3V3;
+    port_config.output_rmii_refclk = true;
+    port_config.rx_error_unused    = false;
     status                         = SJA1105_PortConfigure(&sja1105_conf, &port_config);
     if (status != SJA1105_OK) return status;
 
@@ -92,9 +90,10 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     port_config.port_num           = PORT_HOST;
     port_config.interface          = SJA1105_INTERFACE_RMII;
     port_config.mode               = SJA1105_MODE_PHY;
-    port_config.output_rmii_refclk = true;
     port_config.speed              = SJA1105_SPEED_MBPS_TO_ENUM(PORT4_SPEED_MBPS);
     port_config.voltage            = SJA1105_IO_3V3;
+    port_config.output_rmii_refclk = true;
+    port_config.rx_error_unused    = true;
     status                         = SJA1105_PortConfigure(&sja1105_conf, &port_config);
     if (status != SJA1105_OK) return status;
 
@@ -104,6 +103,14 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
 
     /* Initialise the switch */
     status = SJA1105_Init(&hsja1105, &sja1105_conf, &sja1105_callbacks, fixed_length_table_buffer, sja1105_static_conf, sja1105_static_conf_size);
+    if (status != SJA1105_OK) return status;
+
+    /* TODO: Remove */
+    status = SJA1105_ReadAllTables(&hsja1105);
+    if (status != SJA1105_OK) return status;
+
+    /* TODO: Remove. Disables port 3 */
+    status = SJA1105_PortSetForwarding(&hsja1105, PORT_LAN8671_PHY, false);
     if (status != SJA1105_OK) return status;
 
     /* Set the speed of the dynamic ports. TODO: This should be after PHY auto-negotiaion */

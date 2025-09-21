@@ -52,7 +52,7 @@ static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
 
 
 /* TODO: Remember the dynamically assigned IP address (NX_DHCP_CLIENT_RESTORE_STATE) */
-/* TODO: Respond to PHY linkup events or poll faster when the link is down
+/* TODO: Respond to PHY linkup events or poll faster when the link is down */
 
 /* This thread monitors the link state and  */
 void nx_link_thread_entry(uint32_t thread_input) {
@@ -73,7 +73,7 @@ void nx_link_thread_entry(uint32_t thread_input) {
     while (1) {
 
         /* Send request to check if the switch is up and running */
-        nx_status = nx_ip_interface_status_check(&nx_ip_instance, PRIMARY_INTERFACE, NX_IP_LINK_ENABLED, &actual_status, 10);
+        nx_status = nx_ip_interface_status_check(&nx_ip_instance, ETH_INTERFACE_NUM, NX_IP_LINK_ENABLED, &actual_status, 10);
 
         /* The link is up */
         if (nx_status == NX_SUCCESS) {
@@ -90,7 +90,7 @@ void nx_link_thread_entry(uint32_t thread_input) {
                 if (tx_status != TX_SUCCESS) Error_Handler();
 
                 /* Send request to check if an address is resolved */
-                nx_status = nx_ip_interface_status_check(&nx_ip_instance, PRIMARY_INTERFACE, NX_IP_ADDRESS_RESOLVED, &actual_status, 10);
+                nx_status = nx_ip_interface_status_check(&nx_ip_instance, ETH_INTERFACE_NUM, NX_IP_ADDRESS_RESOLVED, &actual_status, 10);
 
                 /* If we have an IP address then restart DHCP to get a new IP address for the new network */
                 if (nx_status == NX_SUCCESS) {

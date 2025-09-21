@@ -76,7 +76,7 @@ nx_status_t nx_setup(TX_BYTE_POOL *byte_pool) {
     if (nx_status != NX_SUCCESS) return nx_status;
 
     /* Create the DHCP client */
-    nx_status = nx_dhcp_create(&dhcp_client, &nx_ip_instance, "DHCP Client");
+    nx_status = nx_dhcp_create(&dhcp_client, &nx_ip_instance, "Switch V4 DHCP Client");
     if (nx_status != NX_SUCCESS) return nx_status;
 
     return nx_status;

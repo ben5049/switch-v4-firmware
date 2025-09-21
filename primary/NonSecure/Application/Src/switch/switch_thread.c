@@ -130,6 +130,7 @@ atomic_uint_fast32_t sja1105_error_counter = 0;
 // }
 
 
+/* This thread perform regular maintenance for the switch */
 void switch_thread_entry(uint32_t initial_input) {
 
     sja1105_status_t status;
@@ -137,22 +138,27 @@ void switch_thread_entry(uint32_t initial_input) {
 
     while (1) {
 
-        /* Perform regular maintenance */
+
+        /* Make sure local copies of tables match the copy on the switch chip (this doesn't check for differences, it only updates the internal copy) */
+        status = SJA1105_ReadAllTables(&hsja1105);
+        if (status != SJA1105_OK) Error_Handler();
+
+        /* Check the status registers for issues */
         status = SJA1105_CheckStatusRegisters(&hsja1105); // TODO: look into buffer shifting issue
-        // if (status != SJA1105_OK) Error_Handler();
+        if (status != SJA1105_OK) Error_Handler();
+
+        /* Free any management routes that have been used */
         status = SJA1105_ManagementRouteFree(&hsja1105, false);
         if (status != SJA1105_OK) Error_Handler();
 
-        /* TODO: Add byte pool maintenance */
-
-        /* TODO: Occasionally check no important MAC addresses have been learned by accident (PTP, STP, etc)*/
+        /* TODO: Occasionally check no important MAC addresses have been learned by accident (PTP, STP, etc) */
 
         /* Read the temperature */
         status = SJA1105_ReadTemperatureX10(&hsja1105, &temperature);
         if (status != SJA1105_OK) Error_Handler();
         temperature /= 10;
 
-        tx_thread_sleep_ms(500);
+        tx_thread_sleep_ms(1000 / SWITCH_MAINTENANCE_FREQUENCY);
 
         /* TODO: If the current thread holds the switch mutex when it shouldn't report an error */
     }
