@@ -1396,12 +1396,12 @@ static VOID _nx_driver_transfer_to_netx(NX_IP *ip_ptr, NX_PACKET *packet_ptr) {
             nx_timestamp.second_high = 0; /* This doesn't handle the overflow which occurs after 136 years */
 
             /* Pass on to NetX. Note the timestamp is invalid if the packet isn't a PTP packet */
-            nx_link_ethernet_packet_received(ip_ptr, ETH_INTERFACE_NUM, packet_ptr, &nx_timestamp);
+            nx_link_ethernet_packet_received(ip_ptr, PRIMARY_INTERFACE, packet_ptr, &nx_timestamp);
         }
 
         /* PTP Not configured, pass on to NetX without a timestamp */
         else {
-            nx_link_ethernet_packet_received(ip_ptr, ETH_INTERFACE_NUM, packet_ptr, NX_NULL);
+            nx_link_ethernet_packet_received(ip_ptr, PRIMARY_INTERFACE, packet_ptr, NX_NULL);
         }
     }
 }
@@ -2075,12 +2075,14 @@ void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth) {
 
 void HAL_ETH_ErrorCallback(ETH_HandleTypeDef *heth) {
 
+    // TODO: VERY IMPORTANT
+
     /* Clear the Receive Buffer Unavailable fault */
     //    if (heth->DMAErrorCode & ETH_DMACSR_RBU) {
     //        CLEAR_BIT(heth->DMAErrorCode, (ETH_DMACSR_RBU | ETH_DMACSR_AIS));
     //    }
 
-    Error_Handler();
+    //    Error_Handler();
 }
 
 /****** DRIVER SPECIFIC ****** Start of part/vendor specific internal driver functions.  */

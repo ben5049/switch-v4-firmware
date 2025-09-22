@@ -105,10 +105,6 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     status = SJA1105_Init(&hsja1105, &sja1105_conf, &sja1105_callbacks, fixed_length_table_buffer, sja1105_static_conf, sja1105_static_conf_size);
     if (status != SJA1105_OK) return status;
 
-    /* TODO: Remove */
-    status = SJA1105_ReadAllTables(&hsja1105);
-    if (status != SJA1105_OK) return status;
-
     /* TODO: Remove. Disables port 3 */
     status = SJA1105_PortSetForwarding(&hsja1105, PORT_LAN8671_PHY, false);
     if (status != SJA1105_OK) return status;

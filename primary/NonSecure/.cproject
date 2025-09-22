@@ -23,7 +23,7 @@
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu.1099848244" name="Floating-point unit" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu.value.fpv5-sp-d16" valueType="enumerated"/>
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi.973653281" name="Floating-point ABI" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi.value.hard" valueType="enumerated"/>
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.target_board.1339317394" name="Board" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.target_board" useByScannerDiscovery="false" value="genericBoard" valueType="string"/>
-							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults.1131505997" name="Defaults" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults" useByScannerDiscovery="false" value="com.st.stm32cube.ide.common.services.build.inputs.revA.1.0.6 || Debug || true || Executable || com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace || STM32H573IIKxQ || 0 || 0 || arm-none-eabi- || ${gnu_tools_for_stm32_compiler_path} || ../Core/Inc | ../../Secure_nsclib | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Drivers/CMSIS/Include | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/netxduo/nx_secure/inc | ../../Middlewares/ST/netxduo/nx_secure/ports | ../../Middlewares/ST/netxduo/crypto_libraries/inc | ../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc || ../Core/Inc | ../../Secure_nsclib | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/netxduo/nx_secure/inc | ../../Middlewares/ST/netxduo/nx_secure/ports | ../../Middlewares/ST/netxduo/crypto_libraries/inc | ../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc | ../../Drivers/CMSIS/Include ||  || USE_HAL_DRIVER | STM32H573xx | NX_INCLUDE_USER_DEFINE_FILE | NX_SECURE_INCLUDE_USER_DEFINE_FILE | TX_INCLUDE_USER_DEFINE_FILE | TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || AZURE_RTOS | Core/Src | Drivers | NetXDuo | Core/Startup | Middlewares ||  ||  || ${workspace_loc:/${ProjName}/STM32H573IIKXQ_FLASH.ld} || true || NonSecure ||  || secure_nsclib.o || ${workspace_loc:/primary_Secure/Debug/secure_nsclib.o} || None ||  ||  || " valueType="string"/>
+							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults.1131505997" name="Defaults" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults" useByScannerDiscovery="false" value="com.st.stm32cube.ide.common.services.build.inputs.revA.1.0.6 || Debug || true || Executable || com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace || STM32H573IIKxQ || 0 || 0 || arm-none-eabi- || ${gnu_tools_for_stm32_compiler_path} || ../Core/Inc | ../../Secure_nsclib | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Drivers/CMSIS/Include | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc | ../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/ | ../../Middlewares/ST/netxduo/addons/mdns || ../Core/Inc | ../../Secure_nsclib | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/netxduo/nx_secure/inc | ../../Middlewares/ST/netxduo/nx_secure/ports | ../../Middlewares/ST/netxduo/crypto_libraries/inc | ../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc | ../../Drivers/CMSIS/Include | ../wolfSSL | ../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/ | ../../Middlewares/ST/netxduo/addons/mdns | ../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl ||  || USE_HAL_DRIVER | STM32H573xx | NX_INCLUDE_USER_DEFINE_FILE | TX_INCLUDE_USER_DEFINE_FILE | TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || AZURE_RTOS | Core/Src | Drivers | NetXDuo | Core/Startup | Middlewares ||  ||  || ${workspace_loc:/${ProjName}/STM32H573IIKXQ_FLASH.ld} || true || NonSecure ||  || secure_nsclib.o || ${workspace_loc:/primary_Secure/Debug/secure_nsclib.o} || None ||  ||  || " valueType="string"/>
 							<option id="com.st.stm32cube.ide.mcu.debug.option.cpuclock.781864700" name="Cpu clock frequence" superClass="com.st.stm32cube.ide.mcu.debug.option.cpuclock" useByScannerDiscovery="false" value="250" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.targetplatform.1865781358" isAbstract="false" osList="all" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.targetplatform"/>
 							<builder buildPath="${workspace_loc:/primary_NonSecure}/Debug" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.builder.1482848255" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.builder"/>
@@ -65,6 +65,10 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/stp}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/switch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/zenoh}&quot;"/>
+									<listOptionValue builtIn="false" value="../wolfSSL"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/addons/mdns"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.assembler.input.1366786932" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.assembler.input"/>
 							</tool>
@@ -76,7 +80,6 @@
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H573xx"/>
 									<listOptionValue builtIn="false" value="NX_INCLUDE_USER_DEFINE_FILE"/>
-									<listOptionValue builtIn="false" value="NX_SECURE_INCLUDE_USER_DEFINE_FILE"/>
 									<listOptionValue builtIn="false" value="TX_INCLUDE_USER_DEFINE_FILE"/>
 									<listOptionValue builtIn="false" value="TX_PORT_USE_BASEPRI"/>
 									<listOptionValue builtIn="false" value="ZENOH_GENERIC"/>
@@ -99,10 +102,6 @@
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/threadx/common/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/common/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/nx_secure/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/nx_secure/ports"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/crypto_libraries/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/zenoh-pico/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/sja1105/Inc}&quot;"/>
@@ -115,6 +114,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/stp}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/switch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/zenoh}&quot;"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/addons/mdns"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.193896169" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -126,7 +127,6 @@
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H573xx"/>
 									<listOptionValue builtIn="false" value="NX_INCLUDE_USER_DEFINE_FILE"/>
-									<listOptionValue builtIn="false" value="NX_SECURE_INCLUDE_USER_DEFINE_FILE"/>
 									<listOptionValue builtIn="false" value="TX_INCLUDE_USER_DEFINE_FILE"/>
 									<listOptionValue builtIn="false" value="TX_PORT_USE_BASEPRI"/>
 									<listOptionValue builtIn="false" value="ZENOH_GENERIC"/>
@@ -149,10 +149,6 @@
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/threadx/common/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/common/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/nx_secure/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/nx_secure/ports"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/crypto_libraries/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/zenoh-pico/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/sja1105/Inc}&quot;"/>
@@ -165,6 +161,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/stp}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/switch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/zenoh}&quot;"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/addons/mdns"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.input.cpp.463404399" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.input.cpp"/>
 							</tool>
@@ -230,7 +228,7 @@
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu.1071734050" name="Floating-point unit" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu.value.fpv5-sp-d16" valueType="enumerated"/>
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi.419289896" name="Floating-point ABI" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi.value.hard" valueType="enumerated"/>
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.target_board.1792183602" name="Board" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.target_board" useByScannerDiscovery="false" value="genericBoard" valueType="string"/>
-							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults.1948065227" name="Defaults" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults" useByScannerDiscovery="false" value="com.st.stm32cube.ide.common.services.build.inputs.revA.1.0.6 || Release || false || Executable || com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace || STM32H573IIKxQ || 0 || 0 || arm-none-eabi- || ${gnu_tools_for_stm32_compiler_path} || ../Core/Inc | ../../Secure_nsclib | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Drivers/CMSIS/Include | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/netxduo/nx_secure/inc | ../../Middlewares/ST/netxduo/nx_secure/ports | ../../Middlewares/ST/netxduo/crypto_libraries/inc | ../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc || ../Core/Inc | ../../Secure_nsclib | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/netxduo/nx_secure/inc | ../../Middlewares/ST/netxduo/nx_secure/ports | ../../Middlewares/ST/netxduo/crypto_libraries/inc | ../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc | ../../Drivers/CMSIS/Include ||  || USE_HAL_DRIVER | STM32H573xx | NX_INCLUDE_USER_DEFINE_FILE | NX_SECURE_INCLUDE_USER_DEFINE_FILE | TX_INCLUDE_USER_DEFINE_FILE | TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || AZURE_RTOS | Core/Src | Drivers | NetXDuo | Core/Startup | Middlewares ||  ||  || ${workspace_loc:/${ProjName}/STM32H573IIKXQ_FLASH.ld} || true || NonSecure ||  || secure_nsclib.o || ${workspace_loc:/primary_Secure/Release/secure_nsclib.o} || None ||  ||  || " valueType="string"/>
+							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults.1948065227" name="Defaults" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults" useByScannerDiscovery="false" value="com.st.stm32cube.ide.common.services.build.inputs.revA.1.0.6 || Release || false || Executable || com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace || STM32H573IIKxQ || 0 || 0 || arm-none-eabi- || ${gnu_tools_for_stm32_compiler_path} || ../Core/Inc | ../../Secure_nsclib | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Drivers/CMSIS/Include | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc | ../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/ | ../../Middlewares/ST/netxduo/addons/mdns || ../Core/Inc | ../../Secure_nsclib | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/netxduo/nx_secure/inc | ../../Middlewares/ST/netxduo/nx_secure/ports | ../../Middlewares/ST/netxduo/crypto_libraries/inc | ../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc | ../../Drivers/CMSIS/Include | ../wolfSSL | ../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/ | ../../Middlewares/ST/netxduo/addons/mdns | ../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl ||  || USE_HAL_DRIVER | STM32H573xx | NX_INCLUDE_USER_DEFINE_FILE | TX_INCLUDE_USER_DEFINE_FILE | TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || AZURE_RTOS | Core/Src | Drivers | NetXDuo | Core/Startup | Middlewares ||  ||  || ${workspace_loc:/${ProjName}/STM32H573IIKXQ_FLASH.ld} || true || NonSecure ||  || secure_nsclib.o || ${workspace_loc:/primary_Secure/Release/secure_nsclib.o} || None ||  ||  || " valueType="string"/>
 							<option id="com.st.stm32cube.ide.mcu.debug.option.cpuclock.367984711" name="Cpu clock frequence" superClass="com.st.stm32cube.ide.mcu.debug.option.cpuclock" useByScannerDiscovery="false" value="250" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.targetplatform.2042629533" isAbstract="false" osList="all" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.targetplatform"/>
 							<builder buildPath="${workspace_loc:/primary_NonSecure}/Release" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.builder.5231047" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.builder"/>
@@ -271,6 +269,10 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/stp}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/switch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/zenoh}&quot;"/>
+									<listOptionValue builtIn="false" value="../wolfSSL"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/addons/mdns"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.assembler.input.1999867812" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.assembler.input"/>
 							</tool>
@@ -281,7 +283,6 @@
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H573xx"/>
 									<listOptionValue builtIn="false" value="NX_INCLUDE_USER_DEFINE_FILE"/>
-									<listOptionValue builtIn="false" value="NX_SECURE_INCLUDE_USER_DEFINE_FILE"/>
 									<listOptionValue builtIn="false" value="TX_INCLUDE_USER_DEFINE_FILE"/>
 									<listOptionValue builtIn="false" value="TX_PORT_USE_BASEPRI"/>
 									<listOptionValue builtIn="false" value="TX_PORT_BASEPRI=16"/>
@@ -301,10 +302,6 @@
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/threadx/common/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/common/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/nx_secure/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/nx_secure/ports"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/crypto_libraries/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/zenoh-pico/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/sja1105/Inc}&quot;"/>
@@ -317,6 +314,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/stp}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/switch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/zenoh}&quot;"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/addons/mdns"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1217137950" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -327,7 +326,6 @@
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H573xx"/>
 									<listOptionValue builtIn="false" value="NX_INCLUDE_USER_DEFINE_FILE"/>
-									<listOptionValue builtIn="false" value="NX_SECURE_INCLUDE_USER_DEFINE_FILE"/>
 									<listOptionValue builtIn="false" value="TX_INCLUDE_USER_DEFINE_FILE"/>
 									<listOptionValue builtIn="false" value="TX_PORT_USE_BASEPRI"/>
 									<listOptionValue builtIn="false" value="TX_PORT_BASEPRI=16"/>
@@ -347,10 +345,6 @@
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/threadx/common/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/common/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/nx_secure/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/nx_secure/ports"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/crypto_libraries/inc"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/zenoh-pico/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/sja1105/Inc}&quot;"/>
@@ -363,6 +357,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/stp}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/switch}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/zenoh}&quot;"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/addons/mdns"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.input.cpp.840654965" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.input.cpp"/>
 							</tool>

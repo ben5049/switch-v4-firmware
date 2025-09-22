@@ -60,10 +60,10 @@ void state_machine_thread_entry(uint32_t initial_input) {
     if (status != TX_SUCCESS) Error_Handler();
 
     /* Start the threads that require networking */
-    status = tx_thread_resume(&comms_thread_handle);
-    if (status != TX_SUCCESS) Error_Handler();
-    status = tx_thread_resume(&ptp_thread_handle);
-    if (status != TX_SUCCESS) Error_Handler();
+    // status = tx_thread_resume(&comms_thread_handle);
+    // if (status != TX_SUCCESS) Error_Handler();
+    // status = tx_thread_resume(&ptp_thread_handle);
+    // if (status != TX_SUCCESS) Error_Handler();
 
     while (1) {
         tx_thread_sleep_ms(1000);
