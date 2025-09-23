@@ -40,12 +40,14 @@ extern "C" {
 /* Networking Common Config */
 /* ---------------------------------------------------------------------------- */
 
-#define MAC_ADDR_OCTET1                  (0x2e)
-#define MAC_ADDR_OCTET2                  (0x0d)
-#define MAC_ADDR_OCTET3                  (0x8f)
+#define MAC_ADDR_OCTET1                  (0x02)
+#define MAC_ADDR_OCTET2                  (0x00)
+#define MAC_ADDR_OCTET3                  (0x00)
 #define MAC_ADDR_OCTET4                  (0xd3)
 #define MAC_ADDR_OCTET5                  (0x6a)
 #define MAC_ADDR_OCTET6                  (0x48)
+
+#define DEVICE_NAME                      ("switch-v4")
 
 #define NX_APP_DEFAULT_TIMEOUT           (10000)                                           /* Generic timeout for nx events (e.g. TCP send) in ms */
 #define NX_APP_PACKET_POOL_SIZE          ((DEFAULT_PAYLOAD_SIZE + sizeof(NX_PACKET)) * 32) /* Enough space for 32 max size packets */
@@ -73,12 +75,6 @@ extern "C" {
 #define PORT4_SPEED_MBPS                 (100)  /* Host (10 or 100 Mbps) */
 
 #define PHY_LINK_REQUIRED_FOR_NX_LINK    (true) /* Setting this to false means NetXduo will only require the switch to be initialed to count as having a link up. Default = true*/
-
-#define NX_MDNS_STACK_SIZE               (2 * 1024)
-#define NX_MDNS_PRIORITY                 (3)
-#define NX_MDNS_HOST_NAME                ("switch-v4")
-#define NX_MDNS_LOCAL_CACHE_SIZE         (2 * 1024)
-#define NX_MDNS_PEER_CACHE_SIZE          (8 * 1024)
 
 /* ---------------------------------------------------------------------------- */
 /* Link Config */

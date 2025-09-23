@@ -16,14 +16,11 @@ extern "C" {
 #include "stdint.h"
 #include "tx_api.h"
 #include "nx_api.h"
-#include "nxd_mdns.h"
 #include "config.h"
 
 
 extern TX_THREAD nx_link_thread_handle;
 extern uint8_t   nx_link_thread_stack[NX_LINK_THREAD_STACK_SIZE];
-
-extern NX_MDNS mdns;
 
 
 void nx_link_thread_entry(uint32_t thread_input);

@@ -29,12 +29,6 @@ uint32_t net_mask;
 TX_THREAD nx_link_thread_handle;
 uint8_t   nx_link_thread_stack[NX_LINK_THREAD_STACK_SIZE];
 
-NX_MDNS       mdns;
-static UCHAR *mdns_hostname = (UCHAR *) NX_MDNS_HOST_NAME;
-uint8_t       mdns_stack_ptr[NX_MDNS_STACK_SIZE];
-uint8_t       mdns_local_cache_ptr[NX_MDNS_LOCAL_CACHE_SIZE];
-uint8_t       mdns_peer_cache_ptr[NX_MDNS_PEER_CACHE_SIZE];
-
 
 static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
 
@@ -45,14 +39,6 @@ static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
 
     /* IP address has been assigned */
     if (ip_address != NULL_ADDRESS) {
-
-        // TODO: Figure out why this breaks
-        // /* Enable the mDNS client (if not already enabled) */
-        // if (mdns.nx_mdns_interface_enabled[PRIMARY_INTERFACE] == NX_FALSE) {
-        //     if (nx_mdns_enable(&mdns, PRIMARY_INTERFACE) != NX_SUCCESS) {
-        //         Error_Handler();
-        //     }
-        // }
 
         /* Notify the state machine */
         if (tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED_EVENT, TX_OR) != TX_SUCCESS) {
@@ -88,18 +74,6 @@ void nx_link_thread_entry(uint32_t thread_input) {
 
     /* Start DHCP */
     nx_status = nx_dhcp_start(&dhcp_client);
-    if (nx_status != NX_SUCCESS) Error_Handler();
-
-    /* Create an mDNS instance. TODO: Fix. TODO: add probing notify callback*/
-    nx_status = nx_mdns_create(
-        &mdns,
-        &nx_ip_instance,
-        &nx_packet_pool,
-        NX_MDNS_PRIORITY,
-        mdns_stack_ptr, NX_MDNS_STACK_SIZE,
-        mdns_hostname,
-        mdns_local_cache_ptr, NX_MDNS_LOCAL_CACHE_SIZE,
-        mdns_peer_cache_ptr, NX_MDNS_PEER_CACHE_SIZE, NULL);
     if (nx_status != NX_SUCCESS) Error_Handler();
 
     while (1) {

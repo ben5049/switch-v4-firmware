@@ -15,6 +15,7 @@
 #include "nx_app.h"
 #include "switch_thread.h"
 #include "phy_thread.h"
+#include "config.h"
 
 
 int32_t nx_eth_phy_init(void) {
