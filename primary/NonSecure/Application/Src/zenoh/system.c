@@ -15,8 +15,11 @@
 #include "zenoh-pico/system/platform.h"
 #include "zenoh-pico/utils/logging.h"
 
-/* pointer to threadx byte pool, should be provided by application */
-extern TX_BYTE_POOL *pthreadx_byte_pool;
+#include "utils.h"
+
+
+extern TX_BYTE_POOL zenoh_byte_pool;
+
 
 /*------------------ Random ------------------*/
 uint8_t z_random_u8(void) { return z_random_u32(); }
@@ -43,7 +46,7 @@ void z_random_fill(void *buf, size_t len) {
 void *z_malloc(size_t size) {
     void *ptr = NULL;
 
-    uint8_t r = tx_byte_allocate(pthreadx_byte_pool, &ptr, size, TX_WAIT_FOREVER);
+    uint8_t r = tx_byte_allocate(&zenoh_byte_pool, &ptr, size, TX_WAIT_FOREVER);
     if (r != TX_SUCCESS) {
         ptr = NULL;
     }
@@ -66,7 +69,6 @@ z_result_t _z_task_init(_z_task_t *task, z_task_attr_t *attr, void *(*fun)(void 
     UINT status = tx_thread_create(&(task->threadx_thread), "ztask", (VOID (*)(ULONG)) fun, (ULONG) arg,
                                    task->threadx_stack, Z_TASK_STACK_SIZE, Z_TASK_PRIORITY, Z_TASK_PREEMPT_THRESHOLD,
                                    Z_TASK_TIME_SLICE, TX_AUTO_START);
-
     if (status != TX_SUCCESS) return _Z_ERR_GENERIC;
 
     return _Z_RES_OK;
@@ -249,7 +251,7 @@ z_result_t z_sleep_us(size_t time) {
 }
 
 z_result_t z_sleep_ms(size_t time) {
-    tx_thread_sleep(time * TX_TIMER_TICKS_PER_SECOND / 1000);
+    tx_thread_sleep_ms(time);
     return 0;
 }
 

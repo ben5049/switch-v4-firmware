@@ -5,136 +5,141 @@
  *      Author: bens1
  */
 
+#include "tx_api.h"
 #include "nx_api.h"
 #include "nx_stm32_eth_config.h"
 #include "main.h"
 
+#include "tx_app.h"
 #include "nx_app.h"
 #include "zenoh-pico.h"
 #include "comms_thread.h"
 #include "utils.h"
+#include "config.h"
 
 
-#define WINDOW_SIZE        512
+// #if Z_FEATURE_PUBLICATION == 1
 
-#define LINK_PRIORITY      11
+#define MODE "client"
+// #define LOCATOR "" /* If empty, it will scout */
+//  #define MODE    "peer"
+#define LOCATOR "udp/192.168.50.1:6000"
 
+#define KEYEXPR "demo/example/zenoh-pico-pub"
+#define VALUE   "[Switch V4] Pub from Zenoh-Pico!"
 
-#define DEFAULT_PORT       6000
-#define TCP_SERVER_PORT    DEFAULT_PORT
-#define TCP_SERVER_ADDRESS IP_ADDRESS(192, 168, 1, 1)
+// #define DEFAULT_PORT       6000
+// #define TCP_SERVER_PORT    DEFAULT_PORT
+// #define TCP_SERVER_ADDRESS IP_ADDRESS(192, 168, 1, 1)
 
-#define MAX_PACKET_COUNT   100
-#define DEFAULT_MESSAGE    "TCP Client on STM32H573-DK"
+// #define MAX_PACKET_COUNT   100
+// #define DEFAULT_MESSAGE    "TCP Client on STM32H573-DK"
 
-
-NX_TCP_SOCKET tcp_socket;
 
 uint8_t   comms_thread_stack[COMMS_THREAD_STACK_SIZE];
 TX_THREAD comms_thread_handle;
 
+static uint8_t zenoh_byte_pool_buffer[ZENOH_MEM_POOL_SIZE] __ALIGNED(32);
+TX_BYTE_POOL   zenoh_byte_pool;
+
 
 void comms_thread_entry(uint32_t initial_input) {
 
-    UINT ret;
-    UINT count = 0;
+    tx_status_t tx_status = TX_SUCCESS;
+    _z_res_t    z_status  = Z_OK;
 
-    ULONG bytes_read;
-    UCHAR data_buffer[512];
+    /* Initialise the byte pool */
+    tx_status = tx_byte_pool_create(&zenoh_byte_pool, "Zenoh Pico memory pool", zenoh_byte_pool_buffer, ZENOH_MEM_POOL_SIZE);
+    if (tx_status != TX_SUCCESS) Error_Handler();
 
-    ULONG source_ip_address;
-    UINT  source_port;
-
-    NX_PACKET *server_packet;
-    NX_PACKET *data_packet;
-
-    /* create the TCP socket */
-    ret = nx_tcp_socket_create(&nx_ip_instance, &tcp_socket, "TCP Server Socket", NX_IP_NORMAL, NX_FRAGMENT_OKAY, NX_IP_TIME_TO_LIVE, WINDOW_SIZE, NX_NULL, NX_NULL);
-    if (ret != NX_SUCCESS) {
-        Error_Handler();
-    }
-
-    /* bind the client socket for the DEFAULT_PORT */
-    ret = nx_tcp_client_socket_bind(&tcp_socket, DEFAULT_PORT, NX_WAIT_FOREVER);
-
-    if (ret != NX_SUCCESS) {
-        Error_Handler();
-    }
-
-    /* connect to the remote server on the specified port */
-    ret = nx_tcp_client_socket_connect(&tcp_socket, TCP_SERVER_ADDRESS, TCP_SERVER_PORT, NX_WAIT_FOREVER);
-
-    if (ret != NX_SUCCESS) {
-        Error_Handler();
-    }
-
-    while (count++ < MAX_PACKET_COUNT) {
-        TX_MEMSET(data_buffer, '\0', sizeof(data_buffer));
-
-        /* allocate the packet to send over the TCP socket */
-        ret = nx_packet_allocate(&nx_packet_pool, &data_packet, NX_UDP_PACKET, TX_WAIT_FOREVER);
-
-        if (ret != NX_SUCCESS) {
-            break;
-        }
-
-        /* append the message to send into the packet */
-        ret = nx_packet_data_append(data_packet, (VOID *) DEFAULT_MESSAGE, sizeof(DEFAULT_MESSAGE), &nx_packet_pool, TX_WAIT_FOREVER);
-
-        if (ret != NX_SUCCESS) {
-            nx_packet_release(data_packet);
-            break;
-        }
-
-        /* send the packet over the TCP socket */
-        ret = nx_tcp_socket_send(&tcp_socket, data_packet, NX_APP_DEFAULT_TIMEOUT);
-
-        if (ret != NX_SUCCESS) {
-            break;
-        }
-
-        /* wait for the server response */
-        ret = nx_tcp_socket_receive(&tcp_socket, &server_packet, NX_APP_DEFAULT_TIMEOUT);
-
-        if (ret == NX_SUCCESS) {
-            /* get the server IP address and  port */
-            nx_udp_source_extract(server_packet, &source_ip_address, &source_port);
-
-            /* retrieve the data sent by the server */
-            nx_packet_data_retrieve(server_packet, data_buffer, &bytes_read);
-
-            /* print the received data */
-            // PRINT_DATA(source_ip_address, source_port, data_buffer);
-
-            /* release the server packet */
-            nx_packet_release(server_packet);
-
-            /* toggle the green led on success */
-            //            HAL_GPIO_WritePin(GPIOI, GPIO_PIN_9, GPIO_PIN_SET);
+    /* Apply the config */
+    z_owned_config_t config;
+    z_config_default(&config);
+    zp_config_insert(z_loan_mut(config), Z_CONFIG_MODE_KEY, MODE);
+    if (strcmp(LOCATOR, "") != 0) {
+        if (strcmp(MODE, "client") == 0) {
+            zp_config_insert(z_loan_mut(config), Z_CONFIG_CONNECT_KEY, LOCATOR);
         } else {
-            /* no message received exit the loop */
-            break;
+            zp_config_insert(z_loan_mut(config), Z_CONFIG_LISTEN_KEY, LOCATOR);
         }
     }
 
-    /* release the allocated packets */
-    nx_packet_release(server_packet);
-
-    /* disconnect the socket */
-    nx_tcp_socket_disconnect(&tcp_socket, NX_APP_DEFAULT_TIMEOUT);
-
-    /* unbind the socket */
-    nx_tcp_client_socket_unbind(&tcp_socket);
-
-    /* delete the socket */
-    nx_tcp_socket_delete(&tcp_socket);
-
-    /* print test summary on the UART */
-    if (count == MAX_PACKET_COUNT + 1) {
-        //        printf("\n-------------------------------------\n\tSUCCESS : %u / %u packets sent\n-------------------------------------\n", count - 1, MAX_PACKET_COUNT);
-        //        Success_Handler();
-    } else {
-        //        printf("\n-------------------------------------\n\tFAIL : %u / %u packets sent\n-------------------------------------\n", count - 1, MAX_PACKET_COUNT);
+    /* Start a session */
+    z_owned_session_t s;
+    z_status = z_open(&s, z_move(config), NULL);
+    if (z_status < 0) {
+        // printf("Unable to open session!\n");
         Error_Handler();
     }
+
+    // /* Create the read task */
+    // static StackType_t  read_task_stack[1000];
+    // static StaticTask_t read_task_buffer;
+    // z_task_attr_t       read_task_attr = {
+    //           .name              = "ZenohReadTask",
+    //           .priority          = 10,
+    //           .stack_depth       = 1000,
+    //           .static_allocation = true,
+    //           .stack_buffer      = read_task_stack,
+    //           .task_buffer       = &read_task_buffer,
+    // };
+
+    // /* Create the read task */
+    // zp_task_read_options_t read_task_opt = {.task_attributes = &read_task_attr};
+
+    // static StackType_t lease_task_stack[1000];
+    // static StaticTask_t lease_task_buffer;
+
+    // z_task_attr_t lease_task_attr = {
+    //     .name = "ZenohLeaseTask",
+    //     .priority = 10,
+    //     .stack_depth = 1000,
+    //     .static_allocation = true,
+    //     .stack_buffer = lease_task_stack,
+    //     .task_buffer = &lease_task_buffer,
+    // };
+
+    // zp_task_lease_options_t lease_task_opt = {.task_attributes = &lease_task_attr};
+
+    zp_task_read_options_t  read_task_opt  = {0};
+    zp_task_lease_options_t lease_task_opt = {0};
+
+    // Start read and lease tasks for zenoh-pico
+    if (zp_start_read_task(z_loan_mut(s), &read_task_opt) < 0 ||
+        zp_start_lease_task(z_loan_mut(s), &lease_task_opt) < 0) {
+        // printf("Unable to start read and lease tasks\n");
+        z_session_drop(z_session_move(&s));
+        Error_Handler();
+    }
+
+    // printf("Declaring publisher for '%s'...\n", KEYEXPR);
+    z_owned_publisher_t pub;
+    z_view_keyexpr_t    ke;
+    z_view_keyexpr_from_str_unchecked(&ke, KEYEXPR);
+    if (z_declare_publisher(z_loan(s), &pub, z_loan(ke), NULL) < 0) {
+        // printf("Unable to declare publisher for key expression!\n");
+        Error_Handler();
+    }
+
+    char *buf = (char *) z_malloc(256);
+    while (1) {
+
+        for (int idx = 0; 1; ++idx) {
+            z_sleep_s(1);
+            snprintf(buf, 256, "[%4d] %s", idx, VALUE);
+            // printf("Putting Data ('%s': '%s')...\n", KEYEXPR, buf);
+
+            // Create payload
+            z_owned_bytes_t payload;
+            z_bytes_copy_from_str(&payload, buf);
+
+            z_publisher_put_options_t options;
+            z_publisher_put_options_default(&options);
+            z_publisher_put(z_loan(pub), z_move(payload), &options);
+        }
+    }
+
+    // Clean-up
+    z_drop(z_move(pub));
+    z_drop(z_move(s));
 }

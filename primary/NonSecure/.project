@@ -173,6 +173,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/netxduo/addons/dhcp/nxd_dhcpv6_client.c</locationURI>
 		</link>
 		<link>
+			<name>Middlewares/ST/netxduo/Addons DNS/nxd_dns.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/netxduo/addons/dns/nxd_dns.c</locationURI>
+		</link>
+		<link>
 			<name>Middlewares/ST/netxduo/Addons PTP Client/nxd_ptp_client.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/netxduo/addons/ptp/nxd_ptp_client.c</locationURI>
@@ -181,11 +186,6 @@
 			<name>Middlewares/ST/netxduo/Addons PTP Client/nxd_ptp_client.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/netxduo/addons/ptp/nxd_ptp_client.h</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/ST/netxduo/Addons mDNS/nxd_mdns.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/netxduo/addons/mdns/nxd_mdns.c</locationURI>
 		</link>
 		<link>
 			<name>Middlewares/ST/netxduo/Ethernet Interface/nx_stm32_eth_driver.c</name>

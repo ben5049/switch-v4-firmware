@@ -10,7 +10,6 @@
 #include "stdbool.h"
 #include "tx_api.h"
 #include "nx_api.h"
-#include "nxd_mdns.h"
 #include "main.h"
 
 #include "nx_app.h"

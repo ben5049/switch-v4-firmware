@@ -13,13 +13,15 @@ extern "C" {
 #endif
 
 
+#include "stdbool.h"
+#include "stdint.h"
 #include <sys/_timespec.h>
 
 #include "zenoh-pico/config.h"
 #include "hal.h"
-
-#if Z_FEATURE_MULTI_THREAD == 1
 #include "tx_api.h"
+#include "nx_api.h"
+
 
 #ifndef Z_TASK_STACK_SIZE
 #define Z_TASK_STACK_SIZE 4096
@@ -61,7 +63,7 @@ typedef struct {
     TX_SEMAPHORE sem;
     UINT         waiters;
 } _z_condvar_t;
-#endif // Z_FEATURE_MULTI_THREAD == 1
+
 
 typedef struct timespec z_clock_t;
 typedef ULONG           z_time_t;
@@ -74,15 +76,32 @@ typedef ULONG           z_time_t;
 #endif
 #endif
 
+
 typedef struct {
+    bool     _err;
+    uint32_t timeout;
     union {
-        void *_socket;
+#if Z_FEATURE_LINK_TCP == 1
+        NX_TCP_SOCKET *tcp_socket;
+#endif
+#if Z_FEATURE_LINK_UDP_MULTICAST == 1 || Z_FEATURE_LINK_UDP_UNICAST == 1
+        NX_UDP_SOCKET *udp_socket;
+#endif
+#if Z_FEATURE_LINK_SERIAL == 1
+        BufferedSerial *_serial;
+#endif
     };
 } _z_sys_net_socket_t;
 
+
 typedef struct {
-    union {};
+    bool _err;
+#if Z_FEATURE_LINK_TCP == 1 || Z_FEATURE_LINK_UDP_MULTICAST == 1 || Z_FEATURE_LINK_UDP_UNICAST == 1
+    uint32_t ip_address;
+    uint16_t port;
+#endif
 } _z_sys_net_endpoint_t;
+
 
 #if ZENOH_THREADX_STM32_GEN_IRQ == 0
 void zptxstm32_rx_event_cb(UART_HandleTypeDef *huart, uint16_t offset);

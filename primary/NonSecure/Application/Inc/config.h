@@ -140,10 +140,11 @@ extern "C" {
 /* Commmunications Config */
 /* ---------------------------------------------------------------------------- */
 
-#define COMMS_THREAD_STACK_SIZE         (1024)
+#define COMMS_THREAD_STACK_SIZE         (1024 * 16)
 #define COMMS_THREAD_PRIORITY           (15)
 #define COMMS_THREAD_PREMPTION_PRIORITY (15)
 
+#define ZENOH_MEM_POOL_SIZE             (1024 * 64)
 
 #ifdef __cplusplus
 }
