@@ -58,7 +58,14 @@ void *z_realloc(void *ptr, size_t size) {
     return NULL;
 }
 
-void z_free(void *ptr) { tx_byte_release(ptr); }
+void z_free(void *ptr) {
+    tx_byte_release(ptr);
+}
+
+void *z_free_with_context(void *data, void *context) {
+    z_free(data);
+    return NULL;
+}
 
 #if Z_FEATURE_MULTI_THREAD == 1
 
@@ -89,17 +96,17 @@ z_result_t _z_task_join(_z_task_t *task) {
 }
 
 z_result_t _z_task_detach(_z_task_t *task) {
-    // Not implemented
+    // TODO: Not implemented
     return _Z_ERR_GENERIC;
 }
 
 z_result_t _z_task_cancel(_z_task_t *task) {
-    // Not implemented
+    // TODO: Not implemented
     return _Z_ERR_GENERIC;
 }
 
 void _z_task_exit(void) { // NEW with new vesion
-    // Not implemented
+    // TODO: Not implemented
 }
 
 void _z_task_free(_z_task_t **task) {

@@ -16,14 +16,15 @@
 #include "comms_thread.h"
 #include "utils.h"
 #include "config.h"
+#include "switch_thread.h"
 
 
 // #if Z_FEATURE_PUBLICATION == 1
 
-#define MODE "client"
-// #define LOCATOR "" /* If empty, it will scout */
+#define MODE    "client"
+#define LOCATOR "" /* If empty, it will scout */
 //  #define MODE    "peer"
-#define LOCATOR "udp/192.168.50.1:6000"
+// #define LOCATOR "udp/192.168.50.1:6000"
 
 #define KEYEXPR "demo/example/zenoh-pico-pub"
 #define VALUE   "[Switch V4] Pub from Zenoh-Pico!"
@@ -66,11 +67,27 @@ void comms_thread_entry(uint32_t initial_input) {
 
     /* Start a session */
     z_owned_session_t s;
-    z_status = z_open(&s, z_move(config), NULL);
-    if (z_status < 0) {
-        // printf("Unable to open session!\n");
-        Error_Handler();
-    }
+    do {
+
+        /* Attempt to open session */
+        z_status = z_open(&s, z_move(config), NULL);
+
+        /* Session open: continue */
+        if (z_status == Z_OK) {
+        }
+
+        /* Unable to find other Zenoh devices: try again */
+        else if ((z_status == _Z_ERR_CONFIG_LOCATOR_SCHEMA_UNKNOWN) ||
+                 (z_status == _Z_ERR_SCOUT_NO_RESULTS)) {
+            z_sleep_ms(500);
+        }
+
+        /* Unhandled error: call system error handler */
+        else {
+            Error_Handler();
+        }
+
+    } while (z_status < 0);
 
     // /* Create the read task */
     // static StackType_t  read_task_stack[1000];
@@ -104,20 +121,25 @@ void comms_thread_entry(uint32_t initial_input) {
     zp_task_read_options_t  read_task_opt  = {0};
     zp_task_lease_options_t lease_task_opt = {0};
 
-    // Start read and lease tasks for zenoh-pico
+    /* Start read and lease tasks for */
     if (zp_start_read_task(z_loan_mut(s), &read_task_opt) < 0 ||
         zp_start_lease_task(z_loan_mut(s), &lease_task_opt) < 0) {
-        // printf("Unable to start read and lease tasks\n");
         z_session_drop(z_session_move(&s));
         Error_Handler();
     }
 
-    // printf("Declaring publisher for '%s'...\n", KEYEXPR);
+    // z_publisher_options_t publisher_opt = {
+    //     .congestion_control = Z_CONGESTION_CONTROL_DROP,
+    //     .encoding           = 0,
+    //     .is_express         = false,
+    //     .priority           = 0,
+    // };
+
+    /* Declare publisher */
     z_owned_publisher_t pub;
     z_view_keyexpr_t    ke;
     z_view_keyexpr_from_str_unchecked(&ke, KEYEXPR);
     if (z_declare_publisher(z_loan(s), &pub, z_loan(ke), NULL) < 0) {
-        // printf("Unable to declare publisher for key expression!\n");
         Error_Handler();
     }
 
@@ -126,8 +148,14 @@ void comms_thread_entry(uint32_t initial_input) {
 
         for (int idx = 0; 1; ++idx) {
             z_sleep_s(1);
-            snprintf(buf, 256, "[%4d] %s", idx, VALUE);
-            // printf("Putting Data ('%s': '%s')...\n", KEYEXPR, buf);
+            // snprintf(buf, 256, "[%4d] %s", idx, VALUE);
+
+            bool port_states[SJA1105_NUM_PORTS];
+            for (uint_fast8_t i = 0; i < SJA1105_NUM_PORTS; i++) {
+                SJA1105_PortGetForwarding(&hsja1105, i, port_states + i);
+            }
+
+            snprintf(buf, 256, "Port states = [%d,%d,%d,%d,%d]", port_states[0], port_states[1], port_states[2], port_states[3], port_states[4]);
 
             // Create payload
             z_owned_bytes_t payload;
