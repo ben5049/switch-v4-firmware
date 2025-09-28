@@ -108,7 +108,8 @@ void zptxstm32_rx_event_cb(UART_HandleTypeDef *huart, uint16_t offset);
 void zptxstm32_error_event_cb(UART_HandleTypeDef *huart);
 #endif
 
-void *z_free_with_context(void *data, void *context);
+
+void z_free_with_context(void *data, void *context);
 
 
 #ifdef __cplusplus

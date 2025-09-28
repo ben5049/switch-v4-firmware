@@ -146,6 +146,7 @@ extern "C" {
 
 #define ZENOH_MEM_POOL_SIZE             (1024 * 64)
 
+
 #ifdef __cplusplus
 }
 #endif

@@ -107,7 +107,19 @@
         "icache.h": "c",
         "eth.h": "c",
         "sau.h": "c",
-        "phy_thread.h": "c"
+        "phy_thread.h": "c",
+        "88q211x_xmii.h": "c",
+        "encoding.h": "c",
+        "checksum.h": "c",
+        "slice.h": "c",
+        "udp.h": "c",
+        "serial.h": "c",
+        "zenoh_generic_config.h": "c",
+        "string.h": "c",
+        "microcdr.h": "c",
+        "stddef.h": "c",
+        "zenoh-pico.h": "c",
+        "zenoh_cleanup.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,
@@ -130,7 +142,19 @@
     "C_Cpp.files.exclude": {
         "primary/Libraries/mstp/TestApp*": true,
         "**/.vscode": true,
-        "**/.vs": true
+        "**/.vs": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/system/platform/*": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/arduino": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/emscripten": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/espidf": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/flipper": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/freertos": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/mbed": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/rpi_pico": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/threadx": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/unix": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/windows": true,
+        "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/zephyr": true,
     },
     "C_Cpp.clang_format_fallbackStyle": "none",
     "C_Cpp.clang_format_sortIncludes": false,
@@ -138,5 +162,6 @@
     "flake8.args": [
         "--max-line-length=150",
         "--ignore=E262,E221,E501"
-    ]
+    ],
+    "C_Cpp.exclusionPolicy": "checkFilesAndFolders"
 }

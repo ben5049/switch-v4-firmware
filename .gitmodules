@@ -10,3 +10,6 @@
 [submodule "primary/Libraries/phy-drivers"]
 	path = primary/Libraries/phy-drivers
 	url = https://github.com/ben5049/phy-drivers
+[submodule "primary/Libraries/micro-cdr"]
+	path = primary/Libraries/micro-cdr
+	url = https://github.com/eProsima/Micro-CDR

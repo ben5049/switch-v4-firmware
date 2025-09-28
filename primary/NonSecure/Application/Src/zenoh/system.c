@@ -16,9 +16,9 @@
 #include "zenoh-pico/utils/logging.h"
 
 #include "utils.h"
-
-
-extern TX_BYTE_POOL zenoh_byte_pool;
+#include "config.h"
+#include "tx_app.h"
+#include "comms_thread.h"
 
 
 /*------------------ Random ------------------*/
@@ -62,29 +62,38 @@ void z_free(void *ptr) {
     tx_byte_release(ptr);
 }
 
-void *z_free_with_context(void *data, void *context) {
+void z_free_with_context(void *data, void *context) {
     z_free(data);
-    return NULL;
 }
 
 #if Z_FEATURE_MULTI_THREAD == 1
 
 /*------------------ Thread ------------------*/
 z_result_t _z_task_init(_z_task_t *task, z_task_attr_t *attr, void *(*fun)(void *), void *arg) {
+
     _Z_DEBUG("Creating a new task!");
 
-    UINT status = tx_thread_create(&(task->threadx_thread), "ztask", (VOID (*)(ULONG)) fun, (ULONG) arg,
-                                   task->threadx_stack, Z_TASK_STACK_SIZE, Z_TASK_PRIORITY, Z_TASK_PREEMPT_THRESHOLD,
-                                   Z_TASK_TIME_SLICE, TX_AUTO_START);
-    if (status != TX_SUCCESS) return _Z_ERR_GENERIC;
+    _z_res_t    z_status  = Z_OK;
+    tx_status_t tx_status = TX_SUCCESS;
 
-    return _Z_RES_OK;
+    /* Create the thread */
+    tx_status = tx_thread_create(&task->threadx_thread, "ztask", (VOID (*)(ULONG)) fun, (ULONG) arg,
+                                 task->threadx_stack, Z_TASK_STACK_SIZE, Z_TASK_PRIORITY, Z_TASK_PREEMPT_THRESHOLD,
+                                 Z_TASK_TIME_SLICE, TX_AUTO_START);
+
+    /* Check for failure */
+    if (tx_status != TX_SUCCESS) {
+        z_status = _Z_ERR_GENERIC;
+        return z_status;
+    }
+
+    return z_status;
 }
 
 z_result_t _z_task_join(_z_task_t *task) {
     while (1) {
         UINT state;
-        UINT status = tx_thread_info_get(&(task->threadx_thread), NULL, &state, NULL, NULL, NULL, NULL, NULL, NULL);
+        UINT status = tx_thread_info_get(&task->threadx_thread, NULL, &state, NULL, NULL, NULL, NULL, NULL, NULL);
         if (status != TX_SUCCESS) return _Z_ERR_GENERIC;
 
         if ((state == TX_COMPLETED) || (state == TX_TERMINATED)) break;
@@ -101,8 +110,15 @@ z_result_t _z_task_detach(_z_task_t *task) {
 }
 
 z_result_t _z_task_cancel(_z_task_t *task) {
-    // TODO: Not implemented
-    return _Z_ERR_GENERIC;
+
+    _z_res_t    z_status  = Z_OK;
+    tx_status_t tx_status = TX_SUCCESS;
+
+    tx_status = tx_thread_delete(&task->threadx_thread);
+    if (tx_status != TX_SUCCESS) z_status = _Z_ERR_GENERIC;
+
+
+    return z_status;
 }
 
 void _z_task_exit(void) { // NEW with new vesion
@@ -110,34 +126,56 @@ void _z_task_exit(void) { // NEW with new vesion
 }
 
 void _z_task_free(_z_task_t **task) {
+    _z_task_cancel(*task);
     z_free(*task);
     *task = NULL;
 }
 
 /*------------------ Mutex ------------------*/
+
 z_result_t _z_mutex_init(_z_mutex_t *m) {
-    UINT status = tx_mutex_create(m, TX_NULL, TX_INHERIT);
-    if (status == TX_MUTEX_ERROR) {
-        // zenoh-pico reuses mutex if zenoh_init() fails.
-        status = tx_mutex_delete(m);
-        if (status == TX_SUCCESS) {
-            status = tx_mutex_create(m, TX_NULL, TX_INHERIT);
+
+    _z_res_t    z_status  = Z_OK;
+    tx_status_t tx_status = TX_SUCCESS;
+
+    tx_status = tx_mutex_create(m, TX_NULL, TX_INHERIT);
+
+    /* zenoh-pico reuses mutex if zenoh_init() fails: TODO: Check if this is still needed */
+    if (tx_status == TX_MUTEX_ERROR) {
+        tx_status = tx_mutex_delete(m);
+        if (tx_status == TX_SUCCESS) {
+            tx_status = tx_mutex_create(m, TX_NULL, TX_INHERIT);
         }
     }
-    return (status == TX_SUCCESS) ? 0 : -1;
+
+    /* Check for failure */
+    if (tx_status != TX_SUCCESS) {
+        z_status = _Z_ERR_GENERIC;
+        return z_status;
+    }
+
+    return (tx_status == TX_SUCCESS) ? Z_OK : _Z_ERR_GENERIC;
 }
+
 z_result_t _z_mutex_drop(_z_mutex_t *m) {
-    UINT status = tx_mutex_delete(m);
-    return (status == TX_SUCCESS) ? 0 : -1;
+
+    _z_res_t status = Z_OK;
+
+    if (tx_mutex_delete(m) != TX_SUCCESS) status = _Z_ERR_GENERIC;
+
+    return status;
 }
+
 z_result_t _z_mutex_lock(_z_mutex_t *m) {
     UINT status = tx_mutex_get(m, TX_WAIT_FOREVER);
     return (status == TX_SUCCESS) ? 0 : -1;
 }
+
 z_result_t _z_mutex_try_lock(_z_mutex_t *m) {
     UINT status = tx_mutex_get(m, TX_NO_WAIT); // Return immediately even if the mutex was not available
     return (status == TX_SUCCESS) ? 0 : -1;
 }
+
 z_result_t _z_mutex_unlock(_z_mutex_t *m) {
     UINT status = tx_mutex_put(m);
     return (status == TX_SUCCESS) ? 0 : -1;
@@ -155,23 +193,37 @@ z_result_t _z_condvar_init(_z_condvar_t *cv) {
     if (!cv) {
         return _Z_ERR_GENERIC;
     }
+
+    _z_res_t z_status = Z_OK;
+
+    /* Create mutex and semaphore */
     UINT m_status = tx_mutex_create(&cv->mutex, TX_NULL, TX_INHERIT);
     UINT s_status = tx_semaphore_create(&cv->sem, TX_NULL, 0);
     cv->waiters   = 0;
 
+    /* Check for errors */
     if (m_status != TX_SUCCESS || s_status != TX_SUCCESS) {
-        return _Z_ERR_GENERIC;
+        z_status = _Z_ERR_GENERIC;
+        return z_status;
     }
-    return _Z_RES_OK;
+
+    return z_status;
 }
 
 z_result_t _z_condvar_drop(_z_condvar_t *cv) {
     if (!cv) {
         return _Z_ERR_GENERIC;
     }
-    tx_mutex_delete(&cv->mutex);
-    tx_semaphore_delete(&cv->sem);
-    return _Z_RES_OK;
+
+    _z_res_t    z_status  = Z_OK;
+    tx_status_t tx_status = TX_SUCCESS;
+
+    tx_status = tx_mutex_delete(&cv->mutex);
+    if (tx_status != TX_SUCCESS) z_status = _Z_ERR_GENERIC;
+    tx_status = tx_semaphore_delete(&cv->sem);
+    if (tx_status != TX_SUCCESS) z_status = _Z_ERR_GENERIC;
+
+    return z_status;
 }
 
 z_result_t _z_condvar_signal(_z_condvar_t *cv) {

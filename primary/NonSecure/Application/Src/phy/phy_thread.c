@@ -107,7 +107,7 @@ void phy_thread_entry(uint32_t initial_input) {
         // if (phy_status != PHY_OK) Error_Handler();
 
         phy_fault_t fault = PHY_FAULT_NONE;
-        phy_status         = PHY_88Q211X_CheckFaults(&hphy0, &fault);
+        phy_status        = PHY_88Q211X_CheckFaults(&hphy0, &fault);
         // phy_status         = PHY_88Q211X_CheckFaults(&hphy1, &fault1);
         // phy_status         = PHY_88Q211X_CheckFaults(&hphy2, &fault2);
         //        if (fault != PHY_FAULT_NONE) {
