@@ -10,6 +10,7 @@
 #include "tx_mutex.h"
 #include "tx_semaphore.h"
 #include "nx_api.h"
+#include "main.h"
 
 #include "zenoh_cleanup.h"
 #include "comms_thread.h"
@@ -76,7 +77,7 @@ void zenoh_cleanup_nx() {
             }
             current_udp_socket = next_udp_socket;
             next_udp_socket    = current_udp_socket->nx_udp_socket_created_next;
-        } while ((current_udp_socket != _tx_semaphore_created_ptr));
+        } while ((current_udp_socket != nx_ip_instance.nx_ip_udp_created_sockets_ptr));
     }
 
     // TODO: Delete TCP sockets when implemented
