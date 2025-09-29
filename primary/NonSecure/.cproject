@@ -86,6 +86,7 @@
 									<listOptionValue builtIn="false" value="TX_INCLUDE_USER_DEFINE_FILE"/>
 									<listOptionValue builtIn="false" value="TX_PORT_USE_BASEPRI"/>
 									<listOptionValue builtIn="false" value="ZENOH_GENERIC"/>
+									<listOptionValue builtIn="false" value="Z_FEATURE_UNSTABLE_API"/>
 									<listOptionValue builtIn="false" value="HAL_ETH_USE_PTP"/>
 									<listOptionValue builtIn="false" value="TX_PORT_BASEPRI=16"/>
 								</option>
@@ -133,6 +134,7 @@
 									<listOptionValue builtIn="false" value="TX_INCLUDE_USER_DEFINE_FILE"/>
 									<listOptionValue builtIn="false" value="TX_PORT_USE_BASEPRI"/>
 									<listOptionValue builtIn="false" value="ZENOH_GENERIC"/>
+									<listOptionValue builtIn="false" value="Z_FEATURE_UNSTABLE_API"/>
 									<listOptionValue builtIn="false" value="HAL_ETH_USE_PTP"/>
 									<listOptionValue builtIn="false" value="TX_PORT_BASEPRI=16"/>
 								</option>

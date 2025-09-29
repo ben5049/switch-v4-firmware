@@ -32,7 +32,7 @@ void zenoh_cleanup_tx() {
             }
             current_thread = next_thread;
             next_thread    = current_thread->tx_thread_created_next;
-        } while ((current_thread != _tx_thread_created_ptr));
+        } while ((current_thread != _tx_thread_created_ptr) && (_tx_thread_created_count > 0));
     }
 
     if (_tx_mutex_created_count > 0) {
@@ -45,7 +45,7 @@ void zenoh_cleanup_tx() {
             }
             current_mutex = next_mutex;
             next_mutex    = current_mutex->tx_mutex_created_next;
-        } while ((current_mutex != _tx_mutex_created_ptr));
+        } while ((current_mutex != _tx_mutex_created_ptr) && (_tx_mutex_created_count > 0));
     }
 
     if (_tx_semaphore_created_count > 0) {
@@ -58,7 +58,7 @@ void zenoh_cleanup_tx() {
             }
             current_semaphore = next_semaphore;
             next_semaphore    = current_semaphore->tx_semaphore_created_next;
-        } while ((current_semaphore != _tx_semaphore_created_ptr));
+        } while ((current_semaphore != _tx_semaphore_created_ptr) && (_tx_semaphore_created_count > 0));
     }
 }
 
@@ -77,7 +77,7 @@ void zenoh_cleanup_nx() {
             }
             current_udp_socket = next_udp_socket;
             next_udp_socket    = current_udp_socket->nx_udp_socket_created_next;
-        } while ((current_udp_socket != nx_ip_instance.nx_ip_udp_created_sockets_ptr));
+        } while ((current_udp_socket != nx_ip_instance.nx_ip_udp_created_sockets_ptr) && (nx_ip_instance.nx_ip_udp_created_sockets_count > 0));
     }
 
     // TODO: Delete TCP sockets when implemented

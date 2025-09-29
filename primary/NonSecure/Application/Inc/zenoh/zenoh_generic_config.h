@@ -18,10 +18,13 @@ extern "C" {
 #define Z_BATCH_MULTICAST_SIZE           2048
 #define Z_CONFIG_SOCKET_TIMEOUT          100
 #define Z_TRANSPORT_LEASE                10000
+#define ZP_PERIODIC_SCHEDULER_MAX_TASKS  64
 
 #define Z_FEATURE_MULTI_THREAD           1
 #define Z_FEATURE_PUBLICATION            1
+#define Z_FEATURE_ADVANCED_PUBLICATION   0
 #define Z_FEATURE_SUBSCRIPTION           1
+#define Z_FEATURE_ADVANCED_SUBSCRIPTION  0
 #define Z_FEATURE_QUERY                  1
 #define Z_FEATURE_QUERYABLE              1
 #define Z_FEATURE_LIVELINESS             1
@@ -50,6 +53,7 @@ extern "C" {
 #define Z_FEATURE_UNICAST_PEER           1
 #define Z_FEATURE_AUTO_RECONNECT         0 /* Must be disabled: https://github.com/eclipse-zenoh/zenoh-pico/issues/1053 */
 #define Z_FEATURE_MULTICAST_DECLARATIONS 0
+#define Z_FEATURE_PERIODIC_TASKS         1
 
 
 /*------------------ Runtime configuration properties ------------------*/

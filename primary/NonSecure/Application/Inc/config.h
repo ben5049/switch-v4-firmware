@@ -47,7 +47,7 @@ extern "C" {
 #define MAC_ADDR_OCTET5                  (0x6a)
 #define MAC_ADDR_OCTET6                  (0x48)
 
-#define DEVICE_NAME                      ("switch-v4")
+#define DEVICE_NAME                      "switch-v4"
 
 #define NX_APP_DEFAULT_TIMEOUT           (10000)                                           /* Generic timeout for nx events (e.g. TCP send) in ms */
 #define NX_APP_PACKET_POOL_SIZE          ((DEFAULT_PAYLOAD_SIZE + sizeof(NX_PACKET)) * 32) /* Enough space for 32 max size packets */
@@ -145,7 +145,7 @@ extern "C" {
 #define COMMS_THREAD_PREMPTION_PRIORITY (15)
 
 #define ZENOH_MEM_POOL_SIZE             (1024 * 64)
-
+#define ZENOH_OPEN_SESSION_INTERVAL     (200) /* Time between attempts to open a session */
 
 #ifdef __cplusplus
 }

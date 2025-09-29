@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 #include "tx_api.h"
+#include "main.h"
 #include "zenoh-pico/config.h"
 #include "zenoh-pico/system/platform.h"
 #include "zenoh-pico/utils/logging.h"
@@ -49,6 +50,7 @@ void *z_malloc(size_t size) {
     uint8_t r = tx_byte_allocate(&zenoh_byte_pool, &ptr, size, TX_WAIT_FOREVER);
     if (r != TX_SUCCESS) {
         ptr = NULL;
+        Error_Handler();
     }
     return ptr;
 }
