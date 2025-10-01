@@ -14,6 +14,7 @@ extern "C" {
 
 
 #include "tx_api.h"
+#include "zenoh_generic_platform.h"
 
 
 /* ---------------------------------------------------------------------------- */
@@ -146,6 +147,18 @@ extern "C" {
 
 #define ZENOH_MEM_POOL_SIZE             (1024 * 64)
 #define ZENOH_OPEN_SESSION_INTERVAL     (200) /* Time between attempts to open a session */
+
+#define ZENOH_MODE                      Z_CONFIG_MODE_CLIENT
+#define ZENOH_LOCATOR                   "" /* Empty means it will scout */
+
+#define ZENOH_PUB_STATS_KEYEXPR         DEVICE_NAME "/stats"
+#define ZENOH_PUB_HEARTBEAT_KEYEXPR     DEVICE_NAME "/heartbeat" /* The topic to publish */
+
+#define ZENOH_SUB_HEARTBEAT_KEYEXPR     "server/heartbeat"
+
+#define HEARTBEAT_INTERVAL              (500)  /* ms */
+#define HEARTBEAT_MISS_TIMEOUT          (1500) /* ms, if the time between heartbeats is larger than this value then assume the producer has disconnected */
+
 
 #ifdef __cplusplus
 }

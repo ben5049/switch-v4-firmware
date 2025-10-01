@@ -20,18 +20,18 @@
 #include "ucdr/microcdr.h"
 #include "comms_thread.h"
 #include "switch_thread.h"
+#include "state_machine.h"
 
 
-#define MODE    "client"
-#define LOCATOR "" /* If empty, it will scout */
-// #define LOCATOR       "udp/192.168.50.2:6000"
+#define BUFFER_LENGTH (256) /* Max message size in bytes */
 
-#define PUB_STATS_KEYEXPR     DEVICE_NAME "/stats"
-#define PUB_HEARTBEAT_KEYEXPR DEVICE_NAME "/heartbeat" /* The topic to publish */
 
-#define SUB_HEARTBEAT_KEYEXPR "server/heartbeat"
-
-#define BUFFER_LENGTH         (256) /* Max message size in bytes */
+typedef enum {
+    HEARTBEAT_NOT_STARTED,
+    HEARTBEAT_CONSUMING,
+    HEARTBEAT_PRODUCING,
+    HEARTBEAT_MISSED,
+} heartbeat_state_t;
 
 
 uint8_t   comms_thread_stack[COMMS_THREAD_STACK_SIZE];
@@ -40,36 +40,49 @@ TX_THREAD comms_thread_handle;
 uint8_t      zenoh_byte_pool_buffer[ZENOH_MEM_POOL_SIZE] __ALIGNED(32);
 TX_BYTE_POOL zenoh_byte_pool;
 
-uint32_t restart_counter = 0;
+uint32_t          heartbeat_consumer_timestamp = 0;                     /* The last time a heartbeat was received */
+heartbeat_state_t heartbeat_consumer_state     = HEARTBEAT_NOT_STARTED; /* The state of the heartbeat consumer */
+
+/* Publishers */
+z_owned_publisher_t stats_pub;
+z_owned_publisher_t heartbeat_pub;
+
+/* Publisher options */
+static const z_publisher_options_t heartbeat_pub_options = {
+    .encoding           = NULL,
+    .congestion_control = Z_CONGESTION_CONTROL_BLOCK, /* This is an important message so don't drop it */
+    .priority           = Z_PRIORITY_DATA_HIGH,       /* Slightly higher priority than regular data */
+    .is_express         = true,                       /* Disable batching so the message is sent immediately */
+    .reliability        = Z_RELIABILITY_RELIABLE,
+};
 
 
-void liveliness_handler(z_loaned_sample_t* sample, void* ctx) {
+/* Called when a message is received from the topic ZENOH_SUB_HEARTBEAT_KEYEXPR */
+void heartbeat_sub_callback(z_loaned_sample_t* sample, void* ctx) {
     UNUSED(ctx);
-    z_sample_kind_t sample_kind = z_sample_kind(sample);
-    switch (sample_kind) {
-
-        /* New liveliness token */
-        case Z_SAMPLE_KIND_PUT:
-            break;
-
-        /* Liveliness token deleted */
-        case Z_SAMPLE_KIND_DELETE:
-            /* TODO: Signal to comms_thread that it needs to restart */
-            break;
-
-        default:
-            Error_Handler();
+    heartbeat_consumer_timestamp = tx_time_get_ms();
+    if (heartbeat_consumer_state == HEARTBEAT_NOT_STARTED) {
+        heartbeat_consumer_state = HEARTBEAT_CONSUMING;
     }
 }
 
 
+/* This thread manages the Zenoh Pico session initialisation, reconnection and heartbeats */
 void comms_thread_entry(uint32_t initial_input) {
 
-    tx_status_t tx_status    = TX_SUCCESS;
-    _z_res_t    z_status     = Z_OK;
-    bool        session_open = false;
+    tx_status_t tx_status       = TX_SUCCESS;
+    _z_res_t    z_status        = Z_OK;
+    bool        session_open    = false;
+    uint32_t    restart_counter = 0;
+    uint32_t    retry_counter   = 0;
 
     while (1) {
+
+        /* Reset variables */
+        tx_status                = TX_SUCCESS;
+        z_status                 = Z_OK;
+        session_open             = false;
+        heartbeat_consumer_state = HEARTBEAT_NOT_STARTED;
 
         /* Initialise the byte pool */
         tx_status = tx_byte_pool_create(&zenoh_byte_pool, "Zenoh Pico memory pool", zenoh_byte_pool_buffer, ZENOH_MEM_POOL_SIZE);
@@ -79,24 +92,24 @@ void comms_thread_entry(uint32_t initial_input) {
         z_owned_config_t config;
         z_status = z_config_default(&config);
         if (z_status < Z_OK) Error_Handler();
-        z_status = zp_config_insert(z_loan_mut(config), Z_CONFIG_MODE_KEY, MODE);
+        z_status = zp_config_insert(z_loan_mut(config), Z_CONFIG_MODE_KEY, ZENOH_MODE);
         if (z_status < Z_OK) Error_Handler();
-        if (strcmp(LOCATOR, "") != 0) {
-            if (strcmp(MODE, Z_CONFIG_MODE_CLIENT) == 0) {
-                z_status = zp_config_insert(z_loan_mut(config), Z_CONFIG_CONNECT_KEY, LOCATOR);
+        if (strcmp(ZENOH_LOCATOR, "") != 0) {
+            if (strcmp(ZENOH_MODE, Z_CONFIG_MODE_CLIENT) == 0) {
+                z_status = zp_config_insert(z_loan_mut(config), Z_CONFIG_CONNECT_KEY, ZENOH_LOCATOR);
                 if (z_status < Z_OK) Error_Handler();
             } else {
-                z_status = zp_config_insert(z_loan_mut(config), Z_CONFIG_LISTEN_KEY, LOCATOR);
+                z_status = zp_config_insert(z_loan_mut(config), Z_CONFIG_LISTEN_KEY, ZENOH_LOCATOR);
                 if (z_status < Z_OK) Error_Handler();
             }
         }
 
         /* Start a session */
-        z_owned_session_t s;
+        static z_owned_session_t session;
         do {
 
             /* Attempt to open session */
-            z_status = z_open(&s, z_move(config), NULL);
+            z_status = z_open(&session, z_move(config), NULL);
 
             /* Session open: proceed */
             if (z_status == Z_OK) {
@@ -105,15 +118,14 @@ void comms_thread_entry(uint32_t initial_input) {
 
             /* Unable to find other Zenoh devices: try again */
             else if (z_status == _Z_ERR_SCOUT_NO_RESULTS) {
-                z_sleep_ms(200);
-                goto restart;
-                continue;
+                z_sleep_ms(ZENOH_OPEN_SESSION_INTERVAL);
+                goto retry;
             }
 
             /* Error handling */
             else if (z_status == _Z_ERR_CONFIG_LOCATOR_SCHEMA_UNKNOWN) { /* Can occur when the router is not configured with the correct transport */
-                z_sleep_ms(200);
-                goto restart;
+                z_sleep_ms(ZENOH_OPEN_SESSION_INTERVAL);
+                goto retry;
             }
 
             /* Unhandled error: call system error handler */
@@ -121,61 +133,46 @@ void comms_thread_entry(uint32_t initial_input) {
 #ifdef DEBUG
                 Error_Handler();
 #endif
-                z_sleep_ms(200);
-                goto restart;
+                z_sleep_ms(ZENOH_OPEN_SESSION_INTERVAL);
+                goto retry;
             }
 
         } while (z_status < Z_OK);
 
         /* Start the read, lease tasks and periodic scheduler threads */
-        z_status = zp_start_read_task(z_loan_mut(s), NULL);
+        z_status = zp_start_read_task(z_loan_mut(session), NULL);
         if (z_status < Z_OK) Error_Handler();
-        z_status = zp_start_lease_task(z_loan_mut(s), NULL);
+        z_status = zp_start_lease_task(z_loan_mut(session), NULL);
         if (z_status < Z_OK) Error_Handler();
-        //        z_status = zp_start_periodic_scheduler_task(z_loan_mut(s), NULL);
+        //        z_status = zp_start_periodic_scheduler_task(z_loan_mut(session), NULL);
         //        if (z_status < Z_OK) Error_Handler();
 
         /* Declare publisher */
-        z_owned_publisher_t pub;
-        z_view_keyexpr_t    pke;
-        z_status = z_view_keyexpr_from_str(&pke, PUB_STATS_KEYEXPR);
+        z_view_keyexpr_t stats_pub_key;
+        z_status = z_view_keyexpr_from_str(&stats_pub_key, ZENOH_PUB_STATS_KEYEXPR);
         if (z_status < Z_OK) Error_Handler();
-        z_status = z_declare_publisher(z_loan(s), &pub, z_loan(pke), NULL);
+        z_status = z_declare_publisher(z_loan(session), &stats_pub, z_loan(stats_pub_key), NULL);
         if (z_status < Z_OK) Error_Handler();
 
-        /* Declare advanced subscriber */
-        //        ze_advanced_subscriber_options_t sub_opts;
-        //        ze_advanced_subscriber_options_default(&sub_opts);
-        //        ze_advanced_subscriber_history_options_default(&sub_opts.history);
-        //        sub_opts.history.detect_late_publishers = true;
-        //        ze_advanced_subscriber_recovery_options_default(&sub_opts.recovery);
-        //        ze_advanced_subscriber_last_sample_miss_detection_options_default(&sub_opts.recovery.last_sample_miss_detection);
-        //        sub_opts.recovery.last_sample_miss_detection.periodic_queries_period_ms = 0; /* Use publisher heartbeats by default, otherwise enable periodic queries by setting to > 0 */
-        //        sub_opts.subscriber_detection                                           = true;
-        // z_owned_closure_sample_t callback;
-        // z_closure(&callback, data_handler, NULL, NULL);
-        // ze_owned_advanced_subscriber_t sub;
+        /* Declare heartbeat publisher */
+        z_view_keyexpr_t heartbeat_pub_key;
+        z_status = z_view_keyexpr_from_str(&heartbeat_pub_key, ZENOH_PUB_HEARTBEAT_KEYEXPR);
+        if (z_status < Z_OK) Error_Handler();
+        z_status = z_declare_publisher(z_loan(session), &heartbeat_pub, z_loan(heartbeat_pub_key), &heartbeat_pub_options);
+        if (z_status < Z_OK) Error_Handler();
 
-        // z_status = ze_declare_advanced_subscriber(z_loan(s), &sub, z_loan(ke), z_move(callback), &sub_opts);
-        // if (z_status < Z_OK) Error_Handler();
-        // ze_owned_closure_miss_t         miss_callback;
-        // ze_owned_sample_miss_listener_t miss_listener;
-        // z_closure(&miss_callback, miss_handler, NULL, NULL);
-        // ze_advanced_subscriber_declare_sample_miss_listener(z_loan(sub), &miss_listener, z_move(miss_callback));
-        //        z_owned_closure_sample_t liveliness_callback;
-        //        z_closure(&liveliness_callback, liveliness_handler, NULL, NULL);
+        /* Declare heartbeat background subscriber */
+        z_view_keyexpr_t heartbeat_sub_key;
+        z_status = z_view_keyexpr_from_str(&heartbeat_sub_key, ZENOH_SUB_HEARTBEAT_KEYEXPR);
+        if (z_status < Z_OK) Error_Handler();
+        z_owned_closure_sample_t heartbeat_closure;
+        z_closure(&heartbeat_closure, heartbeat_sub_callback, NULL, NULL);
+        z_status = z_declare_background_subscriber(z_loan(session), z_loan(heartbeat_sub_key), z_move(heartbeat_closure), NULL);
+        if (z_status < Z_OK) Error_Handler();
 
-        // z_owned_subscriber_t liveliness_sub;
-        // z_status = ze_advanced_subscriber_detect_publishers(z_loan(sub), &liveliness_sub, z_move(liveliness_callback), &liveliness_sub_opt);
-        // if (z_status < Z_OK) Error_Handler();
-
-        // z_view_keyexpr_t ske;
-        // z_status = z_view_keyexpr_from_str(&ske, SUB_HEARTBEAT_KEYEXPR);
-        // if (z_status < Z_OK) Error_Handler();
-        // z_owned_closure_sample_t liveliness_callback;
-        // z_closure(&liveliness_callback, liveliness_handler, NULL, NULL);
-        // z_status = z_liveliness_declare_background_subscriber(z_loan(s), z_loan(ske), z_move(liveliness_callback), NULL);
-        // if (z_status < Z_OK) Error_Handler();
+        /* Notify the state machine */
+        tx_status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_ZENOH_CONNECTED | STATE_MACHINE_UPDATE, TX_OR);
+        if (tx_status != TX_SUCCESS) Error_Handler();
 
         /* Initialise the Micro CDR buffers */
         uint8_t*   buffer = z_malloc(BUFFER_LENGTH);
@@ -184,55 +181,58 @@ void comms_thread_entry(uint32_t initial_input) {
         ucdr_init_buffer(&writer, buffer, BUFFER_LENGTH);
         ucdr_init_buffer(&reader, buffer, BUFFER_LENGTH);
 
-        session_open = z_internal_session_check(&s);
+        session_open = !z_session_is_closed(z_loan(session));
         while (session_open) {
 
-            // {
-            //     bool port_states[SJA1105_NUM_PORTS];
-            //     for (uint_fast8_t i = 0; i < SJA1105_NUM_PORTS; i++) {
-            //         SJA1105_PortGetForwarding(&hsja1105, i, port_states + i);
-            //     }
-            //     ucdr_init_buffer(&writer, buffer, BUFFER_LENGTH);
-            //     ucdr_serialize_array_bool(&writer, port_states, SJA1105_NUM_PORTS);
-            // }
-
-            {
-                sja1105_statistics_t stats;
-                if (SJA1105_ReadStatistics(&hsja1105, &stats) != SJA1105_OK) Error_Handler();
-                uint64_t total_received_bytes = 0;
-                for (uint_fast8_t i = 0; i < SJA1105_NUM_PORTS; i++) total_received_bytes += stats.rx_bytes[i];
-                ucdr_init_buffer(&writer, buffer, BUFFER_LENGTH);
-                ucdr_serialize_uint64_t(&writer, total_received_bytes);
+            /* Check if the server has died */
+            if ((heartbeat_consumer_state == HEARTBEAT_CONSUMING) &&
+                (tx_time_get_ms() > (heartbeat_consumer_timestamp + HEARTBEAT_MISS_TIMEOUT))) {
+                heartbeat_consumer_state = HEARTBEAT_MISSED;
+                goto restart;
+                // TODO: Log in a specific zenoh event counter?
             }
 
-            /* Create payload */
+            /* Create the heartbeat payload. TODO: Change heartbeat message to include uptime and other info */
+            ucdr_init_buffer(&writer, buffer, BUFFER_LENGTH);
+            ucdr_serialize_bool(&writer, true);
             z_owned_bytes_t payload;
             z_status = z_bytes_copy_from_buf(&payload, buffer, writer.offset);
             if (z_status < Z_OK) goto restart;
 
-            /* Publish the message */
+            /* Publish heartbeat message */
             z_publisher_put_options_t options;
             z_publisher_put_options_default(&options);
-            z_status = z_publisher_put(z_loan(pub), z_move(payload), &options);
+            z_status = z_publisher_put(z_loan(heartbeat_pub), z_move(payload), &options);
             if (z_status < Z_OK) goto restart;
 
-            // /* Check the free space in the byte pool */
-            // tx_status = tx_byte_pool_info_get(&zenoh_byte_pool, NULL, &zenoh_bytes_available, NULL, NULL, NULL, NULL);
-            // if (tx_status != TX_SUCCESS) goto restart;
-
-            z_status = z_sleep_ms(1000);
-            if (z_status < Z_OK) goto restart;
-
-            session_open = z_internal_session_check(&s);
+            /* Sleep for HEARTBEAT_INTERVAL ms */
+            tx_status = tx_thread_sleep_ms(HEARTBEAT_INTERVAL);
+            if (tx_status != TX_SUCCESS) Error_Handler();
+            session_open = !z_session_is_closed(z_loan(session));
         }
 
+    /* An error occured while running */
     restart:
+
+        /* Notify the state machine */
+        tx_status = tx_event_flags_set(&state_machine_events_handle, ~STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED, TX_AND);
+        if (tx_status != TX_SUCCESS) Error_Handler();
+        tx_status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_UPDATE, TX_OR);
+        if (tx_status != TX_SUCCESS) Error_Handler();
 
         restart_counter++;
 
         /* Clean-up. TODO: Decide if this is useful */
         // z_drop(z_move(pub));
-        // z_drop(z_move(s));
+        // z_drop(z_move(session));
+
+    /* An error occured while connecting */
+    retry:
+
+        retry_counter++;
+
+        /* Clear the session to make sure other threads can't send messages */
+        z_internal_session_null(&session);
 
         /* Delete all the threads, mutexes and semaphores created by Zenoh Pico */
         zenoh_cleanup_tx();
@@ -243,7 +243,5 @@ void comms_thread_entry(uint32_t initial_input) {
         /* Delete the byte pool */
         tx_status = tx_byte_pool_delete(&zenoh_byte_pool);
         if (tx_status != TX_SUCCESS) Error_Handler();
-
-        // Error_Handler(); // TODO: Delete
     }
 }

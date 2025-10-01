@@ -15,9 +15,10 @@
 #include "config.h"
 
 
-#define STATE_MACHINE_ALL_EVENTS                   ((ULONG) 0xffffffff)
-#define STATE_MACHINE_NX_LINK_UP_EVENT             ((ULONG) 1 << 0)
-#define STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED_EVENT ((ULONG) 1 << 1)
+#define STATE_MACHINE_NX_LINK_UP             ((ULONG) 1 << 0)
+#define STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED ((ULONG) 1 << 1)
+#define STATE_MACHINE_ZENOH_CONNECTED        ((ULONG) 1 << 2)
+#define STATE_MACHINE_UPDATE                 ((ULONG) 1 << 31) /* Must be set for the state machine thread to react */
 
 
 extern TX_THREAD            state_machine_thread_handle;

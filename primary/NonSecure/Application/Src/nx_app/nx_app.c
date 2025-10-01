@@ -52,7 +52,7 @@ nx_status_t nx_setup(TX_BYTE_POOL *byte_pool) {
     if (tx_status != TX_SUCCESS) return NX_STATUS_POOL_ERROR;
 
     /* Create the main NX_IP instance */
-    nx_status = nx_ip_create(&nx_ip_instance, "NetX Ip instance", NX_DEFAULT_IP_ADDRESS, NX_DEFAULT_NET_MASK, &nx_packet_pool, nx_stm32_eth_driver, pointer, NX_INTERNAL_IP_THREAD_STACK_SIZE, NX_INTERNAL_IP_THREAD_PRIORITY);
+    nx_status = nx_ip_create(&nx_ip_instance, "NetX IP instance", NX_DEFAULT_IP_ADDRESS, NX_DEFAULT_NET_MASK, &nx_packet_pool, nx_stm32_eth_driver, pointer, NX_INTERNAL_IP_THREAD_STACK_SIZE, NX_INTERNAL_IP_THREAD_PRIORITY);
     if (nx_status != NX_SUCCESS) return nx_status;
 
     /* Allocate the memory for ARP */
@@ -63,7 +63,7 @@ nx_status_t nx_setup(TX_BYTE_POOL *byte_pool) {
     nx_status = nx_arp_enable(&nx_ip_instance, (void *) pointer, DEFAULT_ARP_CACHE_SIZE);
     if (nx_status != NX_SUCCESS) return nx_status;
 
-    /* Enable the ICMP */
+    /* Enable ICMP */
     nx_status = nx_icmp_enable(&nx_ip_instance);
     if (nx_status != NX_SUCCESS) return nx_status;
 
@@ -76,7 +76,7 @@ nx_status_t nx_setup(TX_BYTE_POOL *byte_pool) {
     if (nx_status != NX_SUCCESS) return nx_status;
 
     /* Create the DHCP client */
-    nx_status = nx_dhcp_create(&dhcp_client, &nx_ip_instance, "Switch V4 DHCP Client");
+    nx_status = nx_dhcp_create(&dhcp_client, &nx_ip_instance, DEVICE_NAME " DHCP client");
     if (nx_status != NX_SUCCESS) return nx_status;
 
     return nx_status;

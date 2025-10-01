@@ -40,7 +40,7 @@ static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
     if (ip_address != NULL_ADDRESS) {
 
         /* Notify the state machine */
-        if (tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED_EVENT, TX_OR) != TX_SUCCESS) {
+        if (tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED | STATE_MACHINE_UPDATE, TX_OR) != TX_SUCCESS) {
             Error_Handler();
         }
     }
@@ -49,7 +49,10 @@ static void ip_address_change_notify_callback(NX_IP *ip_instance, void *ptr) {
     else {
 
         /* Notify the state machine */
-        if (tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED_EVENT, TX_OR_CLEAR) != TX_SUCCESS) {
+        if (tx_event_flags_set(&state_machine_events_handle, ~STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED, TX_AND) != TX_SUCCESS) {
+            Error_Handler();
+        }
+        if (tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_UPDATE, TX_OR) != TX_SUCCESS) {
             Error_Handler();
         }
     }
@@ -91,7 +94,7 @@ void nx_link_thread_entry(uint32_t thread_input) {
                 if ((nx_status != NX_SUCCESS) && (nx_status != NX_ALREADY_ENABLED)) Error_Handler();
 
                 /* Notify the state machine that the link is up */
-                tx_status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_NX_LINK_UP_EVENT, TX_OR);
+                tx_status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_NX_LINK_UP | STATE_MACHINE_UPDATE, TX_OR);
                 if (tx_status != TX_SUCCESS) Error_Handler();
 
                 /* Send request to check if an address is resolved */

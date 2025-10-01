@@ -29,8 +29,9 @@ TX_EVENT_FLAGS_GROUP state_machine_events_handle;
 
 void state_machine_thread_entry(uint32_t initial_input) {
 
-    uint32_t    event_flags;
-    tx_status_t status = TX_SUCCESS;
+    uint32_t    event_flags          = 0;
+    uint32_t    event_flags_previous = 0;
+    tx_status_t status               = TX_SUCCESS;
 
     /* Startup sequence */
 
@@ -45,7 +46,9 @@ void state_machine_thread_entry(uint32_t initial_input) {
     /* -------------------- Link Up -------------------- */
 
     /* Wait for the link to be up (from nx_link_thread_entry) */
-    status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_NX_LINK_UP_EVENT, TX_OR, &event_flags, TX_WAIT_FOREVER);
+    status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_NX_LINK_UP | STATE_MACHINE_UPDATE, TX_AND, &event_flags, TX_WAIT_FOREVER);
+    if (status != TX_SUCCESS) Error_Handler();
+    tx_event_flags_set(&state_machine_events_handle, ~STATE_MACHINE_UPDATE, TX_AND);
     if (status != TX_SUCCESS) Error_Handler();
 
 #if ENABLE_STP_THREAD == true
@@ -56,7 +59,9 @@ void state_machine_thread_entry(uint32_t initial_input) {
     /* -------------------- Network Up -------------------- */
 
     /* Wait for the network to be initialised and an IP address assigned */
-    status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED_EVENT, TX_OR, &event_flags, TX_WAIT_FOREVER);
+    status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_NX_IP_ADDRESS_ASSIGNED | STATE_MACHINE_UPDATE, TX_AND, &event_flags, TX_WAIT_FOREVER);
+    if (status != TX_SUCCESS) Error_Handler();
+    tx_event_flags_set(&state_machine_events_handle, ~STATE_MACHINE_UPDATE, TX_AND);
     if (status != TX_SUCCESS) Error_Handler();
 
     /* Start the threads that require networking */
@@ -66,6 +71,12 @@ void state_machine_thread_entry(uint32_t initial_input) {
     // if (status != TX_SUCCESS) Error_Handler();
 
     while (1) {
-        tx_thread_sleep_ms(1000);
+
+        /* Wait for an update */
+        status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_UPDATE, TX_OR_CLEAR, &event_flags, TX_WAIT_FOREVER);
+        if (status != TX_SUCCESS) Error_Handler();
+
+        /* Save the previous state */
+        event_flags_previous = event_flags;
     }
 }
