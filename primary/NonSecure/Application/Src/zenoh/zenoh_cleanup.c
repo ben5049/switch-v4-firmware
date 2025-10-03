@@ -27,6 +27,8 @@ void zenoh_cleanup_tx() {
         TX_THREAD *next_thread    = current_thread->tx_thread_created_next;
         do {
             if (((uint8_t *) current_thread >= zenoh_byte_pool_buffer) && ((uint8_t *) current_thread < (zenoh_byte_pool_buffer + ZENOH_MEM_POOL_SIZE))) {
+                status = tx_thread_terminate(current_thread);
+                if (status != TX_SUCCESS) Error_Handler();
                 status = tx_thread_delete(current_thread);
                 if (status != TX_SUCCESS) Error_Handler();
             }
@@ -72,6 +74,8 @@ void zenoh_cleanup_nx() {
         NX_UDP_SOCKET *next_udp_socket    = current_udp_socket->nx_udp_socket_created_next;
         do {
             if (((uint8_t *) current_udp_socket >= zenoh_byte_pool_buffer) && ((uint8_t *) current_udp_socket < (zenoh_byte_pool_buffer + ZENOH_MEM_POOL_SIZE))) {
+                status = nx_udp_socket_unbind(current_udp_socket);
+                if ((status != NX_SUCCESS) && (status != NX_NOT_BOUND)) Error_Handler();
                 status = nx_udp_socket_delete(current_udp_socket);
                 if (status != NX_SUCCESS) Error_Handler();
             }
@@ -81,4 +85,6 @@ void zenoh_cleanup_nx() {
     }
 
     // TODO: Delete TCP sockets when implemented
+
+    // TODO: Release any held packets (check if this is done in unbind/delete)
 }

@@ -119,7 +119,8 @@
         "microcdr.h": "c",
         "stddef.h": "c",
         "zenoh-pico.h": "c",
-        "zenoh_cleanup.h": "c"
+        "zenoh_cleanup.h": "c",
+        "constants.h": "c"
     },
     "esbonio.server.enabled": false,
     "cmake.ignoreCMakeListsMissing": true,
@@ -156,6 +157,7 @@
         "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/unix": true,
         "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/windows": true,
         "primary/Libraries/zenoh-pico/include/zenoh-pico/src/system/zephyr": true,
+        "primary/Libraries/zenoh-pico/examples": true,
     },
     "C_Cpp.clang_format_fallbackStyle": "none",
     "C_Cpp.clang_format_sortIncludes": false,

@@ -5,5 +5,6 @@
 - Fix SJA1105 SPI read alignment
 - ECC read background task
 - Count Zenoh events
+    - Bytes/packets received
 - Create heartbeat message
 - Publish diagnostics

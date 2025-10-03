@@ -68,7 +68,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/zenoh}&quot;"/>
 									<listOptionValue builtIn="false" value="../wolfSSL"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl/"/>
-									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/addons/mdns"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/Third_Party/wolfSSL_wolfSSL_wolfSSL/wolfssl"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/addons/dns"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/micro-cdr/include}&quot;"/>

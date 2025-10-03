@@ -111,9 +111,10 @@ extern "C" {
 #define SWITCH_THREAD_PRIORITY            (15)
 #define SWITCH_THREAD_PREMPTION_PRIORITY  (15)
 
-#define SWITCH_MAINTENANCE_FREQUENCY      (2)                       /* Frequency of checking switch diagnostics in Hz */
+#define SWITCH_MAINTENANCE_INTERVAL       (500)                     /* Time between performing switch maintenance operations in ms */
+#define SWITCH_PUBLISH_STATS_INTERVAL     (1000)                    /* Time between publishing switch statistic in ms */
 
-#define SWITCH_MEM_POOL_SIZE              (1024 * sizeof(uint32_t)) /* 1024 Words should be enough for most variable length tables. TODO Check */
+#define SWITCH_MEM_POOL_SIZE              (1024 * sizeof(uint32_t)) /* 1024 Words should be enough for most variable length tables. TODO: Check */
 
 /* ---------------------------------------------------------------------------- */
 /* PHY Config */

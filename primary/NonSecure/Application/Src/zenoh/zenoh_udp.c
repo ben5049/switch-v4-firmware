@@ -26,6 +26,7 @@
 
 #include "zenoh_generic_config.h"
 #include "nx_app.h"
+#include "comms_thread.h"
 
 
 #if Z_FEATURE_LINK_UDP_UNICAST == 1 || Z_FEATURE_LINK_UDP_MULTICAST == 1
@@ -49,7 +50,7 @@ z_result_t _z_create_endpoint_udp(_z_sys_net_endpoint_t *ep, const char *s_addre
         _Z_ERROR_LOG(status);
         return status;
     }
-    if ((b1 > UINT8_MAX) || (b2 > UINT8_MAX) || (b3 > UINT8_MAX) || (b4 > UINT8_MAX)) {
+    if (((b1 > UINT8_MAX) || (b2 > UINT8_MAX) || (b3 > UINT8_MAX) || (b4 > UINT8_MAX)) || ((b1 == 0) && (b2 == 0) && (b3 == 0) && (b4 == 0))) {
         status = _Z_ERR_GENERIC;
         _Z_ERROR_LOG(status);
         return status;
@@ -153,6 +154,7 @@ void _z_close_udp_unicast(_z_sys_net_socket_t *sock) {
 }
 
 
+// FIXME: Don't drop the packet as there may be another read
 size_t _z_read_exact_udp_unicast(const _z_sys_net_socket_t sock, uint8_t *ptr, size_t len) {
 
     _z_res_t   status      = Z_OK;
@@ -250,7 +252,9 @@ size_t _z_send_udp_unicast(const _z_sys_net_socket_t sock, const uint8_t *ptr, s
         return bytes_sent;
     }
 
-    bytes_sent = len;
+    zenoh_events.packets_sent++;
+    zenoh_events.bytes_sent += len;
+    bytes_sent               = len;
     return bytes_sent;
 }
 
@@ -359,6 +363,7 @@ void _z_close_udp_multicast(_z_sys_net_socket_t *sockrecv, _z_sys_net_socket_t *
 }
 
 
+// FIXME: Don't drop the packet as there may be another read
 size_t _z_read_exact_udp_multicast(const _z_sys_net_socket_t sock, uint8_t *ptr, size_t len, const _z_sys_net_endpoint_t lep, _z_slice_t *ep) {
 
     _z_res_t   status      = Z_OK;
