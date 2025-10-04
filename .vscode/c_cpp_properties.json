@@ -4,7 +4,8 @@
             "name": "primary-debug",
             "includePath": [
                 "primary/**",
-                "primary/Libraries/nanopb/*"
+                "primary/Libraries/nanopb/*",
+                "primary/Libraries/phy-drivers/inc/*"
             ],
             "defines": [
                 "USE_HAL_DRIVER",

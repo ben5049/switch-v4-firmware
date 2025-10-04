@@ -42,25 +42,4 @@
         ".metadata": true,
     },
     "search.useIgnoreFiles": true,
-    "files.associations": {
-        "ptp_callbacks.h": "c",
-        "zenoh-pico.h": "c",
-        "zenoh_generic_config.h": "c",
-        "nx_app.h": "c",
-        "checksum.h": "c",
-        "charconv": "c",
-        "chrono": "c",
-        "optional": "c",
-        "format": "c",
-        "ranges": "c",
-        "ratio": "c",
-        "system_error": "c",
-        "array": "c",
-        "functional": "c",
-        "regex": "c",
-        "tuple": "c",
-        "type_traits": "c",
-        "utility": "c",
-        "random": "c"
-    }
 }

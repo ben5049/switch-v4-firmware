@@ -1,3 +1,11 @@
+
+#define CHECK(func)                                        \
+     do {                                                   \
+         status = (func);                                   \
+         sja1105_check_status_msg(&hsja1105, status, true); \
+     } while (0)
+
+
 /* Private function prototypes */
 // static void sja1105_check_status_msg(sja1105_handle_t *dev, sja1105_status_t to_check, bool recurse);
 

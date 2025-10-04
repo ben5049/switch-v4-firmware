@@ -39,6 +39,9 @@ extern atomic_uint_fast32_t sja1105_error_counter;
 extern sja1105_handle_t     hsja1105;
 extern const uint32_t      *sja1105_static_conf;
 extern uint32_t             sja1105_static_conf_size;
+extern float                switch_temperature;
+extern bool                 switch_temperature_valid;
+
 
 /* Exported functions*/
 sja1105_status_t switch_init(sja1105_handle_t *dev);

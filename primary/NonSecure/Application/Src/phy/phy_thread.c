@@ -21,7 +21,8 @@
 uint8_t   phy_thread_stack[PHY_THREAD_STACK_SIZE];
 TX_THREAD phy_thread_handle;
 
-volatile float phy_temperatures[NUM_PHYS];
+float phy_temperatures[NUM_PHYS];
+bool  phy_temperatures_valid[NUM_PHYS];
 
 
 void phy_thread_entry(uint32_t initial_input) {
@@ -30,12 +31,11 @@ void phy_thread_entry(uint32_t initial_input) {
     tx_status_t               tx_status   = TX_SUCCESS;
     phy_cable_state_88q211x_t cable_state = PHY_CABLE_STATE_88Q211X_NOT_STARTED;
     uint32_t                  event_flags = 0;
-    int16_t                   temperature = 0;
     bool                      link_up     = false;
 
     UNUSED(cable_state); // TODO: Use
 
-    memset(&phy_temperatures, 0, sizeof(phy_temperatures));
+    memset((bool *) &phy_temperatures_valid, 0, sizeof(phy_temperatures_valid));
 
     /* Initialise PHYs */
     phy_status = phys_init();
@@ -95,15 +95,12 @@ void phy_thread_entry(uint32_t initial_input) {
         next_wake_time += PHY_THREAD_INTERVAL;
 
         /* Read temperatures */
-        phy_status = PHY_88Q211X_ReadTemperature(&hphy0, &temperature);
+        phy_status = PHY_88Q211X_ReadTemperature(&hphy0, &(phy_temperatures[0]), &(phy_temperatures_valid[0]));
         if (phy_status != PHY_OK) Error_Handler();
-        phy_temperatures[0] = (float) temperature;
-        // phy_status = PHY_88Q211X_ReadTemperature(&hphy1, &temperature);
-        // if (phy_status != PHY_OK) Error_Handler();
-        // phy_temperatures[1] = (float) temperature;
-        // phy_status = PHY_88Q211X_ReadTemperature(&hphy2, &temperature);
-        // if (phy_status != PHY_OK) Error_Handler();
-        // phy_temperatures[2] = (float) temperature;
+        phy_status = PHY_88Q211X_ReadTemperature(&hphy1, &(phy_temperatures[1]), &(phy_temperatures_valid[1]));
+        if (phy_status != PHY_OK) Error_Handler();
+        phy_status = PHY_88Q211X_ReadTemperature(&hphy2, &(phy_temperatures[2]), &(phy_temperatures_valid[2]));
+        if (phy_status != PHY_OK) Error_Handler();
 
         /* Poll link states in case an interrupt is missed */
         phy_status = PHY_88Q211X_GetLinkState(&hphy0, &link_up);
