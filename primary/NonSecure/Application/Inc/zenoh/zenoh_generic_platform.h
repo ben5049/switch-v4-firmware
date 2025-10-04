@@ -15,12 +15,12 @@ extern "C" {
 
 #include "stdbool.h"
 #include "stdint.h"
-#include <sys/_timespec.h>
 
 #include "zenoh-pico/config.h"
 #include "hal.h"
 #include "tx_api.h"
 #include "nx_api.h"
+#include "nxd_ptp_client.h"
 
 
 #ifndef Z_TASK_STACK_SIZE
@@ -64,9 +64,8 @@ typedef struct {
     UINT         waiters;
 } _z_condvar_t;
 
-
-typedef struct timespec z_clock_t;
-typedef ULONG           z_time_t;
+typedef NX_PTP_TIME z_clock_t;
+typedef ULONG       z_time_t;
 
 #if Z_FEATURE_LINK_SERIAL == 1
 #ifndef ZENOH_HUART

@@ -78,5 +78,7 @@ void state_machine_thread_entry(uint32_t initial_input) {
 
         /* Save the previous state */
         event_flags_previous = event_flags;
+
+        UNUSED(event_flags_previous); /* TODO: Remove when used */
     }
 }

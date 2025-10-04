@@ -11,6 +11,9 @@
 #include "nx_stm32_eth_config.h"
 #include "main.h"
 
+#include "pb_encode.h"
+#include "heartbeat.pb.h"
+
 #include "tx_app.h"
 #include "nx_app.h"
 #include "utils.h"
@@ -18,13 +21,9 @@
 #include "encodings.h"
 #include "zenoh-pico.h"
 #include "zenoh_cleanup.h"
-#include "ucdr/microcdr.h"
 #include "comms_thread.h"
 #include "switch_thread.h"
 #include "state_machine.h"
-
-
-#define HEARTBEAT_BUFFER_LENGTH (16) /* Max message size in bytes */
 
 
 typedef enum {
@@ -44,7 +43,7 @@ TX_BYTE_POOL zenoh_byte_pool;
 /* Heartbeat variables */
 static atomic_uint_fast32_t      heartbeat_consumer_timestamp = 0;                     /* The last time a heartbeat was received */
 static _Atomic heartbeat_state_t heartbeat_consumer_state     = HEARTBEAT_NOT_STARTED; /* The state of the heartbeat consumer */
-static uint8_t                   heartbeat_producer_buffer[HEARTBEAT_BUFFER_LENGTH];
+static uint8_t                   heartbeat_producer_buffer[HEARTBEAT_PB_H_MAX_SIZE];
 
 zenoh_event_counters_t zenoh_events;
 
@@ -75,12 +74,15 @@ void heartbeat_sub_callback(z_loaned_sample_t* sample, void* ctx) {
 /* This thread manages the Zenoh Pico session initialisation, reconnection and heartbeats */
 void comms_thread_entry(uint32_t initial_input) {
 
-    tx_status_t        tx_status             = TX_SUCCESS;
-    _z_res_t           z_status              = Z_OK;
-    bool               session_open          = false;
-    uint32_t           restart_retry_counter = 0;
-    uint32_t           current_time          = tx_time_get_ms();
-    ucdrBuffer         heartbeat_writer;
+    tx_status_t tx_status             = TX_SUCCESS;
+    _z_res_t    z_status              = Z_OK;
+    bool        session_open          = false;
+    uint32_t    restart_retry_counter = 0;
+    uint32_t    current_time          = tx_time_get_ms();
+
+    Heartbeat    heartbeat = Heartbeat_init_zero;
+    pb_ostream_t heartbeat_stream;
+
     z_owned_encoding_t heartbeat_encoding;
 
     memset(&zenoh_events, 0, sizeof(zenoh_event_counters_t));
@@ -201,11 +203,15 @@ void comms_thread_entry(uint32_t initial_input) {
                 goto close;
             }
 
-            /* Create the heartbeat payload. TODO: Change heartbeat message to include uptime and other info */
-            ucdr_init_buffer(&heartbeat_writer, heartbeat_producer_buffer, HEARTBEAT_BUFFER_LENGTH);
-            ucdr_serialize_bool(&heartbeat_writer, true);
+            /* Create the heartbeat payload  */
+            heartbeat_stream         = pb_ostream_from_buffer(heartbeat_producer_buffer, HEARTBEAT_PB_H_MAX_SIZE);
+            heartbeat.status         = ServiceStatus_OK; /* TODO: Send actual status */
+            heartbeat.uptime         = current_time;
+            heartbeat.error_code     = 0;                /* TODO: Send error code */
+            heartbeat.has_error_code = false;            /* TODO: Send error code */
+            if (!pb_encode(&heartbeat_stream, Heartbeat_fields, &heartbeat)) Error_Handler();
             z_owned_bytes_t payload;
-            z_status = z_bytes_from_static_buf(&payload, heartbeat_producer_buffer, heartbeat_writer.offset);
+            z_status = z_bytes_from_static_buf(&payload, heartbeat_producer_buffer, heartbeat_stream.bytes_written);
             if (z_status < Z_OK) goto restart;
 
             /* Publish heartbeat message */

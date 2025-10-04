@@ -52,9 +52,9 @@ typedef struct {
     atomic_uint_fast32_t connections;
     atomic_uint_fast32_t heartbeats_missed;
     atomic_uint_fast32_t packets_sent;
-    atomic_uint_fast64_t bytes_sent;
+    uint64_t             bytes_sent;     /* No 64-bit atomics so accesses should use TX_DISABLE */
     atomic_uint_fast32_t packets_received;
-    atomic_uint_fast64_t bytes_received;
+    uint64_t             bytes_received; /* No 64-bit atomics so accesses should use TX_DISABLE */
 } zenoh_event_counters_t;
 
 

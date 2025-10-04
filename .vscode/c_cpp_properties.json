@@ -1,0 +1,36 @@
+{
+    "configurations": [
+        {
+            "name": "primary-debug",
+            "includePath": [
+                "primary/**",
+                "primary/Libraries/nanopb/*"
+            ],
+            "defines": [
+                "USE_HAL_DRIVER",
+                "STM32H573xx",
+                "TX_SINGLE_MODE_NON_SECURE=1",
+                "TX_INCLUDE_USER_DEFINE_FILE",
+                "NX_INCLUDE_USER_DEFINE_FILE",
+                "NX_SECURE_INCLUDE_USER_DEFINE_FILE",
+                "ZENOH_GENERIC",
+                "Z_FEATURE_UNSTABLE_API",
+                "DEBUG",
+                "HAL_ETH_USE_PTP",
+                "TX_PORT_USE_BASEPRI"
+            ],
+            "compilerPath": "arm-none-eabi-gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++20",
+            "intelliSenseMode": "gcc-arm",
+            "browse": {
+                "path": [
+                    "primary/**",
+                    "primary/Libraries/nanopb/*"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}

@@ -6,5 +6,6 @@
 - ECC read background task
 - Count Zenoh events
     - Bytes/packets received
-- Create heartbeat message
 - Publish diagnostics
+- Add Zenoh link QoS when "priority mappings on Zenoh links" is merged (before end of 2025)
+- DHCP IP address caching

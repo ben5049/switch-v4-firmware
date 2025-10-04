@@ -281,7 +281,7 @@ z_result_t _z_condvar_wait_until(_z_condvar_t *cv, _z_mutex_t *m, const z_clock_
     }
 
     ULONG now            = tx_time_get();
-    ULONG target_time    = (abstime->tv_sec * 1000 + abstime->tv_nsec / 1000000) * (TX_TIMER_TICKS_PER_SECOND / 1000);
+    ULONG target_time    = (abstime->second_low * 1000 + abstime->nanosecond / 1000000) * (TX_TIMER_TICKS_PER_SECOND / 1000);
     ULONG block_duration = (target_time > now) ? (target_time - now) : 0;
 
     tx_mutex_get(&cv->mutex, TX_WAIT_FOREVER);
@@ -324,9 +324,9 @@ z_result_t z_sleep_s(size_t time) {
 /*------------------ Clock ------------------*/
 
 void __z_clock_gettime(z_clock_t *ts) {
-    uint64_t ms = tx_time_get() * (TX_TIMER_TICKS_PER_SECOND / 1000);
-    ts->tv_sec  = ms / (uint64_t) 1000;
-    ts->tv_nsec = (ms % (uint64_t) 1000) * (uint64_t) 1000;
+    uint64_t ms    = tx_time_get_ms();
+    ts->second_low = ms / (uint64_t) 1000;
+    ts->nanosecond = (ms % (uint64_t) 1000) * (uint64_t) 1000;
 }
 
 z_clock_t z_clock_now(void) {
@@ -339,7 +339,7 @@ unsigned long z_clock_elapsed_us(z_clock_t *instant) {
     z_clock_t now;
     __z_clock_gettime(&now);
 
-    unsigned long elapsed = (1000000 * (now.tv_sec - instant->tv_sec) + (now.tv_nsec - instant->tv_nsec) / 1000);
+    unsigned long elapsed = (1000000 * (now.second_low - instant->second_low) + (now.nanosecond - instant->nanosecond) / 1000);
     return elapsed;
 }
 
@@ -347,7 +347,7 @@ unsigned long z_clock_elapsed_ms(z_clock_t *instant) {
     z_clock_t now;
     __z_clock_gettime(&now);
 
-    unsigned long elapsed = (1000 * (now.tv_sec - instant->tv_sec) + (now.tv_nsec - instant->tv_nsec) / 1000000);
+    unsigned long elapsed = (1000 * (now.second_low - instant->second_low) + (now.nanosecond - instant->nanosecond) / 1000000);
     return elapsed;
 }
 
@@ -355,31 +355,31 @@ unsigned long z_clock_elapsed_s(z_clock_t *instant) {
     z_clock_t now;
     __z_clock_gettime(&now);
 
-    unsigned long elapsed = now.tv_sec - instant->tv_sec;
+    unsigned long elapsed = now.second_low - instant->second_low;
     return elapsed;
 }
 
 void z_clock_advance_us(z_clock_t *clock, unsigned long duration) {
-    clock->tv_sec  += duration / 1000000;
-    clock->tv_nsec += (duration % 1000000) * 1000;
+    clock->second_low += duration / 1000000;
+    clock->nanosecond += (duration % 1000000) * 1000;
 
-    if (clock->tv_nsec >= 1000000000) {
-        clock->tv_sec  += 1;
-        clock->tv_nsec -= 1000000000;
+    if (clock->nanosecond >= 1000000000) {
+        clock->second_low += 1;
+        clock->nanosecond -= 1000000000;
     }
 }
 
 void z_clock_advance_ms(z_clock_t *clock, unsigned long duration) {
-    clock->tv_sec  += duration / 1000;
-    clock->tv_nsec += (duration % 1000) * 1000000;
+    clock->second_low += duration / 1000;
+    clock->nanosecond += (duration % 1000) * 1000000;
 
-    if (clock->tv_nsec >= 1000000000) {
-        clock->tv_sec  += 1;
-        clock->tv_nsec -= 1000000000;
+    if (clock->nanosecond >= 1000000000) {
+        clock->second_low += 1;
+        clock->nanosecond -= 1000000000;
     }
 }
 
-void z_clock_advance_s(z_clock_t *clock, unsigned long duration) { clock->tv_sec += duration; }
+void z_clock_advance_s(z_clock_t *clock, unsigned long duration) { clock->second_low += duration; }
 
 /*------------------ Time ------------------*/
 z_time_t z_time_now(void) { return tx_time_get(); }

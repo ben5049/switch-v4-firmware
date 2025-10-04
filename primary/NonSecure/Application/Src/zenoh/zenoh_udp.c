@@ -5,9 +5,9 @@
  *      Author: bens1
  */
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <string.h>
+#include "stdbool.h"
+#include "stddef.h"
+#include "string.h"
 #include "stdio.h"
 
 #include "hal.h"
@@ -154,7 +154,6 @@ void _z_close_udp_unicast(_z_sys_net_socket_t *sock) {
 }
 
 
-// FIXME: Don't drop the packet as there may be another read
 size_t _z_read_exact_udp_unicast(const _z_sys_net_socket_t sock, uint8_t *ptr, size_t len) {
 
     _z_res_t   status      = Z_OK;
@@ -176,6 +175,9 @@ size_t _z_read_exact_udp_unicast(const _z_sys_net_socket_t sock, uint8_t *ptr, s
         _Z_ERROR_LOG(status);
         return bytes_read;
     }
+
+    // FIXME: Don't drop the packet as there may be another read
+    Error_Handler();
 
     /* Release the packet */
     if (nx_packet_release(data_packet) != NX_SUCCESS) {
@@ -223,6 +225,8 @@ size_t _z_read_udp_unicast(const _z_sys_net_socket_t sock, uint8_t *ptr, size_t 
 
 size_t _z_send_udp_unicast(const _z_sys_net_socket_t sock, const uint8_t *ptr, size_t len, const _z_sys_net_endpoint_t rep) {
 
+    TX_INTERRUPT_SAVE_AREA
+
     _z_res_t   status      = Z_OK;
     uint32_t   bytes_sent  = 0;
     NX_PACKET *data_packet = NULL;
@@ -252,9 +256,15 @@ size_t _z_send_udp_unicast(const _z_sys_net_socket_t sock, const uint8_t *ptr, s
         return bytes_sent;
     }
 
-    zenoh_events.packets_sent++;
+    /* Atomically increment 64-bit counter */
+    TX_DISABLE
     zenoh_events.bytes_sent += len;
-    bytes_sent               = len;
+    TX_RESTORE
+
+    /* Update other statistics */
+    zenoh_events.packets_sent++;
+    bytes_sent = len;
+
     return bytes_sent;
 }
 
@@ -363,7 +373,6 @@ void _z_close_udp_multicast(_z_sys_net_socket_t *sockrecv, _z_sys_net_socket_t *
 }
 
 
-// FIXME: Don't drop the packet as there may be another read
 size_t _z_read_exact_udp_multicast(const _z_sys_net_socket_t sock, uint8_t *ptr, size_t len, const _z_sys_net_endpoint_t lep, _z_slice_t *ep) {
 
     _z_res_t   status      = Z_OK;
@@ -411,6 +420,9 @@ size_t _z_read_exact_udp_multicast(const _z_sys_net_socket_t sock, uint8_t *ptr,
     ep->len                     = ep_len;
     ep->_delete_context.deleter = z_free_with_context;
     ep->_delete_context.context = NULL;
+
+    // FIXME: Don't drop the packet as there may be another read
+    Error_Handler();
 
     /* Release the packet */
     if (nx_packet_release(data_packet) != NX_SUCCESS) {

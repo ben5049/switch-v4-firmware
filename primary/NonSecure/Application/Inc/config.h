@@ -107,7 +107,7 @@ extern "C" {
 #define SWITCH_TIMEOUT_MS                 (100)  /* Default timeout for switch operations in ms */
 #define SWITCH_MANAGMENT_ROUTE_TIMEOUT_MS (1000) /* The time after allocating a management route when that route can be freed if not used */
 
-#define SWITCH_THREAD_STACK_SIZE          (2 * 1024)
+#define SWITCH_THREAD_STACK_SIZE          (4 * 1024)
 #define SWITCH_THREAD_PRIORITY            (15)
 #define SWITCH_THREAD_PREMPTION_PRIORITY  (15)
 
@@ -146,7 +146,7 @@ extern "C" {
 #define COMMS_THREAD_PRIORITY           (15)
 #define COMMS_THREAD_PREMPTION_PRIORITY (15)
 
-#define ZENOH_MEM_POOL_SIZE             (1024 * 64)
+#define ZENOH_MEM_POOL_SIZE             (1024 * 32)
 #define ZENOH_OPEN_SESSION_INTERVAL     (200) /* Time between attempts to open a session */
 
 #define ZENOH_MODE                      Z_CONFIG_MODE_CLIENT
@@ -158,7 +158,7 @@ extern "C" {
 #define ZENOH_SUB_HEARTBEAT_KEYEXPR     "server/heartbeat"
 
 #define HEARTBEAT_INTERVAL              (500)  /* ms */
-#define HEARTBEAT_MISS_TIMEOUT          (1500) /* ms, if the time between heartbeats is larger than this value then assume the producer has disconnected */
+#define HEARTBEAT_MISS_TIMEOUT          (2000) /* ms, if the time between heartbeats is larger than this value then assume the producer has disconnected */
 
 
 #ifdef __cplusplus

@@ -29,8 +29,8 @@ extern phy_handle_88q211x_t hphy1;
 extern phy_handle_88q211x_t hphy2;
 extern phy_handle_lan867x_t hphy3;
 
-extern void *phy_handles[NUM_PHYS];
-
+extern void          *phy_handles[NUM_PHYS];
+extern volatile float phy_temperatures[NUM_PHYS];
 
 /* Exported functions*/
 phy_status_t phys_init(void);

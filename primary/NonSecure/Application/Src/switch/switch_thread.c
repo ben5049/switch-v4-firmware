@@ -7,8 +7,11 @@
 
 #include "stdint.h"
 #include "stdatomic.h"
-#include "ucdr/microcdr.h"
 #include "main.h"
+#include "zenoh-pico.h"
+
+#include "pb_encode.h"
+#include "switch.pb.h"
 
 #include "tx_app.h"
 #include "switch_thread.h"
@@ -19,6 +22,7 @@
 #include "encodings.h"
 #include "state_machine.h"
 #include "comms_thread.h"
+#include "phy_thread.h"
 
 
 #define CHECK(func)                                            \
@@ -33,124 +37,83 @@
 uint8_t   switch_thread_stack[SWITCH_THREAD_STACK_SIZE];
 TX_THREAD switch_thread_handle;
 
-static uint8_t switch_stats_buffer[SWITCH_STATS_BUFFER_SIZE];
-
-atomic_uint_fast32_t sja1105_error_counter = 0;
-
-
-/* Private function prototypes */
-// static void sja1105_check_status_msg(sja1105_handle_t *dev, sja1105_status_t to_check, bool recurse);
-
-/* Attemt to handle errors resulting from SJA1105 user function calls
- * NOTE: When the system error handler is called, it is assumed that if it returns (as opposed to restarting the chip) then the error has been fixed.
- */
-// static void sja1105_check_status_msg(sja1105_handle_t *dev, sja1105_status_t to_check, bool recurse) {
-//
-//     /* Return immediately if everything is fine */
-//     if (to_check == SJA1105_OK) return;
-//
-//     sja1105_status_t sja_status       = SJA1105_OK;
-//     bool             error_solved = false;
-//
-//     /* to_check is an error, increment the counter and check what to do */
-//     sja1105_error_counter++;
-//     switch (to_check) {
-//
-//         /* TODO: Log an error, but continue */
-//         case SJA1105_ALREADY_CONFIGURED_ERROR:
-//             error_solved = true;
-//             break;
-//
-//         /* Parameter errors cannot be corrected on the fly, only at compile time. */
-//         case SJA1105_PARAMETER_ERROR:
-//             break;
-//
-//         /* If there is a CRC error then rollback to the default config */
-//         case SJA1105_CRC_ERROR:
-//             sja1105_static_conf      = swv4_sja1105_static_config_default;
-//             sja1105_static_conf_size = SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE;
-//             sja_status                   = SJA1105_ReInit(dev, sja1105_static_conf, sja1105_static_conf_size);
-//             error_solved             = true;
-//             break;
-//
-//         /* If there is an error with the static configuration load the default config */
-//         case SJA1105_STATIC_CONF_ERROR:
-//             sja1105_static_conf      = swv4_sja1105_static_config_default;
-//             sja1105_static_conf_size = SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE;
-//             sja_status                   = SJA1105_ReInit(dev, sja1105_static_conf, sja1105_static_conf_size);
-//             error_solved             = dev->initialised;
-//             break;
-//
-//         /* If there is a RAM parity error the switch must be immediately reset */
-//         case SJA1105_RAM_PARITY_ERROR:
-//             sja_status       = SJA1105_ReInit(dev, sja1105_static_conf, sja1105_static_conf_size);
-//             error_solved = dev->initialised;
-//             break;
-//
-//         /* Error has not been corrected */
-//         default:
-//             break;
-//     }
-//
-//     /* A NEW ERROR has occured during the handling of the previous error... */
-//     if (sja_status != SJA1105_OK) {
-//         sja1105_error_counter++;
-//
-//         /* ...and the new error is the SAME as the previous error... */
-//         if (sja_status == to_check) {
-//
-//             /* ...but the previous error was SOLVED: the new error is also solved */
-//             if (error_solved)
-//                 ;
-//
-//             /* ...and the previous error was NOT SOLVED: the problem is deeper, call the system error handler */
-//             else
-//                 Error_Handler();
-//         }
-//
-//         /* ...and the new error is DIFFERENT from the previous error... */
-//         else {
-//
-//             /* ...but the previous error was SOLVED: check the new error (recursively) */
-//             if (error_solved) {
-//                 if (recurse) {
-//                     sja1105_error_counter--; /* Don't double count the new error */
-//                     sja1105_check_status_msg(dev, sja_status, false);
-//                 } else
-//                     Error_Handler(); /* An error occurred while checking an error that occurred while checking an error. Yikes */
-//             }
-//
-//             /* ...and the previous error was NOT SOLVED: the problem is deeper, call the system error handler */
-//             else
-//                 Error_Handler();
-//         }
-//         error_solved = true;
-//     }
-//
-//     /* Unsolved error */
-//     if (!error_solved) Error_Handler();
-//
-//     /* All errors have now been handled, check the sja_status registers just to be safe */
-//     sja_status = SJA1105_CheckStatusRegisters(dev);
-//     if (recurse) sja1105_check_status_msg(dev, sja_status, false);
-//
-//     /* An error occurring means the mutex could have been taken but not released. Release it now */
-//     while (dev->callbacks->callback_give_mutex(dev) == SJA1105_OK);
-// }
+atomic_uint_fast32_t        sja1105_error_counter = 0;
+static sja1105_statistics_t switch_stats;
 
 
-/* This thread perform regular maintenance for the switch */
+bool switch_stats_port_callback(pb_ostream_t *stream, const pb_field_t *field, void * const *arg) {
+
+    port_index_t *port_index = (port_index_t *) (*arg);
+
+    /* All ports have been written */
+    if (*port_index >= SJA1105_NUM_PORTS) {
+        return true;
+    }
+
+    /* Create the struct to store the port stats */
+    PortDiag port       = PortDiag_init_zero;
+    bool     forwarding = false;
+
+    /* First time the interator is run load the high level statistics counters from the switch chip */
+    if (*port_index == 0) {
+        if (SJA1105_ReadStatistics(&hsja1105, &switch_stats) != SJA1105_OK) Error_Handler();
+    }
+
+    /* Assign the port high level statistics */
+    port.rx_bytes           = switch_stats.rx_bytes[*port_index];
+    port.has_rx_bytes       = true;
+    port.tx_bytes           = switch_stats.tx_bytes[*port_index];
+    port.has_tx_bytes       = true;
+    port.dropped_frames     = 0; /* TODO: Get actual number */
+    port.has_dropped_frames = true;
+
+    /* Get and assign the port state */
+    if (SJA1105_PortGetForwarding(&hsja1105, *port_index, &forwarding) != SJA1105_OK) Error_Handler();
+    port.state = forwarding ? PortState_FORWARDING : PortState_DISABLED;
+
+    /* Assign the PHY temperature */
+    if (*port_index == PORT_HOST) {
+        port.phy_temp     = 0.0; /* TODO: Get this value from the DTS */
+        port.has_phy_temp = false;
+    } else {
+        port.phy_temp     = phy_temperatures[*port_index];
+        port.has_phy_temp = true;
+    }
+
+    /* Encode this port message */
+    if (!pb_encode_submessage(stream, PortDiag_fields, &port)) Error_Handler();
+
+    /* Move to the next port */
+    (*port_index)++;
+    return true;
+}
+
+
+/* This thread perform regular maintenance for the switch and publishes periodic diagnostic messages */
 void switch_thread_entry(uint32_t initial_input) {
 
-    sja1105_status_t   sja_status;
-    tx_status_t        tx_status;
-    _z_res_t           z_status;
-    int16_t            temperature;
-    uint32_t           current_time          = tx_time_get_ms();
-    uint32_t           next_publish_time     = current_time;
-    uint32_t           next_maintenance_time = current_time;
-    int32_t            next_wakeup           = 0;
-    ucdrBuffer         stats_writer;
+    sja1105_status_t sja_status;
+    tx_status_t      tx_status;
+    _z_res_t         z_status;
+
+    uint32_t current_time          = tx_time_get_ms();
+    uint32_t next_publish_time     = current_time;
+    uint32_t next_maintenance_time = current_time;
+    int32_t  next_wakeup           = 0;
+
+    float temperature;
+
+    uint32_t flags;
+
+    static uint8_t switch_stats_buffer[SWITCH_STATS_BUFFER_SIZE];
+    port_index_t   switch_stats_port_index = 0;
+
+    static SwitchDiag switch_diag  = SwitchDiag_init_zero;
+    switch_diag.ports.funcs.encode = &switch_stats_port_callback;
+    switch_diag.ports.arg          = &switch_stats_port_index;
+
+    pb_ostream_t stream;
+
     z_owned_encoding_t stats_encoding;
 
     while (1) {
@@ -176,52 +139,51 @@ void switch_thread_entry(uint32_t initial_input) {
             /* TODO: Occasionally check no important MAC addresses have been learned by accident (PTP, STP, etc) */
 
             /* Read the temperature */
-            sja_status = SJA1105_ReadTemperatureX10(&hsja1105, &temperature);
+            sja_status = SJA1105_ReadTemperature(&hsja1105, &temperature);
             if (sja_status != SJA1105_OK) Error_Handler();
-            temperature /= 10;
         }
 
         /* Check if publishing stats is necessary */
         if (current_time >= next_publish_time) {
             next_publish_time += SWITCH_PUBLISH_STATS_INTERVAL;
 
-            /* Check if publishing messages is allowed */
-            uint32_t flags;
+            /* Check if publishing stats is allowed */
             tx_status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_ZENOH_CONNECTED, TX_OR, &flags, TX_NO_WAIT);
             if (tx_status == TX_SUCCESS) {
 
-                /* Get the stats and publish the message */
+                /* Reset the buffer */
+                switch_stats_port_index = 0;
+                stream                  = pb_ostream_from_buffer(switch_stats_buffer, SWITCH_STATS_BUFFER_SIZE);
 
-                // {
-                //     bool port_states[SJA1105_NUM_PORTS];
-                //     for (uint_fast8_t i = 0; i < SJA1105_NUM_PORTS; i++) {
-                //         SJA1105_PortGetForwarding(&hsja1105, i, port_states + i);
-                //     }
-                //     ucdr_init_buffer(&writer, buffer, BUFFER_LENGTH);
-                //     ucdr_serialize_array_bool(&writer, port_states, SJA1105_NUM_PORTS);
-                // }
-
-                /* Get the stats */
-                sja1105_statistics_t stats;
-                if (SJA1105_ReadStatistics(&hsja1105, &stats) != SJA1105_OK) Error_Handler();
-                uint64_t total_received_bytes = 0;
-                for (uint_fast8_t i = 0; i < SJA1105_NUM_PORTS; i++) total_received_bytes += stats.rx_bytes[i];
-                ucdr_init_buffer(&stats_writer, switch_stats_buffer, SWITCH_STATS_BUFFER_SIZE);
-                ucdr_serialize_uint64_t(&stats_writer, total_received_bytes);
-
-                /* Create payload */
+                /* Get the stats and encode the message */
+                switch_diag.has_timestamp         = true;
+                switch_diag.timestamp.seconds     = current_time / 1000;
+                switch_diag.timestamp.nanoseconds = (current_time % 1000) * 1000000;
+                switch_diag.has_temp              = true;
+                switch_diag.temp                  = temperature;
+                if (!pb_encode(&stream, SwitchDiag_fields, &switch_diag)) Error_Handler();
                 z_owned_bytes_t payload;
-                z_status = z_bytes_from_static_buf(&payload, switch_stats_buffer, stats_writer.offset);
+                z_status = z_bytes_from_static_buf(&payload, switch_stats_buffer, stream.bytes_written);
                 if (z_status < Z_OK) ZENOH_DISCONNECTED(false);
 
-                /* Publish the message */
-                z_publisher_put_options_t options;
-                z_publisher_put_options_default(&options);
-                z_status = z_encoding_from_str(&stats_encoding, ENCODING_SWITCH_STATS);
-                if (z_status < Z_OK) ZENOH_DISCONNECTED(false);
-                options.encoding = z_move(stats_encoding);
-                z_status         = z_publisher_put(z_loan(stats_pub), z_move(payload), &options);
-                if (z_status < Z_OK) ZENOH_DISCONNECTED(false);
+                /* Check if publishing stats is still allowed */
+                tx_status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_ZENOH_CONNECTED, TX_OR, &flags, TX_NO_WAIT);
+                if (tx_status == TX_SUCCESS) {
+
+                    /* Publish the message */
+                    z_publisher_put_options_t options;
+                    z_publisher_put_options_default(&options);
+                    z_status = z_encoding_from_str(&stats_encoding, ENCODING_SWITCH_STATS);
+                    if (z_status < Z_OK) ZENOH_DISCONNECTED(false);
+                    options.encoding = z_move(stats_encoding);
+                    z_status         = z_publisher_put(z_loan(stats_pub), z_move(payload), &options);
+                    if (z_status < Z_OK) ZENOH_DISCONNECTED(false);
+                }
+
+                /* Error occured */
+                else if (tx_status != TX_NO_EVENTS) {
+                    Error_Handler();
+                }
             }
 
             /* Error occured */
