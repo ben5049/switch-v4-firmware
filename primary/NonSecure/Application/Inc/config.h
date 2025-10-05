@@ -27,7 +27,7 @@ extern "C" {
 /* Common Config */
 /* ---------------------------------------------------------------------------- */
 
-#define LOGGING_STACK_SIZE (512) /* Any thread that calls secure logging functions should allocate this ammount of secure stack */
+#define LOGGING_STACK_SIZE (1024) /* Any thread that calls secure logging functions should allocate this ammount of secure stack */
 
 /* ---------------------------------------------------------------------------- */
 /* State Machine Config */
@@ -80,14 +80,16 @@ extern "C" {
 #define DHCP_RECORD_SAVE_INTERVAL        (10000) /* How often to save the current DHCP record for restoration later in case of reboot in ms */
 
 #define ENABLE_DHCP_RESTORE              (true)
+
 /* ---------------------------------------------------------------------------- */
 /* Link Config */
 /* ---------------------------------------------------------------------------- */
 
-#define NX_LINK_THREAD_STACK_SIZE            (2 * 1024)
-#define NX_LINK_THREAD_PRIORITY              (9)
+#define NX_LINK_THREAD_STACK_SIZE                 (2 * 1024)
+#define NX_LINK_THREAD_PRIORITY                   (9)
 
-#define NX_APP_CABLE_CONNECTION_CHECK_PERIOD (1000) /* Interval between link checks in ms */
+#define NX_APP_CABLE_CONNECTION_CHECK_UP_PERIOD   (300)  /* Interval between link checks in ms when the link is down */
+#define NX_APP_CABLE_CONNECTION_CHECK_DOWN_PERIOD (1000) /* Interval between link checks in ms when the link is up */
 
 /* ---------------------------------------------------------------------------- */
 /* PTP Config */
@@ -129,7 +131,7 @@ extern "C" {
 #define PHY_THREAD_STACK_SIZE         (1024)
 #define PHY_THREAD_PRIORITY           (15)
 #define PHY_THREAD_PREMPTION_PRIORITY (15)
-#define PHY_THREAD_INTERVAL           (1000) /* Execute once per second */
+#define PHY_THREAD_INTERVAL           (300) /* TODO: Execute once per second (1000) when PHY interrupts work  */
 
 /* ---------------------------------------------------------------------------- */
 /* STP Config */
@@ -145,15 +147,15 @@ extern "C" {
 /* Commmunications Config */
 /* ---------------------------------------------------------------------------- */
 
-#define COMMS_THREAD_STACK_SIZE         (1024 * 16)
+#define COMMS_THREAD_STACK_SIZE         (1024 * 32)
 #define COMMS_THREAD_PRIORITY           (12)
 #define COMMS_THREAD_PREMPTION_PRIORITY (12)
 
 #define ZENOH_MEM_POOL_SIZE             (1024 * 32)
-#define ZENOH_OPEN_SESSION_INTERVAL     (200) /* Time between attempts to open a session */
+#define ZENOH_OPEN_SESSION_INTERVAL     (400) /* ms, ime between attempts to open a session */
 
 #define ZENOH_MODE                      Z_CONFIG_MODE_CLIENT
-#define ZENOH_LOCATOR                   "" /* Empty means it will scout */
+#define ZENOH_LOCATOR                   "" /* Empty means it will scout. Otherwise: "udp/192.168.50.2:7447" */
 
 #define ZENOH_PUB_STATS_KEYEXPR         DEVICE_NAME "/stats"
 #define ZENOH_PUB_HEARTBEAT_KEYEXPR     DEVICE_NAME "/heartbeat" /* The topic to publish */

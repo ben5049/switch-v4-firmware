@@ -13,6 +13,15 @@ extern "C" {
 #endif
 
 
+#include "stdint.h"
+#include "stdbool.h"
+#include "stdatomic.h"
+
+
+extern atomic_bool       zenoh_udp_multicast_groups_valid[NX_MAX_MULTICAST_GROUPS];
+extern volatile uint32_t zenoh_udp_multicast_groups_list[NX_MAX_MULTICAST_GROUPS];
+
+
 void zenoh_cleanup_tx(void);
 void zenoh_cleanup_nx(void);
 

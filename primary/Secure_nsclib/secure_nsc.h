@@ -44,8 +44,8 @@ void SECURE_RegisterCallback(SECURE_CallbackIDTypeDef CallbackId, void *func);
 void s_save_dhcp_client_record(const NX_DHCP_CLIENT_RECORD *record);
 void s_load_dhcp_client_record(NX_DHCP_CLIENT_RECORD *record);
 void s_background_task(void);
+void s_log_vwrite(const char *format, va_list args);
 
 
 #endif /* SECURE_NSC_H */
 /* USER CODE END Non_Secure_CallLib_h */
-

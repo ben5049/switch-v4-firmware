@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "config.h"
 #include "sja1105.h"
+#include "secure_nsc.h"
 
 
 /* This function should be called in MX_ETH_Init */
@@ -22,12 +23,14 @@ void write_mac_addr(uint8_t* buf) {
     buf[5] = MAC_ADDR_OCTET6;
 }
 
+
 bool compare_mac_addrs_with_mask(const uint8_t* addr1, const uint8_t* addr2, const uint8_t* mask) {
     for (uint_fast8_t i = 0; i < MAC_ADDR_SIZE; i++) {
         if ((addr1[i] & mask[i]) != (addr2[i] & mask[i])) return false;
     }
     return true;
 }
+
 
 uint32_t tx_thread_sleep_ms(uint32_t ms) {
     return tx_thread_sleep((uint32_t) MS_TO_TICKS((uint64_t) ms)); /* Cast to 64-bit uint to prevent premature overflow */
@@ -51,6 +54,7 @@ void delay_ns(uint32_t ns) {
     }
 }
 
+
 void set_3v3_regulator_to_FPWM() {
     __disable_irq();
     HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, RESET);
@@ -61,4 +65,13 @@ void set_3v3_regulator_to_FPWM() {
     delay_ns(500);
     HAL_GPIO_WritePin(MODE_3V3_GPIO_Port, MODE_3V3_Pin, SET);
     __enable_irq();
+}
+
+
+/* This function can only be called by threads with a secure stack allocated, or before the scheduler starts */
+void log_write(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    s_log_vwrite(format, args);
+    va_end(args);
 }

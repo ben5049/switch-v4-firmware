@@ -34,6 +34,7 @@
 									<listOptionValue builtIn="false" value="DEBUG"/>
 									<listOptionValue builtIn="false" value="TX_PORT_USE_BASEPRI"/>
 									<listOptionValue builtIn="false" value="TX_PORT_BASEPRI=16"/>
+									<listOptionValue builtIn="false" value="TX_THREAD_SECURE_STACK_MAXIMUM=4096"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.assembler.option.includepaths.1539490684" name="Include paths (-I)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.assembler.option.includepaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="../Core/Inc"/>
@@ -58,6 +59,7 @@
 									<listOptionValue builtIn="false" value="STM32H573xx"/>
 									<listOptionValue builtIn="false" value="TX_PORT_USE_BASEPRI"/>
 									<listOptionValue builtIn="false" value="TX_PORT_BASEPRI=16"/>
+									<listOptionValue builtIn="false" value="TX_THREAD_SECURE_STACK_MAXIMUM=4096"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.includepaths.789503503" name="Include paths (-I)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.includepaths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../Core/Inc"/>
@@ -89,6 +91,7 @@
 									<listOptionValue builtIn="false" value="STM32H573xx"/>
 									<listOptionValue builtIn="false" value="TX_PORT_USE_BASEPRI"/>
 									<listOptionValue builtIn="false" value="TX_PORT_BASEPRI=16"/>
+									<listOptionValue builtIn="false" value="TX_THREAD_SECURE_STACK_MAXIMUM=4096"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.option.includepaths.395122470" name="Include paths (-I)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.option.includepaths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../Core/Inc"/>

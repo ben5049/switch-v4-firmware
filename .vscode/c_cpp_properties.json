@@ -18,7 +18,8 @@
                 "Z_FEATURE_UNSTABLE_API",
                 "DEBUG",
                 "HAL_ETH_USE_PTP",
-                "TX_PORT_USE_BASEPRI"
+                "TX_PORT_USE_BASEPRI",
+                "TX_THREAD_SECURE_STACK_MAXIMUM=4096"
             ],
             "compilerPath": "arm-none-eabi-gcc",
             "cStandard": "gnu17",

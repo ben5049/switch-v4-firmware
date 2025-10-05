@@ -6,6 +6,8 @@
 - ECC read background task
 - Count Zenoh events
     - Bytes/packets received
-- Publish diagnostics
 - Add Zenoh link QoS when "priority mappings on Zenoh links" is merged (before end of 2025)
-- DHCP IP address caching
+- Check DHCP IP address caching
+- PHY interrupts
+- Add queriable for last n log messages
+- Fix bug where terminating a Zenoh Pico session and reopening it within 10s causes a deadlock

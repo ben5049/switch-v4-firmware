@@ -31,24 +31,19 @@
 #define LOG_ERROR_SHA256(format, hash_ptr, ...)   _LOG_SHA256(format, hash_ptr, ##__VA_ARGS__)
 
 
-#define _LOG(format, ...)                                                   \
-    do {                                                                    \
-        printf("%10lu: ", HAL_GetTick()); /* TODO: Add UART toggle macro */ \
-        printf(format, ##__VA_ARGS__);    /* TODO: Add UART toggle macro */ \
-        log_status_t _s = log_write(&hlog, format, ##__VA_ARGS__);          \
-        CHECK_STATUS(_s, LOGGING_OK, ERROR_LOG);                            \
+#define _LOG(format, ...)                                          \
+    do {                                                           \
+        log_status_t _s = log_write(&hlog, format, ##__VA_ARGS__); \
+        CHECK_STATUS(_s, LOGGING_OK, ERROR_LOG);                   \
     } while (0)
 
-#define _LOG_NO_CHECK(format, ...)                                          \
-    do {                                                                    \
-        printf("%10lu: ", HAL_GetTick()); /* TODO: Add UART toggle macro */ \
-        printf(format, ##__VA_ARGS__);    /* TODO: Add UART toggle macro */ \
-        log_write(&hlog, format, ##__VA_ARGS__);                            \
+#define _LOG_NO_CHECK(format, ...)               \
+    do {                                         \
+        log_write(&hlog, format, ##__VA_ARGS__); \
     } while (0)
 
 #define _LOG_SHA256(format, hash_ptr, ...)                                                       \
     do {                                                                                         \
-        printf("%10lu: ", HAL_GetTick());           /* TODO: Add UART toggle macro */            \
         char  _hash_buf[2 + (2 * SHA256_SIZE) + 1]; /* "0x" + "XX" per byte + null terminator */ \
         char *_p  = _hash_buf;                                                                   \
         _p[0]     = '0';                                                                         \
@@ -57,8 +52,7 @@
         for (uint_fast8_t i = 0; i < SHA256_SIZE; i++) {                                         \
             _p += u8_to_hex(_p, hash_ptr[i]);                                                    \
         }                                                                                        \
-        *_p = 0;                                                                                 \
-        printf(format, _hash_buf, ##__VA_ARGS__); /* TODO: Add UART toggle macro */              \
+        *_p             = 0;                                                                     \
         log_status_t _s = log_write(&hlog, format, _hash_buf, ##__VA_ARGS__);                    \
         CHECK_STATUS(_s, LOGGING_OK, ERROR_LOG);                                                 \
     } while (0)
@@ -104,6 +98,7 @@ extern log_handle_t hlog;
 
 log_status_t log_init(log_handle_t *self, uint8_t *log_buffer, uint32_t buffer_size);
 log_status_t log_write(log_handle_t *self, const char *format, ...);
+log_status_t log_vwrite(log_handle_t *self, const char *format, va_list args);
 log_status_t log_dump_to_fram(log_handle_t *self, metadata_handle_t *meta);
 
 uint8_t u4_to_hex(char *buffer, uint8_t num);

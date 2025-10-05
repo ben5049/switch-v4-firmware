@@ -18,6 +18,10 @@
 #include "nx_app.h"
 
 
+atomic_bool       zenoh_udp_multicast_groups_valid[NX_MAX_MULTICAST_GROUPS];
+volatile uint32_t zenoh_udp_multicast_groups_list[NX_MAX_MULTICAST_GROUPS];
+
+
 void zenoh_cleanup_tx() {
 
     tx_status_t status = TX_SUCCESS;
@@ -69,6 +73,15 @@ void zenoh_cleanup_nx() {
 
     nx_status_t status = NX_SUCCESS;
 
+    /* Leave IPv4 multicast groups */
+    for (uint_fast8_t i = 0; i < NX_MAX_MULTICAST_GROUPS; i++) {
+        if (!zenoh_udp_multicast_groups_valid[i]) continue;
+        status = nx_ipv4_multicast_interface_leave(&nx_ip_instance, zenoh_udp_multicast_groups_list[i], PRIMARY_INTERFACE);
+        if (status != NX_SUCCESS) Error_Handler();
+        zenoh_udp_multicast_groups_valid[i] = false;
+    }
+
+    /* Delete UDP sockets */
     if (nx_ip_instance.nx_ip_udp_created_sockets_count > 0) {
         NX_UDP_SOCKET *current_udp_socket = nx_ip_instance.nx_ip_udp_created_sockets_ptr;
         NX_UDP_SOCKET *next_udp_socket    = current_udp_socket->nx_udp_socket_created_next;

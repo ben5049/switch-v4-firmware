@@ -119,7 +119,6 @@ z_result_t _z_task_cancel(_z_task_t *task) {
     tx_status = tx_thread_delete(&task->threadx_thread);
     if (tx_status != TX_SUCCESS) z_status = _Z_ERR_GENERIC;
 
-
     return z_status;
 }
 
@@ -307,18 +306,18 @@ z_result_t _z_condvar_wait_until(_z_condvar_t *cv, _z_mutex_t *m, const z_clock_
 
 /*------------------ Sleep ------------------*/
 z_result_t z_sleep_us(size_t time) {
-    tx_thread_sleep(time * TX_TIMER_TICKS_PER_SECOND / 1000000);
-    return 0;
+    tx_thread_sleep_ms(time / 1000);
+    return _Z_RES_OK;
 }
 
 z_result_t z_sleep_ms(size_t time) {
     tx_thread_sleep_ms(time);
-    return 0;
+    return _Z_RES_OK;
 }
 
 z_result_t z_sleep_s(size_t time) {
     tx_thread_sleep(time * TX_TIMER_TICKS_PER_SECOND);
-    return 0;
+    return _Z_RES_OK;
 }
 
 /*------------------ Clock ------------------*/

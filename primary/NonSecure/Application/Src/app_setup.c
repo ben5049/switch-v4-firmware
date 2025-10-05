@@ -26,6 +26,8 @@
 
 void app_setup(void) {
 
+    log_write("Starting non-secure firmware\n");
+
     /* Reset shared structs */
     memset(&hsja1105, 0, sizeof(sja1105_handle_t));
     memset(&hphy0, 0, sizeof(phy_handle_88q211x_t));
@@ -39,19 +41,24 @@ void app_setup(void) {
     MX_RTC_Init();
     MX_CRC_Init();
     MX_SPI2_Init();
+    log_write("Peripheral group 1 initialised\n");
 
     /* Change to FPWM mode for more accurate 3.3V rail (needed by PHYs) */
     set_3v3_regulator_to_FPWM();
+    log_write("3V3 Regulator changed to FPWM mode\n");
 
     /* Initialise the switch */
     sja1105_status_t switch_status = switch_init(&hsja1105);
     if (switch_status != SJA1105_OK) Error_Handler();
+    log_write("SJA1105 Initialised\n");
 
     /* Ethernet MAC can now be initialised (requires switch REFCLK) */
     MX_ETH_Init();
+    log_write("ETH Peripheral initialised\n");
 
     /* Initialise less important peripherals */
     MX_GPDMA1_Init();
     MX_DTS_Init();
     MX_AES_Init();
+    log_write("Peripheral group 2 initialised\n");
 }

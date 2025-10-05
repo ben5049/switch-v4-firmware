@@ -90,13 +90,11 @@ void nx_link_thread_entry(uint32_t thread_input) {
         nx_status = nx_dhcp_client_restore_record(&dhcp_client, &dhcp_record, 0); /* TODO: Set time elapsed based on RTC while asleep */
         if (nx_status != NX_SUCCESS) Error_Handler();
     }
-#else
-    UNUSED(current_time);
 #endif
 
     while (1) {
 
-        uint32_t current_time = tx_time_get_ms();
+        current_time = tx_time_get_ms();
 
         /* Send request to check if the switch is up and running */
         nx_status = nx_ip_interface_status_check(&nx_ip_instance, PRIMARY_INTERFACE, NX_IP_LINK_ENABLED, &actual_status, 10);
@@ -179,6 +177,11 @@ void nx_link_thread_entry(uint32_t thread_input) {
         }
 #endif
 
-        tx_thread_sleep_ms(NX_APP_CABLE_CONNECTION_CHECK_PERIOD);
+        /* Delay differently based on link state. TODO: Use an event from the PHY thread to wake up faster */
+        if (linkdown) {
+            tx_thread_sleep_ms(NX_APP_CABLE_CONNECTION_CHECK_UP_PERIOD);
+        } else {
+            tx_thread_sleep_ms(NX_APP_CABLE_CONNECTION_CHECK_DOWN_PERIOD);
+        }
     }
 }

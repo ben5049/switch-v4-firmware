@@ -219,10 +219,12 @@ void boot_main() {
     /* Boot is over */
     hmeta.first_boot = false;
 
-    LOG_INFO("Starting non-secure firmware\n");
+    LOG_INFO("Jumping to non-secure firmware\n");
 
+#if DISABLE_S_SYSTICK_IN_NS == true
     /* Secure SysTick should be suspended before calling non-secure init in
      * order to avoid waking up from a sleep mode entered by non-secure firmware.
      * The Secure SysTick shall be resumed on non-secure callable functions */
     HAL_SuspendTick();
+#endif
 }

@@ -16,7 +16,11 @@
 /* General Config */
 /* ---------------------------------------------------------------------------- */
 
-#define NUM_BANKS 2
+#define NUM_BANKS               (2)
+
+#define DISABLE_S_SYSTICK_IN_NS (false) /* Whether or not to disable the secure systick when in a non-secure context */
+
+#define ENABLE_UART_LOGGING     (true)
 
 /* ---------------------------------------------------------------------------- */
 /* Flash Config (must be updated if the linker file is changed) */

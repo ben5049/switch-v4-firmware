@@ -27,6 +27,7 @@
 #include "zenoh_generic_config.h"
 #include "nx_app.h"
 #include "comms_thread.h"
+#include "zenoh_cleanup.h"
 
 
 #if Z_FEATURE_LINK_UDP_UNICAST == 1 || Z_FEATURE_LINK_UDP_MULTICAST == 1
@@ -297,22 +298,33 @@ z_result_t _z_open_udp_multicast(_z_sys_net_socket_t *sock, const _z_sys_net_end
         return status;
     }
 
+    /* Save the IP address of the group */
+    bool slot_found = false;
+    for (uint_fast8_t i = 0; !slot_found && (i < NX_MAX_MULTICAST_GROUPS); i++) {
+        if (!zenoh_udp_multicast_groups_valid[i]) continue;
+        zenoh_udp_multicast_groups_list[i]  = rep.ip_address;
+        zenoh_udp_multicast_groups_valid[i] = true;
+        slot_found                          = true;
+    }
+    if (!slot_found) Error_Handler();
+
     return status;
 }
 
 
 z_result_t _z_listen_udp_multicast(_z_sys_net_socket_t *sock, const _z_sys_net_endpoint_t rep, uint32_t tout, const char *iface, const char *join) {
 
-    _z_res_t status = Z_OK;
+    _z_res_t status = _Z_RES_OK;
 
+    UNUSED(sock);
+    UNUSED(rep);
+    UNUSED(tout);
+    UNUSED(iface);
     UNUSED(join);
 
-    /* Same as opening */
-    status = _z_open_udp_multicast(sock, rep, NULL, tout, iface);
-    if (status != Z_OK) {
-        _Z_ERROR_LOG(status);
-        return status;
-    }
+    /* TODO: To be implemented */
+    status = _Z_ERR_GENERIC;
+    _Z_ERROR_LOG(status);
 
     return status;
 }
@@ -335,6 +347,15 @@ void _z_close_udp_multicast(_z_sys_net_socket_t *sockrecv, _z_sys_net_socket_t *
             Error_Handler();
         }
 
+        /* Delete the IP address of the group */
+        bool slot_found = false;
+        for (uint_fast8_t i = 0; !slot_found && (i < NX_MAX_MULTICAST_GROUPS); i++) {
+            if (!(zenoh_udp_multicast_groups_valid[i] && (zenoh_udp_multicast_groups_list[i] == rep.ip_address))) continue;
+            zenoh_udp_multicast_groups_valid[i] = false;
+            slot_found                          = true;
+        }
+        if (!slot_found) Error_Handler();
+
         /* Close the socket */
         _z_close_udp_unicast(sockrecv);
     }
@@ -355,6 +376,15 @@ void _z_close_udp_multicast(_z_sys_net_socket_t *sockrecv, _z_sys_net_socket_t *
             _Z_ERROR_LOG(status);
             Error_Handler();
         }
+
+        /* Delete the IP address of the group */
+        bool slot_found = false;
+        for (uint_fast8_t i = 0; !slot_found && (i < NX_MAX_MULTICAST_GROUPS); i++) {
+            if (!(zenoh_udp_multicast_groups_valid[i] && (zenoh_udp_multicast_groups_list[i] == rep.ip_address))) continue;
+            zenoh_udp_multicast_groups_valid[i] = false;
+            slot_found                          = true;
+        }
+        if (!slot_found) Error_Handler();
 
         /* Close the socket */
         _z_close_udp_unicast(socksend);

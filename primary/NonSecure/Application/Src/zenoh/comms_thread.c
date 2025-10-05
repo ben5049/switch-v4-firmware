@@ -86,6 +86,7 @@ void comms_thread_entry(uint32_t initial_input) {
     z_owned_encoding_t heartbeat_encoding;
 
     memset(&zenoh_events, 0, sizeof(zenoh_event_counters_t));
+    memset(zenoh_udp_multicast_groups_valid, 0, sizeof(zenoh_udp_multicast_groups_valid));
 
     while (1) {
 
@@ -116,6 +117,7 @@ void comms_thread_entry(uint32_t initial_input) {
         }
 
         /* Start a session */
+        log_write("Zenoh Pico: Attempting to open session\n");
         static z_owned_session_t session;
         do {
 
@@ -129,10 +131,11 @@ void comms_thread_entry(uint32_t initial_input) {
 
             /* Try again */
             else if ((z_status == _Z_ERR_SCOUT_NO_RESULTS)                  /* Unable to find other Zenoh devices */
-                     || (z_status == _Z_ERR_CONFIG_LOCATOR_SCHEMA_UNKNOWN)  /* Can occur when the router is not configured with the correct transport */
+                     || (z_status == _Z_ERR_CONFIG_LOCATOR_SCHEMA_UNKNOWN)  /* Can occur when the router is not configured with an incorrect transport or incorrect IP version (e.g. IPv6) */
                      || (z_status == _Z_ERR_MESSAGE_DESERIALIZATION_FAILED) /* Random error TODO: find out why this happens */
                      || (z_status == _Z_ERR_MESSAGE_UNEXPECTED)             /* Message received while supposed to be shut down. This can occur when the server's heartbeat dies but the router is still running */
             ) {
+                log_write("Zenoh Pico: Failed to open session, error code %i\n", z_status);
                 z_sleep_ms(ZENOH_OPEN_SESSION_INTERVAL);
                 goto retry;
             }
@@ -143,6 +146,8 @@ void comms_thread_entry(uint32_t initial_input) {
             }
 
         } while (z_status < Z_OK);
+
+        log_write("Zenoh Pico: Session opened\n");
 
         /* Start the read, lease tasks and periodic scheduler threads */
         z_status = zp_start_read_task(z_loan_mut(session), NULL);
@@ -185,6 +190,8 @@ void comms_thread_entry(uint32_t initial_input) {
         ZENOH_CONNECTED(true);
         zenoh_events.connections++;
 
+        log_write("Zenoh Pico: Entering main loop\n");
+
         /* Enter the main loop */
         session_open = !z_session_is_closed(z_loan(session));
         while (session_open) {
@@ -200,6 +207,7 @@ void comms_thread_entry(uint32_t initial_input) {
                 (current_time > (heartbeat_consumer_timestamp + HEARTBEAT_MISS_TIMEOUT))) {
                 heartbeat_consumer_state = HEARTBEAT_MISSED;
                 zenoh_events.heartbeats_missed++;
+                log_write("Zenoh Pico: Heartbeat missed\n");
                 goto close;
             }
 
@@ -230,12 +238,15 @@ void comms_thread_entry(uint32_t initial_input) {
             uint32_t flags;
             tx_status = tx_event_flags_get(&state_machine_events_handle, STATE_MACHINE_ZENOH_DISCONNECTED, TX_OR, &flags, HEARTBEAT_INTERVAL);
             if (tx_status == TX_SUCCESS) {
+                log_write("Zenoh Pico: Received disconnect event\n");
                 goto restart;
             } else if (tx_status != TX_NO_EVENTS) {
                 Error_Handler();
             }
             session_open = !z_session_is_closed(z_loan(session));
         }
+
+        log_write("Zenoh Pico: Session closed\n");
 
     /* Close the session gracefully */
     close:
@@ -262,14 +273,16 @@ void comms_thread_entry(uint32_t initial_input) {
         /* Clear the session to make sure other threads can't send messages */
         z_internal_session_null(&session);
 
-        /* Delete all the threads, mutexes and semaphores created by Zenoh Pico */
+        /* Delete all threads, mutexes and semaphores created by Zenoh Pico */
         zenoh_cleanup_tx();
 
-        /* Delete all the sockets created by Zenoh Pico */
+        /* Leave all multicast groups and delete all sockets created by Zenoh Pico */
         zenoh_cleanup_nx();
 
         /* Delete the byte pool */
         tx_status = tx_byte_pool_delete(&zenoh_byte_pool);
         if (tx_status != TX_SUCCESS) Error_Handler();
+
+        log_write("Zenoh Pico: Terminated\n");
     }
 }

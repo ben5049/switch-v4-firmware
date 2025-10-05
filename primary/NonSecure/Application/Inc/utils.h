@@ -15,6 +15,7 @@ extern "C" {
 
 #include "stdint.h"
 #include "stdbool.h"
+#include "stdarg.h"
 #include "tx_api.h"
 
 
@@ -35,6 +36,8 @@ uint32_t tx_time_get_ms();
 void delay_ns(uint32_t ns);
 
 void set_3v3_regulator_to_FPWM(void);
+
+void log_write(const char* format, ...);
 
 
 #ifdef __cplusplus

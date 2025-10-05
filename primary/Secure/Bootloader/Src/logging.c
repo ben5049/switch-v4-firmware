@@ -16,6 +16,7 @@
 #include "logging.h"
 #include "integrity.h"
 #include "metadata.h"
+#include "config.h"
 
 
 #define PTR_FROM_OFFSET(offset)     ((self->log_buffer) + ((offset) & (self->offset_mask)))
@@ -27,7 +28,7 @@ log_handle_t hlog;
 extern UART_HandleTypeDef huart4;
 
 
-#ifdef DEBUG
+#if ENABLE_UART_LOGGING == true
 int _write(int file, char *ptr, int len) {
 
     hal_status_t status = HAL_OK;
@@ -130,6 +131,23 @@ log_status_t log_write(log_handle_t *self, const char *format, ...) {
 
     log_status_t status = LOGGING_OK;
 
+#if ENABLE_UART_LOGGING == true
+    printf(" S %10lu: ", HAL_GetTick());
+#endif
+
+    va_list args;
+    va_start(args, format);
+    status = log_vwrite(self, format, args);
+    va_end(args);
+
+    return status;
+}
+
+
+log_status_t log_vwrite(log_handle_t *self, const char *format, va_list args) {
+
+    log_status_t status = LOGGING_OK;
+
     uint32_t old_head_offset;
     uint32_t new_head_offset;
     uint32_t new_new_head_offset;
@@ -179,11 +197,8 @@ log_status_t log_write(log_handle_t *self, const char *format, ...) {
     }
 
     /* Write the message */
-    va_list args;
-    va_start(args, format);
     message_length = vsnprintf((char *) write_ptr + LOG_HEADER_SIZE, LOG_MAX_MESSAGE_LENGTH, format, args);
     message_length++; /* Account for the null terminator */
-    va_end(args);
 
     /* Attempt to reduce the length field if the max size isn't needed */
     if (message_length < LOG_MAX_MESSAGE_LENGTH) {
@@ -201,6 +216,11 @@ log_status_t log_write(log_handle_t *self, const char *format, ...) {
 
     /* Write the message type to signify it is valid */
     atomic_store_explicit(write_ptr, LOG_COMMITTED, memory_order_release);
+
+#if ENABLE_UART_LOGGING == true
+    /* Write the message contents to UART as well */
+    printf((char *) write_ptr + LOG_HEADER_SIZE, message_length);
+#endif
 
     return status;
 }
