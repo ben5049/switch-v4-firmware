@@ -27,6 +27,7 @@
 #include "memory_tools.h"
 #include "logging.h"
 #include "error.h"
+#include "rtc.h"
 
 
 uint8_t __attribute__((section(".LOG_Section"))) log_buffer[LOG_BUFFER_SIZE];
@@ -68,6 +69,7 @@ void boot_main() {
     MX_PKA_Init();
     MX_UART4_Init();
     MX_SAES_AES_Init();
+    MX_RTC_Init();
 
     /* Enable writing to the backup SRAM */
     enable_backup_domain();
@@ -213,6 +215,9 @@ void boot_main() {
     LOG_INFO("Erasing SRAM3\n");
     status = HAL_RAMCFG_Erase(&hramcfg_SRAM3);
     CHECK_STATUS(status, HAL_OK, ERROR_HAL);
+
+    /* Boot is over */
+    hmeta.first_boot = false;
 
     LOG_INFO("Starting non-secure firmware\n");
 

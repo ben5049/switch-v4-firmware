@@ -132,6 +132,16 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_rng_ex.c</locationURI>
 		</link>
 		<link>
+			<name>Drivers/STM32H5xx_HAL_Driver/stm32h5xx_hal_rtc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_rtc.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/STM32H5xx_HAL_Driver/stm32h5xx_hal_rtc_ex.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_rtc_ex.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/STM32H5xx_HAL_Driver/stm32h5xx_hal_spi.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_spi.c</locationURI>

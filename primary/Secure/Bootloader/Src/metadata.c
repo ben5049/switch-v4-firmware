@@ -99,9 +99,11 @@ metadata_status_t META_Init(metadata_handle_t *self, bool bank_swap) {
     uint32_t          random_number = 0;
 
     /* Reset the module struct */
-    self->initialised = false;
-    self->first_boot  = false;
-    self->bank_swap   = bank_swap;
+    self->initialised  = false;
+    self->first_boot   = false;
+    self->bank_swap    = bank_swap;
+    self->new_metadata = false;
+    self->new_counters = false;
 
     /* Wait for the FRAM to be available */
     while (HAL_GetTick() < FRAM_TPU) HAL_Delay(1);
@@ -163,7 +165,10 @@ metadata_status_t META_Init(metadata_handle_t *self, bool bank_swap) {
 #endif /* METADATA_ENABLE_ROLLBACK_PROTECTION == true */
     }
 
-    if (self->first_boot) LOG_INFO("First time booting with current firmware\n");
+    if (self->first_boot) {
+        LOG_INFO("First time booting with current firmware\n");
+        self->metadata.dhcp_record.nx_dhcp_state = NX_DHCP_STATE_NOT_STARTED;
+    }
 
     self->initialised = true;
     LOG_INFO("Metadata module initialised\n");
@@ -294,6 +299,8 @@ metadata_status_t META_dump_metadata(metadata_handle_t *self) {
     status = META_lock_metadata(self, false);
     if (status != META_OK) return status;
 
+    self->new_metadata = false;
+
     return status;
 }
 
@@ -323,6 +330,8 @@ metadata_status_t META_dump_counters(metadata_handle_t *self) {
     /* Stream out the counters to the FRAM */
     if (FRAM_Write(&self->hfram, META_FRAM_COUNTERS_START_ADDR, (uint8_t *) &self->counters, sizeof(metadata_counters_t)) != FRAM_OK) status = META_FRAM_ERROR;
     if (status != META_OK) return status;
+
+    self->new_counters = false;
 
     return status;
 }

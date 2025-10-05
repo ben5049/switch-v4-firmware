@@ -34,8 +34,8 @@ extern "C" {
 /* ---------------------------------------------------------------------------- */
 
 #define STATE_MACHINE_THREAD_STACK_SIZE         (1024)
-#define STATE_MACHINE_THREAD_PRIORITY           (13)
-#define STATE_MACHINE_THREAD_PREMPTION_PRIORITY (13)
+#define STATE_MACHINE_THREAD_PRIORITY           (9)
+#define STATE_MACHINE_THREAD_PREMPTION_PRIORITY (9)
 
 /* ---------------------------------------------------------------------------- */
 /* Networking Common Config */
@@ -65,18 +65,21 @@ extern "C" {
 #define NX_APP_THREAD_STACK_SIZE         (2 * 1024)
 #define NX_APP_THREAD_PRIORITY           (10)
 
-#define NUM_VLANS                        (8)    /* Currently only used for STP (unused due to RSTP not MSTP) */
+#define NUM_VLANS                        (8)     /* Currently only used for STP (unused due to RSTP not MSTP) */
 
-#define PRIMARY_INTERFACE                (0)    /* Primary NetXduo interface (0 = first normal interface, 1 = loopback) */
+#define PRIMARY_INTERFACE                (0)     /* Primary NetXduo interface (0 = first normal interface, 1 = loopback) */
 
-#define PORT0_SPEED_MBPS                 (1000) /* 88Q2112 #1 (100 or 1000 Mbps) */
-#define PORT1_SPEED_MBPS                 (1000) /* 88Q2112 #2 (100 or 1000 Mbps) */
-#define PORT2_SPEED_MBPS                 (1000) /* 88Q2112 #3 (100 or 1000 Mbps) */
-#define PORT3_SPEED_MBPS                 (10)   /* 10BASE-T1S (10 Mbps) */
-#define PORT4_SPEED_MBPS                 (100)  /* Host (10 or 100 Mbps) */
+#define PORT0_SPEED_MBPS                 (1000)  /* 88Q2112 #1 (100 or 1000 Mbps) */
+#define PORT1_SPEED_MBPS                 (1000)  /* 88Q2112 #2 (100 or 1000 Mbps) */
+#define PORT2_SPEED_MBPS                 (1000)  /* 88Q2112 #3 (100 or 1000 Mbps) */
+#define PORT3_SPEED_MBPS                 (10)    /* 10BASE-T1S (10 Mbps) */
+#define PORT4_SPEED_MBPS                 (100)   /* Host (10 or 100 Mbps) */
 
-#define PHY_LINK_REQUIRED_FOR_NX_LINK    (true) /* Setting this to false means NetXduo will only require the switch to be initialed to count as having a link up. Default = true*/
+#define PHY_LINK_REQUIRED_FOR_NX_LINK    (true)  /* Setting this to false means NetXduo will only require the switch to be initialed to count as having a link up. Default = true*/
 
+#define DHCP_RECORD_SAVE_INTERVAL        (10000) /* How often to save the current DHCP record for restoration later in case of reboot in ms */
+
+#define ENABLE_DHCP_RESTORE              (true)
 /* ---------------------------------------------------------------------------- */
 /* Link Config */
 /* ---------------------------------------------------------------------------- */
@@ -133,8 +136,8 @@ extern "C" {
 /* ---------------------------------------------------------------------------- */
 
 #define STP_THREAD_STACK_SIZE         (1024)
-#define STP_THREAD_PRIORITY           (12)
-#define STP_THREAD_PREMPTION_PRIORITY (12)
+#define STP_THREAD_PRIORITY           (11)
+#define STP_THREAD_PREMPTION_PRIORITY (11)
 
 #define STP_MEM_POOL_SIZE             (2 * 1024 * sizeof(uint8_t))
 
@@ -143,8 +146,8 @@ extern "C" {
 /* ---------------------------------------------------------------------------- */
 
 #define COMMS_THREAD_STACK_SIZE         (1024 * 16)
-#define COMMS_THREAD_PRIORITY           (15)
-#define COMMS_THREAD_PREMPTION_PRIORITY (15)
+#define COMMS_THREAD_PRIORITY           (12)
+#define COMMS_THREAD_PREMPTION_PRIORITY (12)
 
 #define ZENOH_MEM_POOL_SIZE             (1024 * 32)
 #define ZENOH_OPEN_SESSION_INTERVAL     (200) /* Time between attempts to open a session */
@@ -159,6 +162,16 @@ extern "C" {
 
 #define HEARTBEAT_INTERVAL              (500)  /* ms */
 #define HEARTBEAT_MISS_TIMEOUT          (2000) /* ms, if the time between heartbeats is larger than this value then assume the producer has disconnected */
+
+/* ---------------------------------------------------------------------------- */
+/* Commmunications Config */
+/* ---------------------------------------------------------------------------- */
+
+#define BACKGROUND_THREAD_STACK_SIZE         (1024)
+#define BACKGROUND_THREAD_PRIORITY           (15)
+#define BACKGROUND_THREAD_PREMPTION_PRIORITY (15)
+
+#define BACKGROUND_THREAD_INTERVAL           (1000) /* ms, how often to run */
 
 
 #ifdef __cplusplus

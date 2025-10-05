@@ -16,6 +16,7 @@
 #include "comms_thread.h"
 #include "ptp_thread.h"
 #include "state_machine.h"
+#include "background_thread.h"
 #include "config.h"
 
 
@@ -49,6 +50,7 @@ void tx_setup(void *memory_ptr) {
     tx_thread_create(&stp_thread_handle,            "stp_thread",            stp_thread_entry,           thread_number++, stp_thread_stack,            STP_THREAD_STACK_SIZE,            STP_THREAD_PRIORITY,            STP_THREAD_PREMPTION_PRIORITY,           1,                TX_DONT_START);
     tx_thread_create(&comms_thread_handle,          "comms_thread",          comms_thread_entry,         thread_number++, comms_thread_stack,          COMMS_THREAD_STACK_SIZE,          COMMS_THREAD_PRIORITY,          COMMS_THREAD_PREMPTION_PRIORITY,         1,                TX_DONT_START);
     tx_thread_create(&ptp_thread_handle,            "ptp_thread",            ptp_thread_entry,           thread_number++, ptp_thread_stack,            PTP_THREAD_STACK_SIZE,            PTP_THREAD_PRIORITY,            PTP_THREAD_PRIORITY,                     TX_NO_TIME_SLICE, TX_DONT_START);
+    tx_thread_create(&background_thread_handle,     "background_thread",     background_thread_entry,    thread_number++, background_thread_stack,     BACKGROUND_THREAD_STACK_SIZE,     BACKGROUND_THREAD_PRIORITY,     BACKGROUND_THREAD_PRIORITY,              TX_NO_TIME_SLICE, TX_AUTO_START);
 
     /* Any threads that call secure functions must allocate secure stack (including logging, so all of them) */
     tx_thread_secure_stack_allocate(&state_machine_thread_handle,  LOGGING_STACK_SIZE);
@@ -58,5 +60,6 @@ void tx_setup(void *memory_ptr) {
     tx_thread_secure_stack_allocate(&stp_thread_handle,            LOGGING_STACK_SIZE);
     tx_thread_secure_stack_allocate(&comms_thread_handle,          LOGGING_STACK_SIZE);
     tx_thread_secure_stack_allocate(&ptp_thread_handle,            LOGGING_STACK_SIZE);
+    tx_thread_secure_stack_allocate(&background_thread_handle,     BACKGROUND_THREAD_STACK_SIZE); /* More stack required for secure background tasks */
 }
 // clang-format on

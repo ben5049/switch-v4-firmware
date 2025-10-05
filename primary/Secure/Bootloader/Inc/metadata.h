@@ -12,6 +12,7 @@
 #include "fram.h"
 #include "integrity.h"
 #include "prime256v1.h"
+#include "nxd_dhcp_client.h"
 
 
 #define METADATA_VERSION_MAJOR              0
@@ -41,7 +42,7 @@ typedef enum {
     META_ID_ERROR,
 } metadata_status_t;
 
-/* This struct stores the actual metadata data and is a mirror of the data stored in the FRAM. When this struct is updated the METADATA_VERSION numbers must be incremented. */
+/* This struct stores the actual metadata data and is a mirror of the data stored in the FRAM. When this struct is changed the METADATA_VERSION numbers must be incremented. */
 typedef struct __attribute__((__packed__)) {
 
     uint8_t metadata_version_major;
@@ -64,9 +65,12 @@ typedef struct __attribute__((__packed__)) {
     /* Device ID computed from hash of 96-bit unique identifier */
     uint32_t device_id;
 
+    /* DHCP Record for quickly restoring the IP address after reboot */
+    NX_DHCP_CLIENT_RECORD dhcp_record;
+
 } metadata_data_t;
 
-/* This struct stores the actual metadata counters and is a mirror of the data stored in the FRAM. When this struct is updated the METADATA_VERSION numbers must be incremented. */
+/* This struct stores the actual metadata counters and is a mirror of the data stored in the FRAM. When this struct is changed the METADATA_VERSION numbers must be incremented. */
 typedef struct __attribute__((__packed__)) {
     uint32_t crashes;
 } metadata_counters_t;
@@ -77,6 +81,10 @@ typedef struct {
     bool          initialised;
     uint32_t      device_id;
     bool          bank_swap;
+
+    /* When a write is required set the following flags. The firmware should then periodically check and write if required */
+    volatile bool new_metadata;
+    volatile bool new_counters;
 
     __ALIGN_BEGIN metadata_data_t metadata     __ALIGN_END; /* Must be aligned to prevent non-maskable interrupts on non-byte accesses */
     __ALIGN_BEGIN metadata_counters_t counters __ALIGN_END; /* Must be aligned to prevent non-maskable interrupts on non-byte accesses */

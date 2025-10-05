@@ -17,6 +17,7 @@
 #include "utils.h"
 #include "tx_app.h"
 #include "state_machine.h"
+#include "secure_nsc.h"
 
 
 #define NULL_ADDRESS 0
@@ -69,6 +70,7 @@ void nx_link_thread_entry(uint32_t thread_input) {
     nx_status_t nx_status     = NX_SUCCESS;
     tx_status_t tx_status     = TX_SUCCESS;
     bool        linkdown      = true;
+    uint32_t    current_time;
 
     /* Register the IP address change callback */
     nx_status = nx_ip_address_change_notify(&nx_ip_instance, ip_address_change_notify_callback, NULL);
@@ -78,7 +80,23 @@ void nx_link_thread_entry(uint32_t thread_input) {
     nx_status = nx_dhcp_start(&dhcp_client);
     if (nx_status != NX_SUCCESS) Error_Handler();
 
+    /* FIXME: Move to after link up? */
+#if ENABLE_DHCP_RESTORE == true
+    /* Attempt to load and restore the DHCP record */
+    NX_DHCP_CLIENT_RECORD dhcp_record;
+    uint32_t              dhcp_record_next_save_time = 0;
+    s_load_dhcp_client_record(&dhcp_record);
+    if (dhcp_record.nx_dhcp_state != NX_DHCP_STATE_NOT_STARTED) {
+        nx_status = nx_dhcp_client_restore_record(&dhcp_client, &dhcp_record, 0); /* TODO: Set time elapsed based on RTC while asleep */
+        if (nx_status != NX_SUCCESS) Error_Handler();
+    }
+#else
+    UNUSED(current_time);
+#endif
+
     while (1) {
+
+        uint32_t current_time = tx_time_get_ms();
 
         /* Send request to check if the switch is up and running */
         nx_status = nx_ip_interface_status_check(&nx_ip_instance, PRIMARY_INTERFACE, NX_IP_LINK_ENABLED, &actual_status, 10);
@@ -147,6 +165,19 @@ void nx_link_thread_entry(uint32_t thread_input) {
         else {
             Error_Handler();
         }
+
+#if ENABLE_DHCP_RESTORE == true
+        /* Periodically save the DHCP record to non-volatile memory in case of a reboot */
+        if (dhcp_record_next_save_time <= current_time) {
+            dhcp_record_next_save_time = current_time + DHCP_RECORD_SAVE_INTERVAL;
+            nx_status                  = nx_dhcp_client_get_record(&dhcp_client, &dhcp_record);
+            if (nx_status == NX_SUCCESS) {
+                s_save_dhcp_client_record(&dhcp_record);
+            } else if ((nx_status != NX_DHCP_NO_INTERFACES_STARTED) && (nx_status != NX_DHCP_NO_INTERFACES_ENABLED)) {
+                Error_Handler();
+            }
+        }
+#endif
 
         tx_thread_sleep_ms(NX_APP_CABLE_CONNECTION_CHECK_PERIOD);
     }

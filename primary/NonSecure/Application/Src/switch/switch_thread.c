@@ -33,7 +33,7 @@ void switch_thread_entry(uint32_t initial_input) {
     uint32_t current_time          = tx_time_get_ms();
     uint32_t next_publish_time     = current_time;
     uint32_t next_maintenance_time = current_time;
-    int32_t  next_wakeup           = 0;
+    uint32_t next_wakeup           = 0;
 
     switch_temperature       = 0.0;
     switch_temperature_valid = false;

@@ -23,7 +23,7 @@
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu.1099848244" name="Floating-point unit" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu.value.fpv5-sp-d16" valueType="enumerated"/>
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi.973653281" name="Floating-point ABI" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi.value.hard" valueType="enumerated"/>
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.target_board.1339317394" name="Board" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.target_board" useByScannerDiscovery="false" value="genericBoard" valueType="string"/>
-							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults.1131505997" name="Defaults" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults" useByScannerDiscovery="false" value="com.st.stm32cube.ide.common.services.build.inputs.revA.1.0.6 || Debug || true || Executable || com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace || STM32H573IIKxQ || 0 || 0 || arm-none-eabi- || ${gnu_tools_for_stm32_compiler_path} || ../Core/Inc | ../../Secure_nsclib | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Drivers/CMSIS/Include | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/netxduo/addons/dns || ../Core/Inc | ../../Secure_nsclib | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc | ../../Drivers/CMSIS/Include  | ../../Middlewares/ST/netxduo/addons/dns ||  || USE_HAL_DRIVER | STM32H573xx | NX_INCLUDE_USER_DEFINE_FILE | TX_INCLUDE_USER_DEFINE_FILE | TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || AZURE_RTOS | Core/Src | Drivers | NetXDuo | Core/Startup | Middlewares ||  ||  || ${workspace_loc:/${ProjName}/STM32H573IIKXQ_FLASH.ld} || true || NonSecure ||  || secure_nsclib.o || ${workspace_loc:/primary_Secure/Debug/secure_nsclib.o} || None ||  ||  || " valueType="string"/>
+							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults.1131505997" name="Defaults" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults" useByScannerDiscovery="false" value="com.st.stm32cube.ide.common.services.build.inputs.revA.1.0.6 || Debug || true || Executable || com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace || STM32H573IIKxQ || 0 || 0 || arm-none-eabi- || ${gnu_tools_for_stm32_compiler_path} || ../Core/Inc | ../../Secure_nsclib | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Drivers/CMSIS/Include | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/netxduo/addons/dns || ../Core/Inc | ../../Secure_nsclib | ../NetXDuo/App | ../NetXDuo/Target | ../AZURE_RTOS/App | ../../Drivers/STM32H5xx_HAL_Driver/Inc | ../../Drivers/CMSIS/Device/ST/STM32H5xx/Include | ../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy | ../../Middlewares/ST/netxduo/addons/dhcp | ../../Middlewares/ST/netxduo/common/drivers/ethernet | ../../Middlewares/ST/threadx/common/inc | ../../Middlewares/ST/netxduo/common/inc | ../../Middlewares/ST/netxduo/ports/cortex_m33/gnu/inc | ../../Middlewares/ST/threadx/ports/cortex_m33/gnu/inc | ../../Drivers/CMSIS/Include  | ../../Middlewares/ST/netxduo/addons/dns | ../../Drivers/CMSIS/Include ||  || USE_HAL_DRIVER | STM32H573xx | NX_INCLUDE_USER_DEFINE_FILE | TX_INCLUDE_USER_DEFINE_FILE | TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || TX_PORT_USE_BASEPRI | TX_PORT_BASEPRI=16 || AZURE_RTOS | Core/Src | Drivers | NetXDuo | Core/Startup | Middlewares ||  ||  || ${workspace_loc:/${ProjName}/STM32H573IIKXQ_FLASH.ld} || true || NonSecure ||  || secure_nsclib.o || ${workspace_loc:/primary_Secure/Debug/secure_nsclib.o} || None ||  ||  || " valueType="string"/>
 							<option id="com.st.stm32cube.ide.mcu.debug.option.cpuclock.781864700" name="Cpu clock frequence" superClass="com.st.stm32cube.ide.mcu.debug.option.cpuclock" useByScannerDiscovery="false" value="250" valueType="string"/>
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.runtimelibrary_cpp.785621689" name="Runtime library" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.runtimelibrary_cpp" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.runtimelibrary_cpp.value.nano_c_nano_cpp" valueType="enumerated"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.targetplatform.1865781358" isAbstract="false" osList="all" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.targetplatform"/>
@@ -66,6 +66,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/zenoh}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/protobuf}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/protobuf/generated}&quot;"/>
+									<listOptionValue builtIn="false" value="../../Drivers/CMSIS/Include "/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.assembler.input.1366786932" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.assembler.input"/>
 							</tool>
@@ -200,11 +201,11 @@
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="AZURE_RTOS"/>
 						<entry excluding="Src/Libraries/zenoh-pico/examples/Startup" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Application"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Core"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry excluding="nanopb/zephyr|nanopb/tools|nanopb/tests|nanopb/spm-test|nanopb/spm_resources|nanopb/spm_headers|nanopb/generator|nanopb/extra|nanopb/examples|nanopb/docs|nanopb/conan-wrapper|nanopb/build-tests|mstp/TestAppTM4C129+88E6352|zenoh-pico/src/system/freertos|mstp/TestAppSTM32+88E6352|mstp/TestAppLPC2387+IP175CD|zenoh-pico/src/system/windows|mstp/TestAppMK66F+KSZ8794|mstp/simulator|zenoh-pico/src/system/rpi_pico|zenoh-pico/src/system/unix|zenoh-pico/examples|zenoh-pico/ci|zenoh-pico/src/system/espidf|zenoh-pico/cmake|zenoh-pico/src/system/zephyr|zenoh-pico/docs|zenoh-pico/src/system/arduino|zenoh-pico/src/system/flipper|zenoh-pico/zephyr|zenoh-pico/src/system/threadx|zenoh-pico/src/system/mbed|zenoh-pico/tools|zenoh-pico/src/system/emscripten|zenoh-pico/tests" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Libraries"/>
 						<entry excluding="ST/netxduo/Ethernet Interface/nx_stm32_eth_driver.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry excluding="Target/nx_stm32_phy_custom_driver.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="NetXDuo"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Core"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -275,6 +276,10 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/nanopb}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/protobuf}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Application/Inc/protobuf/generated}&quot;"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/nx_secure/inc"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/nx_secure/ports"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/crypto_libraries/inc"/>
+									<listOptionValue builtIn="false" value="../../Middlewares/ST/netxduo/crypto_libraries/ports/cortex_m4/gnu/inc"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.assembler.input.1999867812" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.assembler.input"/>
 							</tool>
@@ -395,10 +400,10 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="AZURE_RTOS"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry excluding="ST/netxduo/Ethernet Interface/nx_stm32_eth_driver.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry excluding="Target/nx_stm32_phy_custom_driver.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="NetXDuo"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

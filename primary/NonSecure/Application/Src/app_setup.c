@@ -17,6 +17,7 @@
 #include "gpio.h"
 #include "gpdma.h"
 #include "aes.h"
+#include "rtc.h"
 
 #include "switch_thread.h"
 #include "phy_thread.h"
@@ -35,6 +36,7 @@ void app_setup(void) {
     /* Initialise important peripherals */
     MX_GPIO_Init();
     MX_ICACHE_Init();
+    MX_RTC_Init();
     MX_CRC_Init();
     MX_SPI2_Init();
 
