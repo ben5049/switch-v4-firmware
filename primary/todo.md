@@ -11,3 +11,4 @@
 - PHY interrupts
 - Add queriable for last n log messages
 - Fix bug where terminating a Zenoh Pico session and reopening it within 10s causes a deadlock
+    - Due to lease times?

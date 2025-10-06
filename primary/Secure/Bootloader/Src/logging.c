@@ -132,7 +132,7 @@ log_status_t log_write(log_handle_t *self, const char *format, ...) {
     log_status_t status = LOGGING_OK;
 
 #if ENABLE_UART_LOGGING == true
-    printf(" S %10lu: ", HAL_GetTick());
+    printf("S  %10lu: ", HAL_GetTick());
 #endif
 
     va_list args;

@@ -73,13 +73,13 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : PHY2_INT_Pin PHY1_INT_Pin */
   GPIO_InitStruct.Pin = PHY2_INT_Pin|PHY1_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PHY0_INT_Pin */
   GPIO_InitStruct.Pin = PHY0_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(PHY0_INT_GPIO_Port, &GPIO_InitStruct);
 
@@ -106,7 +106,7 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : PHY3_INT_Pin */
   GPIO_InitStruct.Pin = PHY3_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(PHY3_INT_GPIO_Port, &GPIO_InitStruct);
 

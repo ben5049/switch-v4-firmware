@@ -78,6 +78,8 @@ void comms_thread_entry(uint32_t initial_input) {
     _z_res_t    z_status              = Z_OK;
     bool        session_open          = false;
     uint32_t    restart_retry_counter = 0;
+    uint32_t    failure_streak        = 0;
+    bool        failure_streak_valid  = false;
     uint32_t    current_time          = tx_time_get_ms();
 
     Heartbeat    heartbeat = Heartbeat_init_zero;
@@ -118,7 +120,7 @@ void comms_thread_entry(uint32_t initial_input) {
 
         /* Start a session */
         log_write("Zenoh Pico: Attempting to open session\n");
-        static z_owned_session_t session;
+        z_owned_session_t session;
         do {
 
             /* Attempt to open session */
@@ -126,17 +128,26 @@ void comms_thread_entry(uint32_t initial_input) {
 
             /* Session open */
             if (z_status == Z_OK) {
+                failure_streak       = 0;
+                failure_streak_valid = false;
                 break;
             }
 
             /* Try again */
-            else if ((z_status == _Z_ERR_SCOUT_NO_RESULTS)                  /* Unable to find other Zenoh devices */
-                     || (z_status == _Z_ERR_CONFIG_LOCATOR_SCHEMA_UNKNOWN)  /* Can occur when the router is not configured with an incorrect transport or incorrect IP version (e.g. IPv6) */
-                     || (z_status == _Z_ERR_MESSAGE_DESERIALIZATION_FAILED) /* Random error TODO: find out why this happens */
-                     || (z_status == _Z_ERR_MESSAGE_UNEXPECTED)             /* Message received while supposed to be shut down. This can occur when the server's heartbeat dies but the router is still running */
-            ) {
+            else if ((z_status == _Z_ERR_SCOUT_NO_RESULTS) /* Unable to find other Zenoh devices */
+                     || (z_status == _Z_ERR_CONFIG_LOCATOR_SCHEMA_UNKNOWN) /* Can occur when the router is not configured with an incorrect transport or incorrect IP version (e.g. IPv6) */) {
                 log_write("Zenoh Pico: Failed to open session, error code %i\n", z_status);
-                z_sleep_ms(ZENOH_OPEN_SESSION_INTERVAL);
+                failure_streak_valid = false;
+                goto retry;
+            }
+
+            /* Try again, note these contribute to a failure streak because they indicate a remote failure */
+            else if ((z_status == _Z_ERR_MESSAGE_DESERIALIZATION_FAILED) /* Random error TODO: find out why this happens */
+                     || (z_status == _Z_ERR_MESSAGE_UNEXPECTED)          /* Message received while supposed to be shut down. This can occur when the server's heartbeat dies but the router is still running */
+            ) {
+                failure_streak++;
+                failure_streak_valid = true;
+                log_write("Zenoh Pico: Failed to open session (%lu), error code %i\n", failure_streak, z_status);
                 goto retry;
             }
 
@@ -284,5 +295,12 @@ void comms_thread_entry(uint32_t initial_input) {
         if (tx_status != TX_SUCCESS) Error_Handler();
 
         log_write("Zenoh Pico: Terminated\n");
+
+        /* Break after termination before restarting. If there are many back to back attempts then wait for any leases to expire */
+        if (failure_streak && !(failure_streak % ZENOH_MAX_RETRIES_BEFORE_LONG_PAUSE) && failure_streak_valid) {
+            z_sleep_ms(Z_TRANSPORT_LEASE);
+        } else {
+            z_sleep_ms(ZENOH_OPEN_SESSION_INTERVAL);
+        }
     }
 }
