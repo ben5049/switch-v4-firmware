@@ -73,7 +73,7 @@ phy_status_t phys_init() {
     HAL_GPIO_WritePin(PHY_WAKE_GPIO_Port, PHY_WAKE_Pin, SET);
     HAL_GPIO_WritePin(PHY_CLK_EN_GPIO_Port, PHY_CLK_EN_Pin, SET);
 
-    /* Hardware reset all PHYs */
+    /* Hardware reset all PHYs (TODO: Reduce times) */
     tx_thread_sleep_ms(10);
     HAL_GPIO_WritePin(PHY_RST_GPIO_Port, PHY_RST_Pin, RESET);
     tx_thread_sleep_ms(10); /* 10ms required by 88Q2112 */
@@ -109,12 +109,14 @@ phy_status_t phys_init() {
     /* TODO: Perform other configuration */
 
     /* TODO: Testing config */
+#ifdef DEBUG
     //    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy0);
     //    if (status != PHY_OK) Error_Handler();
     status = PHY_88Q211X_EnableIEEEPowerDown(&hphy1);
     if (status != PHY_OK) Error_Handler();
     status = PHY_88Q211X_EnableIEEEPowerDown(&hphy2);
     if (status != PHY_OK) Error_Handler();
+#endif
 
     /* TODO: Enable End to End Transparent Clock and PTP hardware acceleration */
 
