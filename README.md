@@ -8,7 +8,7 @@ Also see my post on [r/embedded](https://www.reddit.com/r/embedded/comments/1mxa
 
 This repository is split into firmwares for the primary and secondary MCUs on the switch board:
 - The **primary** MCU does most of the configuration and management of the switch.
-- The **seconday** MCU manages power to connected devices using Power over Datalines (PoDL).
+- The **secondarhy** MCU manages power to connected devices using Power over Datalines (PoDL).
 
 Currently only the primary MCU firmware is working.
 
@@ -27,12 +27,12 @@ The secure bootloader is responsible for the following:
 - Writing new firmware images (WIP)
 - Communicating with the secondary MCU (WIP)
 
-The non-secure firmwre is responsible for the follwing:
+The non-secure firmware is responsible for the following:
 - Initialising non-secure peripherals
 - Initialising the switch and PHY chips
-- Running a the networking stack
+- Running the networking stack
 - Publishing diagnostic information with Zenoh Pico
-- Switch and PHY maintainance
+- Switch and PHY maintenance
 - Firmware updates (WIP)
 - Running PTP (WIP)
 - Running STP (WIP)
