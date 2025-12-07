@@ -33,11 +33,6 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Libraries</name>
-			<type>2</type>
-			<location>S:/Documents/projects/GbE-TSN-Switch/Firmware/switch-v4-firmware/primary/Libraries</location>
-		</link>
-		<link>
 			<name>Drivers/STM32H5xx_HAL_Driver/stm32h5xx_hal.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal.c</locationURI>
