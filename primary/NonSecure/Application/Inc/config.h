@@ -21,7 +21,7 @@ extern "C" {
 /* Thread Enables */
 /* ---------------------------------------------------------------------------- */
 
-#define ENABLE_STP_THREAD false /* TODO: fix this thread. Each time it calls for a flush the 50MHz REF_CLK is reset which is probably very bad */
+#define ENABLE_STP_THREAD false /* More important TODO: replace with custom implementation, MSTP is too heavy. TODO: fix this thread. Each time it calls for a flush the 50MHz REF_CLK is reset which is probably very bad */
 
 /* ---------------------------------------------------------------------------- */
 /* Common Config */
@@ -69,9 +69,9 @@ extern "C" {
 
 #define PRIMARY_INTERFACE                (0)     /* Primary NetXduo interface (0 = first normal interface, 1 = loopback) */
 
-#define PORT0_SPEED_MBPS                 (1000)  /* 88Q2112 #1 (100 or 1000 Mbps) */
-#define PORT1_SPEED_MBPS                 (1000)  /* 88Q2112 #2 (100 or 1000 Mbps) */
-#define PORT2_SPEED_MBPS                 (1000)  /* 88Q2112 #3 (100 or 1000 Mbps) */
+#define PORT0_SPEED_MBPS                 (100)  /* 88Q2112 #1 (100 or 1000 Mbps) */
+#define PORT1_SPEED_MBPS                 (100)  /* 88Q2112 #2 (100 or 1000 Mbps) */
+#define PORT2_SPEED_MBPS                 (100)  /* 88Q2112 #3 (100 or 1000 Mbps) */
 #define PORT3_SPEED_MBPS                 (10)    /* 10BASE-T1S (10 Mbps) */
 #define PORT4_SPEED_MBPS                 (100)   /* Host (10 or 100 Mbps) */
 

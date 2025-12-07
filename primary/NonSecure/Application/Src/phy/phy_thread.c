@@ -44,10 +44,10 @@ void phy_thread_entry(uint32_t initial_input) {
     /* Check if any links are up (also call the corresponding callback which is needed because the link can go up before the interrupt is enabled) */
     phy_status = PHY_88Q211X_GetLinkState(&hphy0, &link_up);
     if (phy_status != PHY_OK) Error_Handler();
-    // phy_status = PHY_88Q211X_GetLinkState(&hphy1, &link_up);
-    // if (phy_status != PHY_OK) Error_Handler();
-    // phy_status = PHY_88Q211X_GetLinkState(&hphy2, &link_up);
-    // if (phy_status != PHY_OK) Error_Handler();
+    phy_status = PHY_88Q211X_GetLinkState(&hphy1, &link_up);
+    if (phy_status != PHY_OK) Error_Handler();
+    phy_status = PHY_88Q211X_GetLinkState(&hphy2, &link_up);
+    if (phy_status != PHY_OK) Error_Handler();
 
     /* Setup timing control variables (done in ms) */
     uint32_t current_time   = tx_time_get_ms();
@@ -105,10 +105,10 @@ void phy_thread_entry(uint32_t initial_input) {
         /* Poll link states in case an interrupt is missed */
         phy_status = PHY_88Q211X_GetLinkState(&hphy0, &link_up);
         if (phy_status != PHY_OK) Error_Handler();
-        // phy_status = PHY_88Q211X_GetLinkState(&hphy1, &link_up);
-        // if (phy_status != PHY_OK) Error_Handler();
-        // phy_status = PHY_88Q211X_GetLinkState(&hphy2, &link_up);
-        // if (phy_status != PHY_OK) Error_Handler();
+        phy_status = PHY_88Q211X_GetLinkState(&hphy1, &link_up);
+        if (phy_status != PHY_OK) Error_Handler();
+        phy_status = PHY_88Q211X_GetLinkState(&hphy2, &link_up);
+        if (phy_status != PHY_OK) Error_Handler();
 
         phy_fault_t fault = PHY_FAULT_NONE;
         phy_status        = PHY_88Q211X_CheckFaults(&hphy0, &fault);

@@ -110,12 +110,12 @@ phy_status_t phys_init() {
 
     /* TODO: Testing config */
 #ifdef DEBUG
-    //    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy0);
-    //    if (status != PHY_OK) Error_Handler();
-    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy1);
-    if (status != PHY_OK) Error_Handler();
-    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy2);
-    if (status != PHY_OK) Error_Handler();
+//    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy0);
+//    if (status != PHY_OK) Error_Handler();
+//    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy1);
+//    if (status != PHY_OK) Error_Handler();
+//    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy2);
+//    if (status != PHY_OK) Error_Handler();
 #endif
 
     /* TODO: Enable End to End Transparent Clock and PTP hardware acceleration */

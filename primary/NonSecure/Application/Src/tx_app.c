@@ -37,7 +37,7 @@ void tx_setup(void *memory_ptr) {
 
     /* Create event flags */
     tx_event_flags_create(&state_machine_events_handle, "state_machine_events_handle");
-    tx_event_flags_create(&stp_events_handle,           "stp_events_handle");
+//    tx_event_flags_create(&stp_events_handle,           "stp_events_handle");
     tx_event_flags_create(&phy_events_handle,           "phy_events_handle");
 
     /* Create queues */
@@ -48,7 +48,7 @@ void tx_setup(void *memory_ptr) {
     tx_thread_create(&nx_link_thread_handle,       "nx_link_thread",       nx_link_thread_entry,       thread_number++, nx_link_thread_stack,       NX_LINK_THREAD_STACK_SIZE,       NX_LINK_THREAD_PRIORITY,       NX_LINK_THREAD_PRIORITY,          TX_NO_TIME_SLICE, TX_DONT_START);
     tx_thread_create(&switch_thread_handle,        "switch_thread",        switch_thread_entry,        thread_number++, switch_thread_stack,        SWITCH_THREAD_STACK_SIZE,        SWITCH_THREAD_PRIORITY,        SWITCH_THREAD_PREMPTION_PRIORITY, 1,                TX_DONT_START);
     tx_thread_create(&phy_thread_handle,           "phy_thread",           phy_thread_entry,           thread_number++, phy_thread_stack,           PHY_THREAD_STACK_SIZE,           PHY_THREAD_PRIORITY,           PHY_THREAD_PREMPTION_PRIORITY,    1,                TX_DONT_START);
-    tx_thread_create(&stp_thread_handle,           "stp_thread",           stp_thread_entry,           thread_number++, stp_thread_stack,           STP_THREAD_STACK_SIZE,           STP_THREAD_PRIORITY,           STP_THREAD_PREMPTION_PRIORITY,    1,                TX_DONT_START);
+//    tx_thread_create(&stp_thread_handle,           "stp_thread",           stp_thread_entry,           thread_number++, stp_thread_stack,           STP_THREAD_STACK_SIZE,           STP_THREAD_PRIORITY,           STP_THREAD_PREMPTION_PRIORITY,    1,                TX_DONT_START);
     tx_thread_create(&comms_thread_handle,         "comms_thread",         comms_thread_entry,         thread_number++, comms_thread_stack,         COMMS_THREAD_STACK_SIZE,         COMMS_THREAD_PRIORITY,         COMMS_THREAD_PREMPTION_PRIORITY,  1,                TX_DONT_START);
     tx_thread_create(&ptp_thread_handle,           "ptp_thread",           ptp_thread_entry,           thread_number++, ptp_thread_stack,           PTP_THREAD_STACK_SIZE,           PTP_THREAD_PRIORITY,           PTP_THREAD_PRIORITY,              TX_NO_TIME_SLICE, TX_DONT_START);
     tx_thread_create(&background_thread_handle,    "background_thread",    background_thread_entry,    thread_number++, background_thread_stack,    BACKGROUND_THREAD_STACK_SIZE,    BACKGROUND_THREAD_PRIORITY,    BACKGROUND_THREAD_PRIORITY,       TX_NO_TIME_SLICE, TX_AUTO_START);
@@ -58,7 +58,7 @@ void tx_setup(void *memory_ptr) {
     tx_thread_secure_stack_allocate(&nx_link_thread_handle,       MIN(LOGGING_STACK_SIZE,                                TX_THREAD_SECURE_STACK_MAXIMUM));
     tx_thread_secure_stack_allocate(&switch_thread_handle,        MIN(LOGGING_STACK_SIZE,                                TX_THREAD_SECURE_STACK_MAXIMUM));
     tx_thread_secure_stack_allocate(&phy_thread_handle,           MIN(LOGGING_STACK_SIZE,                                TX_THREAD_SECURE_STACK_MAXIMUM));
-    tx_thread_secure_stack_allocate(&stp_thread_handle,           MIN(LOGGING_STACK_SIZE,                                TX_THREAD_SECURE_STACK_MAXIMUM));
+//    tx_thread_secure_stack_allocate(&stp_thread_handle,           MIN(LOGGING_STACK_SIZE,                                TX_THREAD_SECURE_STACK_MAXIMUM));
     tx_thread_secure_stack_allocate(&comms_thread_handle,         MIN(LOGGING_STACK_SIZE,                                TX_THREAD_SECURE_STACK_MAXIMUM));
     tx_thread_secure_stack_allocate(&ptp_thread_handle,           MIN(LOGGING_STACK_SIZE,                                TX_THREAD_SECURE_STACK_MAXIMUM));
     tx_thread_secure_stack_allocate(&background_thread_handle,    MIN(LOGGING_STACK_SIZE + BACKGROUND_THREAD_STACK_SIZE, TX_THREAD_SECURE_STACK_MAXIMUM)); /* More stack required for secure background tasks */

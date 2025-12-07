@@ -476,7 +476,7 @@
 //   <o.2>  TIM8_UP_IRQn          <0=> Secure state
 //   <o.3>  TIM8_TRG_COM_IRQn     <0=> Secure state
 //   <o.4>  TIM8_CC_IRQn          <0=> Secure state
-//   <o.5>  ADC2_IRQn             <0=> Secure state
+//   <o.5>  ADC2_IRQn             <1=> Non-Secure state
 //   <o.6>  LPTIM2_IRQn           <0=> Secure state
 //   <o.7>  TIM15_IRQn            <0=> Secure state
 //   <o.8>  TIM16_IRQn            <0=> Secure state
@@ -504,7 +504,7 @@
 //   <o.30> GPDMA2_Channel4_IRQn  <0=> Secure state
 //   <o.31> GPDMA2_Channel5_IRQn  <0=> Secure state
 */
-#define NVIC_INIT_ITNS2_VAL      0x00000000
+#define NVIC_INIT_ITNS2_VAL      0x00000020
 
 /*
 //   </e>

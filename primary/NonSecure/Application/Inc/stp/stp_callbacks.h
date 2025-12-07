@@ -16,7 +16,7 @@ extern "C" {
 #include "stdint.h"
 #include "stdbool.h"
 #include "hal.h"
-#include "stp.h"
+//#include "stp.h" TODO: remove
 
 #include "nx_stp.h"
 

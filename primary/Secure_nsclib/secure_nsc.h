@@ -49,3 +49,4 @@ void s_log_vwrite(const char *format, va_list args);
 
 #endif /* SECURE_NSC_H */
 /* USER CODE END Non_Secure_CallLib_h */
+

@@ -43,6 +43,7 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOI_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -83,10 +84,16 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(PHY0_INT_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : ST_3V3_AON_Pin */
+  GPIO_InitStruct.Pin = ST_3V3_AON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(ST_3V3_AON_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : PHY_CLK_EN_Pin */
   GPIO_InitStruct.Pin = PHY_CLK_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(PHY_CLK_EN_GPIO_Port, &GPIO_InitStruct);
 
@@ -97,25 +104,18 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(SWCH_CS_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PHY_WAKE_Pin */
-  GPIO_InitStruct.Pin = PHY_WAKE_Pin;
+  /*Configure GPIO pins : PHY_WAKE_Pin PHY_RST_Pin */
+  GPIO_InitStruct.Pin = PHY_WAKE_Pin|PHY_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(PHY_WAKE_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PHY3_INT_Pin */
   GPIO_InitStruct.Pin = PHY3_INT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(PHY3_INT_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PHY_RST_Pin */
-  GPIO_InitStruct.Pin = PHY_RST_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(PHY_RST_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : SWCH_RST_Pin */
   GPIO_InitStruct.Pin = SWCH_RST_Pin;

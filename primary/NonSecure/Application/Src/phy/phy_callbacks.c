@@ -215,6 +215,7 @@ static phy_status_t phy_callback_link_status_change(bool linkup, void *context) 
     if (tx_thread_identify() == TX_NULL) return PHY_OK;
 
     /* Notify the STP thread */
+#if ENABLE_STP_THREAD == true
     if (context == &hphy0) {
         status = tx_event_flags_set(&stp_events_handle, STP_PORT0_LINK_STATE_CHANGE_EVENT, TX_OR);
     } else if (context == &hphy1) {
@@ -224,6 +225,7 @@ static phy_status_t phy_callback_link_status_change(bool linkup, void *context) 
     } else if (context == &hphy3) {
         status = tx_event_flags_set(&stp_events_handle, STP_PORT3_LINK_STATE_CHANGE_EVENT, TX_OR);
     }
+#endif
 
     /* Return the status */
     if (status != TX_SUCCESS) {

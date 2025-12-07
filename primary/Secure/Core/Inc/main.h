@@ -88,12 +88,20 @@ void Error_Handler(void);
 #define PHY0_INT_Pin GPIO_PIN_7
 #define PHY0_INT_GPIO_Port GPIOD
 #define PHY0_INT_EXTI_IRQn EXTI7_IRQn
+#define PODL_RST_Pin GPIO_PIN_5
+#define PODL_RST_GPIO_Port GPIOD
+#define PODL_BOOT_Pin GPIO_PIN_3
+#define PODL_BOOT_GPIO_Port GPIOD
 #define FRAM_WP_Pin GPIO_PIN_1
 #define FRAM_WP_GPIO_Port GPIOI
+#define ST_3V3_AON_Pin GPIO_PIN_1
+#define ST_3V3_AON_GPIO_Port GPIOE
 #define PHY_CLK_EN_Pin GPIO_PIN_6
 #define PHY_CLK_EN_GPIO_Port GPIOD
 #define STAT_Pin GPIO_PIN_13
 #define STAT_GPIO_Port GPIOH
+#define PWR_EN_Pin GPIO_PIN_0
+#define PWR_EN_GPIO_Port GPIOE
 #define FRAM_CS_Pin GPIO_PIN_15
 #define FRAM_CS_GPIO_Port GPIOA
 #define SWCH_CS_Pin GPIO_PIN_11
@@ -105,8 +113,12 @@ void Error_Handler(void);
 #define PHY3_INT_EXTI_IRQn EXTI3_IRQn
 #define PHY_RST_Pin GPIO_PIN_8
 #define PHY_RST_GPIO_Port GPIOF
+#define VIN_VMON_Pin GPIO_PIN_13
+#define VIN_VMON_GPIO_Port GPIOF
 #define SWCH_RST_Pin GPIO_PIN_6
 #define SWCH_RST_GPIO_Port GPIOH
+#define VIN_IMON_Pin GPIO_PIN_14
+#define VIN_IMON_GPIO_Port GPIOF
 
 /* USER CODE BEGIN Private defines */
 
