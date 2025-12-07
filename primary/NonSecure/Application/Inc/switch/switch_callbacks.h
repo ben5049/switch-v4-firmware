@@ -16,6 +16,15 @@ extern "C" {
 #include "sja1105.h"
 
 
+#define SWCH_SPI hspi2
+#define SWCH_CRC hcrc
+
+
+/* Imported variables */
+extern SPI_HandleTypeDef SWCH_SPI;
+extern CRC_HandleTypeDef SWCH_CRC;
+
+
 /* Exported variables */
 extern TX_MUTEX                  sja1105_mutex_handle;
 extern const sja1105_callbacks_t sja1105_callbacks;

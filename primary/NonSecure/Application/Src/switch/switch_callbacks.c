@@ -8,6 +8,7 @@
 #include "tx_api.h"
 #include "hal.h"
 
+#include "main.h"
 #include "switch_thread.h"
 #include "switch_callbacks.h"
 #include "sja1105.h"
@@ -18,8 +19,6 @@
 TX_MUTEX            sja1105_mutex_handle;
 static UCHAR        switch_byte_pool_buffer[SWITCH_MEM_POOL_SIZE] __ALIGNED(32);
 static TX_BYTE_POOL switch_byte_pool;
-
-extern CRC_HandleTypeDef hcrc;
 
 
 sja1105_status_t switch_byte_pool_init() {
@@ -33,7 +32,58 @@ sja1105_status_t switch_byte_pool_init() {
     return status;
 }
 
-static uint32_t sja1105_get_time_ms(sja1105_handle_t *dev) {
+static void sja1105_write_rst_pin(sja1105_pinstate_t state, void *context) {
+
+    if (state == SJA1105_PIN_RESET) {
+        HAL_GPIO_WritePin(SWCH_RST_GPIO_Port, SWCH_RST_Pin, RESET);
+    } else {
+        HAL_GPIO_WritePin(SWCH_RST_GPIO_Port, SWCH_RST_Pin, SET);
+    }
+}
+
+static void sja1105_write_cs_pin(sja1105_pinstate_t state, void *context) {
+
+    if (state == SJA1105_PIN_RESET) {
+        HAL_GPIO_WritePin(SWCH_CS_GPIO_Port, SWCH_CS_Pin, RESET);
+    } else {
+        HAL_GPIO_WritePin(SWCH_CS_GPIO_Port, SWCH_CS_Pin, SET);
+    }
+}
+
+static sja1105_status_t sja1105_spi_transmit(const uint32_t *data, uint16_t size, uint32_t timeout, void *context) {
+
+    sja1105_status_t status = SJA1105_OK;
+
+    if (HAL_SPI_Transmit(&SWCH_SPI, (uint8_t *) data, size, timeout) != HAL_OK) {
+        status = SJA1105_SPI_ERROR;
+    }
+
+    return status;
+}
+
+static sja1105_status_t sja1105_spi_receive(uint32_t *data, uint16_t size, uint32_t timeout, void *context) {
+
+    sja1105_status_t status = SJA1105_OK;
+
+    if (HAL_SPI_Receive(&SWCH_SPI, (uint8_t *) data, size, timeout) != HAL_OK) {
+        status = SJA1105_SPI_ERROR;
+    }
+
+    return status;
+}
+
+static sja1105_status_t sja1105_spi_transmit_receive(const uint32_t *tx_data, uint32_t *rx_data, uint16_t size, uint32_t timeout, void *context) {
+
+    sja1105_status_t status = SJA1105_OK;
+
+    if (HAL_SPI_TransmitReceive(&SWCH_SPI, (uint8_t *) tx_data, (uint8_t *) rx_data, size, timeout) != HAL_OK) {
+        status = SJA1105_SPI_ERROR;
+    }
+
+    return status;
+}
+
+static uint32_t sja1105_get_time_ms(void *context) {
 
     /* Use kernel time if it has been started */
     if (tx_thread_identify() == TX_NULL) {
@@ -43,7 +93,7 @@ static uint32_t sja1105_get_time_ms(sja1105_handle_t *dev) {
     }
 }
 
-static void sja1105_delay_ms(sja1105_handle_t *dev, uint32_t ms) {
+static void sja1105_delay_ms(uint32_t ms, void *context) {
 
     /* Use kernel time if it has been started */
     if (tx_thread_identify() == TX_NULL) {
@@ -53,11 +103,11 @@ static void sja1105_delay_ms(sja1105_handle_t *dev, uint32_t ms) {
     }
 }
 
-static void sja1105_delay_ns(sja1105_handle_t *dev, uint32_t ns) {
+static void sja1105_delay_ns(uint32_t ns, void *context) {
     delay_ns(ns);
 }
 
-static sja1105_status_t sja1105_take_mutex(sja1105_handle_t *dev, uint32_t timeout) {
+static sja1105_status_t sja1105_take_mutex(uint32_t timeout, void *context) {
 
     sja1105_status_t status = SJA1105_OK;
 
@@ -80,7 +130,7 @@ static sja1105_status_t sja1105_take_mutex(sja1105_handle_t *dev, uint32_t timeo
     return status;
 }
 
-static sja1105_status_t sja1105_give_mutex(sja1105_handle_t *dev) {
+static sja1105_status_t sja1105_give_mutex(void *context) {
 
     sja1105_status_t status = SJA1105_OK;
 
@@ -92,7 +142,7 @@ static sja1105_status_t sja1105_give_mutex(sja1105_handle_t *dev) {
     return status;
 }
 
-static sja1105_status_t sja1105_allocate(sja1105_handle_t *dev, uint32_t **memory_ptr, uint32_t size) {
+static sja1105_status_t sja1105_allocate(uint32_t **memory_ptr, uint32_t size, void *context) {
 
     sja1105_status_t status = SJA1105_OK;
 
@@ -103,7 +153,7 @@ static sja1105_status_t sja1105_allocate(sja1105_handle_t *dev, uint32_t **memor
     return status;
 }
 
-static sja1105_status_t sja1105_free(sja1105_handle_t *dev, uint32_t *memory_ptr) {
+static sja1105_status_t sja1105_free(uint32_t *memory_ptr, void *context) {
 
     sja1105_status_t status = SJA1105_OK;
 
@@ -117,7 +167,7 @@ static sja1105_status_t sja1105_free(sja1105_handle_t *dev, uint32_t *memory_ptr
     return status;
 }
 
-static sja1105_status_t sja1105_free_all(sja1105_handle_t *dev) {
+static sja1105_status_t sja1105_free_all(void *context) {
 
     sja1105_status_t status = SJA1105_OK;
 
@@ -133,39 +183,44 @@ static sja1105_status_t sja1105_free_all(sja1105_handle_t *dev) {
     return status;
 }
 
-static sja1105_status_t sja1105_crc_reset(sja1105_handle_t *dev) {
+static sja1105_status_t sja1105_crc_reset(void *context) {
 
     sja1105_status_t status = SJA1105_OK;
 
     /* Reset the data register from the previous calculation */
-    hcrc.Instance->CR |= CRC_CR_RESET;
+    SWCH_CRC.Instance->CR |= CRC_CR_RESET;
 
     /* Make sure the initial value and polynomial are correct*/
-    hcrc.Instance->INIT = 0xffffffff;
-    hcrc.Instance->POL  = 0x04c11db7;
+    SWCH_CRC.Instance->INIT = 0xffffffff;
+    SWCH_CRC.Instance->POL  = 0x04c11db7;
 
     return status;
 }
 
-static sja1105_status_t sja1105_crc_accumulate(sja1105_handle_t *dev, const uint32_t *buffer, uint32_t size, uint32_t *result) {
+static sja1105_status_t sja1105_crc_accumulate(const uint32_t *buffer, uint32_t size, uint32_t *result, void *context) {
 
     sja1105_status_t status = SJA1105_OK;
 
-    *result = ~HAL_CRC_Accumulate(&hcrc, (uint32_t *) buffer, size * sizeof(uint32_t));
+    *result = ~HAL_CRC_Accumulate(&SWCH_CRC, (uint32_t *) buffer, size * sizeof(uint32_t));
 
     return status;
 }
 
 
 const sja1105_callbacks_t sja1105_callbacks = {
-    .callback_get_time_ms    = &sja1105_get_time_ms,
-    .callback_delay_ms       = &sja1105_delay_ms,
-    .callback_delay_ns       = &sja1105_delay_ns,
-    .callback_take_mutex     = &sja1105_take_mutex,
-    .callback_give_mutex     = &sja1105_give_mutex,
-    .callback_allocate       = &sja1105_allocate,
-    .callback_free           = &sja1105_free,
-    .callback_free_all       = &sja1105_free_all,
-    .callback_crc_reset      = &sja1105_crc_reset,
-    .callback_crc_accumulate = &sja1105_crc_accumulate,
+    .callback_write_rst_pin        = &sja1105_write_rst_pin,
+    .callback_write_cs_pin         = &sja1105_write_cs_pin,
+    .callback_spi_transmit         = &sja1105_spi_transmit,
+    .callback_spi_receive          = &sja1105_spi_receive,
+    .callback_spi_transmit_receive = &sja1105_spi_transmit_receive,
+    .callback_get_time_ms          = &sja1105_get_time_ms,
+    .callback_delay_ms             = &sja1105_delay_ms,
+    .callback_delay_ns             = &sja1105_delay_ns,
+    .callback_take_mutex           = &sja1105_take_mutex,
+    .callback_give_mutex           = &sja1105_give_mutex,
+    .callback_allocate             = &sja1105_allocate,
+    .callback_free                 = &sja1105_free,
+    .callback_free_all             = &sja1105_free_all,
+    .callback_crc_reset            = &sja1105_crc_reset,
+    .callback_crc_accumulate       = &sja1105_crc_accumulate,
 };

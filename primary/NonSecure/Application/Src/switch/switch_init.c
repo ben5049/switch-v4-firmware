@@ -7,7 +7,6 @@
 
 #include "stdatomic.h"
 
-#include "main.h"
 #include "switch_thread.h"
 #include "switch_callbacks.h"
 #include "sja1105.h"
@@ -22,14 +21,19 @@ static uint32_t         fixed_length_table_buffer[SJA1105_FIXED_BUFFER_SIZE] __A
 const uint32_t *sja1105_static_conf;
 uint32_t        sja1105_static_conf_size;
 
-/* Imported variables */
-extern SPI_HandleTypeDef hspi2;
-
 
 sja1105_status_t switch_init(sja1105_handle_t *dev) {
 
     sja1105_status_t status;
     sja1105_port_t   port_config;
+
+    /* Check SPI parameters */
+    if (SWCH_SPI.Init.DataSize != SPI_DATASIZE_32BIT) status = SJA1105_PARAMETER_ERROR;
+    if (SWCH_SPI.Init.CLKPolarity != SPI_POLARITY_LOW) status = SJA1105_PARAMETER_ERROR;
+    if (SWCH_SPI.Init.CLKPhase != SPI_PHASE_2EDGE) status = SJA1105_PARAMETER_ERROR;
+    if (SWCH_SPI.Init.NSS != SPI_NSS_SOFT) status = SJA1105_PARAMETER_ERROR;
+    if (SWCH_SPI.Init.FirstBit != SPI_FIRSTBIT_MSB) status = SJA1105_PARAMETER_ERROR;
+    if (status != SJA1105_OK) return status;
 
     /* Initialise the ThreadX byte pool */
     status = switch_byte_pool_init();
@@ -37,11 +41,6 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
 
     /* Set the general switch parameters */
     sja1105_conf.variant      = VARIANT_SJA1105Q;
-    sja1105_conf.spi_handle   = &hspi2;
-    sja1105_conf.cs_port      = SWCH_CS_GPIO_Port;
-    sja1105_conf.cs_pin       = SWCH_CS_Pin;
-    sja1105_conf.rst_port     = SWCH_RST_GPIO_Port;
-    sja1105_conf.rst_pin      = SWCH_RST_Pin;
     sja1105_conf.timeout      = SWITCH_TIMEOUT_MS;
     sja1105_conf.mgmt_timeout = SWITCH_MANAGMENT_ROUTE_TIMEOUT_MS;
     sja1105_conf.host_port    = PORT_HOST;
@@ -102,7 +101,7 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     sja1105_static_conf_size = SWV4_SJA1105_STATIC_CONFIG_DEFAULT_SIZE;
 
     /* Initialise the switch */
-    status = SJA1105_Init(&hsja1105, &sja1105_conf, &sja1105_callbacks, fixed_length_table_buffer, sja1105_static_conf, sja1105_static_conf_size);
+    status = SJA1105_Init(&hsja1105, &sja1105_conf, &sja1105_callbacks, NULL, fixed_length_table_buffer, sja1105_static_conf, sja1105_static_conf_size);
     if (status != SJA1105_OK) return status;
 
     /* TODO: Remove. Disables port 3 */
