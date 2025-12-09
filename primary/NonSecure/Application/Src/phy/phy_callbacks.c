@@ -11,136 +11,132 @@
 #include "main.h"
 
 #include "88q211x.h"
+#include "lan867x.h"
 #include "phy_callbacks.h"
 #include "phy_thread.h"
 #include "stp_thread.h"
 #include "utils.h"
 #include "tx_app.h"
+#include "phy_mdio.h"
 
 
 TX_MUTEX             phy_mutex_handle;
 TX_EVENT_FLAGS_GROUP phy_events_handle;
 
-extern ETH_HandleTypeDef heth;
-
-
-/* This function performs a clause 45 register read */
-static phy_status_t phy_callback_read_reg(uint8_t phy_addr, uint8_t mmd_addr, uint16_t reg_addr, uint16_t *data, uint32_t timeout, bool preamble_supression, uint32_t clk_div) {
-
-    uint32_t tickstart;
-    uint32_t tmp_dr = 0;
-    uint32_t tmp_ar = 0;
-
-    /* Check for the busy flag */
-    if (READ_BIT(heth.Instance->MACMDIOAR, ETH_MACMDIOAR_MB) != (uint32_t) RESET) return PHY_BUSY;
-
-    /* Write the register address to the MACMDIODR register and set the data register to a known value (if 0xdead is read back later then it is likely that no data has been received) */
-    tmp_dr = READ_REG(heth.Instance->MACMDIODR);
-    MODIFY_REG(tmp_dr, ETH_MACMDIODR_RA, ((uint32_t) reg_addr) << ETH_MACMDIODR_RA_Pos);
-    MODIFY_REG(tmp_dr, ETH_MACMDIODR_MD, ((uint32_t) 0xdead) << ETH_MACMDIODR_MD_Pos);
-    WRITE_REG(heth.Instance->MACMDIODR, tmp_dr);
-
-    /* Write the MACMDIOAR register */
-    tmp_ar = READ_REG(heth.Instance->MACMDIOAR);
-    if (preamble_supression) {
-        SET_BIT(tmp_ar, ETH_MACMDIOAR_PSE);
-    } else {
-        CLEAR_BIT(tmp_ar, ETH_MACMDIOAR_PSE);
-    }
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_PA, (((uint32_t) phy_addr) << ETH_MACMDIOAR_PA_Pos));
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_RDA, (((uint32_t) mmd_addr) << ETH_MACMDIOAR_RDA_Pos));
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_CR, clk_div);
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_MOC, ETH_MACMDIOAR_MOC_RD);
-    SET_BIT(tmp_ar, ETH_MACMDIOAR_C45E);
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_NTC, 1 << ETH_MACMDIOAR_NTC_Pos);
-    SET_BIT(tmp_ar, ETH_MACMDIOAR_MB);
-    WRITE_REG(ETH->MACMDIOAR, tmp_ar);
-
-    /* Wait for the busy flag */
-    tickstart = HAL_GetTick();
-    while (READ_BIT(heth.Instance->MACMDIOAR, ETH_MACMDIOAR_MB) > 0U) {
-        if (((HAL_GetTick() - tickstart) > timeout)) {
-            return PHY_TIMEOUT;
-        }
-    }
-
-    /* Get MACMIIDR value */
-    WRITE_REG(*data, (uint16_t) heth.Instance->MACMDIODR);
-
-    return PHY_OK;
-}
 
 static phy_status_t phy_88q2112_callback_read_reg(uint8_t phy_addr, uint8_t mmd_addr, uint16_t reg_addr, uint16_t *data, uint32_t timeout, void *context) {
 
     /* 88Q2112 only needs 1 preamble bit */
     /* Set the clock frequency to 9.62MHz (PHY supports up to 12.5MHz) */
-    return phy_callback_read_reg(phy_addr, mmd_addr, reg_addr, data, timeout, true, ETH_MACMDIOAR_CR_DIV26);
+    return phy_read_reg_c45(phy_addr, mmd_addr, reg_addr, data, timeout, true, ETH_MACMDIOAR_CR_DIV26);
 }
 
 static phy_status_t phy_lan8671_callback_read_reg(uint8_t phy_addr, uint8_t mmd_addr, uint16_t reg_addr, uint16_t *data, uint32_t timeout, void *context) {
 
-    /* Set the clock frequency to 2.45MHz (PHY supports up to 4MHz) */
-    return phy_callback_read_reg(phy_addr, mmd_addr, reg_addr, data, timeout, false, ETH_MACMDIOAR_CR_DIV102);
-}
+    phy_status_t status = PHY_OK;
 
+    /* Clause 22 normal access */
+    if (mmd_addr == 0) {
 
-/* This function performs a clause 45 register write */
-static phy_status_t phy_callback_write_reg(uint8_t phy_addr, uint8_t mmd_addr, uint16_t reg_addr, uint16_t data, uint32_t timeout, bool preamble_supression, uint32_t clk_div) {
-
-    uint32_t tickstart;
-    uint32_t tmp_dr = 0;
-    uint32_t tmp_ar = 0;
-
-    /* Check for the busy flag */
-    if (READ_BIT(heth.Instance->MACMDIOAR, ETH_MACMDIOAR_MB) != (uint32_t) RESET) return PHY_BUSY;
-
-    /* Write the register address to MACMDIODR */
-    tmp_dr = READ_REG(heth.Instance->MACMDIODR);
-    MODIFY_REG(tmp_dr, ETH_MACMDIODR_RA, ((uint32_t) reg_addr) << ETH_MACMDIODR_RA_Pos);
-    WRITE_REG(heth.Instance->MACMDIODR, tmp_dr);
-
-    /* Write the data to MACMDIODR */
-    MODIFY_REG(tmp_dr, ETH_MACMDIODR_MD, ((uint32_t) data) << ETH_MACMDIODR_MD_Pos);
-    WRITE_REG(heth.Instance->MACMDIODR, tmp_dr);
-
-    /* Write the MACMDIOAR register */
-    tmp_ar = READ_REG(heth.Instance->MACMDIOAR);
-    if (preamble_supression) {
-        SET_BIT(tmp_ar, ETH_MACMDIOAR_PSE);
-    } else {
-        CLEAR_BIT(tmp_ar, ETH_MACMDIOAR_PSE);
-    }
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_PA, (((uint32_t) phy_addr) << ETH_MACMDIOAR_PA_Pos));
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_RDA, (((uint32_t) mmd_addr) << ETH_MACMDIOAR_RDA_Pos));
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_CR, clk_div);
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_MOC, ETH_MACMDIOAR_MOC_WR);
-    SET_BIT(tmp_ar, ETH_MACMDIOAR_C45E);
-    MODIFY_REG(tmp_ar, ETH_MACMDIOAR_NTC, 1 << ETH_MACMDIOAR_NTC_Pos);
-    SET_BIT(tmp_ar, ETH_MACMDIOAR_MB);
-    WRITE_REG(ETH->MACMDIOAR, tmp_ar);
-
-    /* Wait for the busy flag */
-    tickstart = HAL_GetTick();
-    while (READ_BIT(heth.Instance->MACMDIOAR, ETH_MACMDIOAR_MB) > 0U) {
-        if (((HAL_GetTick() - tickstart) > timeout)) {
-            return PHY_TIMEOUT;
-        }
+        /* Set the clock frequency to 2.45MHz (PHY supports up to 4MHz) */
+        status = phy_read_reg_c22(phy_addr, reg_addr, data, timeout, ETH_MACMDIOAR_CR_DIV102);
     }
 
-    return PHY_OK;
+    /* Clause 45 indirect access */
+    else if ((mmd_addr == 1) || (mmd_addr == 3) || (mmd_addr == 31)) {
+
+        uint16_t reg_data;
+
+        /* Step 1:
+         * Write the MMD Access Control register with the MMD Function (FNCTN) field set to 00b and the
+         * Device Address (DEVAD) field with the MDIO Management Device (MMD) address. */
+        reg_data  = PHY_LAN867X_MMDCTRL_FNCTN_ADDR << PHY_LAN867X_MMDCTRL_FNCTN_SHIFT;
+        reg_data |= mmd_addr << PHY_LAN867X_MMDCTRL_DEVAD_SHIFT;
+        status    = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDCTRL, reg_data, timeout, ETH_MACMDIOAR_CR_DIV102);
+        if (status != PHY_OK) return status;
+
+        /* Step 2:
+         * Write the address of the desired register to be read into the MMD Access Address/Data register. */
+        status = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDAD, reg_addr, timeout, ETH_MACMDIOAR_CR_DIV102);
+        if (status != PHY_OK) return status;
+
+        /* Step 3:
+         * Write the MMD Access Control register with the MMD Function field set to 01b, 10b, or 11b. */
+        reg_data  = PHY_LAN867X_MMDCTRL_FNCTN_DATA << PHY_LAN867X_MMDCTRL_FNCTN_SHIFT;
+        reg_data |= mmd_addr << PHY_LAN867X_MMDCTRL_DEVAD_SHIFT;
+        status    = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDCTRL, reg_data, timeout, ETH_MACMDIOAR_CR_DIV102);
+        if (status != PHY_OK) return status;
+
+        /* Step 4:
+         * Read the contents of the MMD’s selected register from the MMD Access Address/Data register. */
+        status = phy_read_reg_c22(phy_addr, PHY_LAN867X_MMDAD, data, timeout, ETH_MACMDIOAR_CR_DIV102);
+        if (status != PHY_OK) return status;
+    }
+
+    /* Invalid MMD */
+    else {
+        status = PHY_ADDR_ERROR;
+    }
+
+    return status;
 }
+
 
 static phy_status_t phy_88q2112_callback_write_reg(uint8_t phy_addr, uint8_t mmd_addr, uint16_t reg_addr, uint16_t data, uint32_t timeout, void *context) {
 
     /* 88Q2112 only needs 1 preamble bit */
     /* Set the clock frequency to 9.62MHz (PHY supports up to 12.5MHz) */
-    return phy_callback_write_reg(phy_addr, mmd_addr, reg_addr, data, timeout, true, ETH_MACMDIOAR_CR_DIV26);
+    return phy_write_reg_c45(phy_addr, mmd_addr, reg_addr, data, timeout, true, ETH_MACMDIOAR_CR_DIV26);
 }
 
 static phy_status_t phy_lan8671_callback_write_reg(uint8_t phy_addr, uint8_t mmd_addr, uint16_t reg_addr, uint16_t data, uint32_t timeout, void *context) {
 
-    /* Set the clock frequency to 2.45MHz (PHY supports up to 4MHz) */
-    return phy_callback_write_reg(phy_addr, mmd_addr, reg_addr, data, timeout, false, ETH_MACMDIOAR_CR_DIV102);
+    phy_status_t status = PHY_OK;
+
+    /* Clause 22 normal access */
+    if (mmd_addr == 0) {
+
+        /* Set the clock frequency to 2.45MHz (PHY supports up to 4MHz) */
+        status = phy_write_reg_c22(phy_addr, reg_addr, data, timeout, ETH_MACMDIOAR_CR_DIV102);
+    }
+
+    /* Clause 45 indirect access */
+    else if ((mmd_addr == 1) || (mmd_addr == 3) || (mmd_addr == 31)) {
+
+        uint16_t reg_data;
+
+        /* Step 1:
+         * Write the MMD Access Control register with the MMD Function (FNCTN) field set to 00b and the
+         * Device Address (DEVAD) field with the MDIO Management Device (MMD) address. */
+        reg_data  = PHY_LAN867X_MMDCTRL_FNCTN_ADDR << PHY_LAN867X_MMDCTRL_FNCTN_SHIFT;
+        reg_data |= mmd_addr << PHY_LAN867X_MMDCTRL_DEVAD_SHIFT;
+        status    = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDCTRL, reg_data, timeout, ETH_MACMDIOAR_CR_DIV102);
+        if (status != PHY_OK) return status;
+
+        /* Step 2:
+         * Write the address of the desired register to be written into the MMD Access Address/Data register. */
+        status = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDAD, reg_addr, timeout, ETH_MACMDIOAR_CR_DIV102);
+        if (status != PHY_OK) return status;
+
+        /* Step 3:
+         * Write the MMD Access Control register with the MMD Function field set to 01b, 10b, or 11b. */
+        reg_data  = PHY_LAN867X_MMDCTRL_FNCTN_DATA << PHY_LAN867X_MMDCTRL_FNCTN_SHIFT;
+        reg_data |= mmd_addr << PHY_LAN867X_MMDCTRL_DEVAD_SHIFT;
+        status    = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDCTRL, reg_data, timeout, ETH_MACMDIOAR_CR_DIV102);
+        if (status != PHY_OK) return status;
+
+        /* Step 4:
+         * Write the contents of the MMD’s selected register into the MMD Access Address/Data register. */
+        status = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDAD, data, timeout, ETH_MACMDIOAR_CR_DIV102);
+        if (status != PHY_OK) return status;
+    }
+
+    /* Invalid MMD */
+    else {
+        status = PHY_ADDR_ERROR;
+    }
+
+    return status;
 }
 
 
