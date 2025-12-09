@@ -235,7 +235,6 @@ static phy_status_t phy_callback_link_status_change(bool linkup, void *context) 
     }
 }
 
-
 const phy_callbacks_t phy_callbacks_88q2112 = {
     .callback_read_reg           = &phy_88q2112_callback_read_reg,
     .callback_write_reg          = &phy_88q2112_callback_write_reg,
@@ -244,8 +243,9 @@ const phy_callbacks_t phy_callbacks_88q2112 = {
     .callback_delay_ns           = &phy_callback_delay_ns,
     .callback_take_mutex         = &phy_callback_take_mutex,
     .callback_give_mutex         = &phy_callback_give_mutex,
-    .callback_link_status_change = &phy_callback_link_status_change};
-
+    .callback_link_status_change = &phy_callback_link_status_change,
+    .callback_write_log          = &log_write,
+};
 
 const phy_callbacks_t phy_callbacks_lan8671 = {
     .callback_read_reg    = &phy_lan8671_callback_read_reg,
@@ -255,8 +255,8 @@ const phy_callbacks_t phy_callbacks_lan8671 = {
     .callback_delay_ns    = &phy_callback_delay_ns,
     .callback_take_mutex  = &phy_callback_take_mutex,
     .callback_give_mutex  = &phy_callback_give_mutex,
+    .callback_write_log   = &log_write,
 };
-
 
 void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 

@@ -190,7 +190,7 @@ static sja1105_status_t sja1105_crc_reset(void *context) {
     /* Reset the data register from the previous calculation */
     SWCH_CRC.Instance->CR |= CRC_CR_RESET;
 
-    /* Make sure the initial value and polynomial are correct*/
+    /* Make sure the initial value and polynomial are correct */
     SWCH_CRC.Instance->INIT = 0xffffffff;
     SWCH_CRC.Instance->POL  = 0x04c11db7;
 
@@ -223,4 +223,5 @@ const sja1105_callbacks_t sja1105_callbacks = {
     .callback_free_all             = &sja1105_free_all,
     .callback_crc_reset            = &sja1105_crc_reset,
     .callback_crc_accumulate       = &sja1105_crc_accumulate,
+    .callback_write_log            = &log_write,
 };

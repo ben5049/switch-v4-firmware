@@ -63,10 +63,12 @@ phy_status_t phys_init() {
     phy_config_2.rx_clk_internal_delay = true;
     phy_config_2.fifo_size             = PHY_FIFO_SIZE_88Q211X_15KB;
 
-    phy_config_3.variant   = PHY_VARIANT_LAN8671;
-    phy_config_3.phy_addr  = 0x08;
-    phy_config_3.timeout   = PHY_TIMEOUT_MS;
-    phy_config_3.interface = PHY_INTERFACE_RMII;
+    phy_config_3.variant      = PHY_VARIANT_LAN8671;
+    phy_config_3.phy_addr     = 0x08;
+    phy_config_3.timeout      = PHY_TIMEOUT_MS;
+    phy_config_3.interface    = PHY_INTERFACE_RMII;
+    phy_config_3.plca_enabled = true;
+    phy_config_3.plca_id      = 0; /* PLCA Coordinator */
 
     /* Set pins to a known state */
     HAL_GPIO_WritePin(PHY_RST_GPIO_Port, PHY_RST_Pin, SET);
@@ -87,8 +89,8 @@ phy_status_t phys_init() {
     if (status != PHY_OK) Error_Handler();
     status = PHY_Init(&hphy2, &phy_config_2, &phy_callbacks_88q2112, &hphy2);
     if (status != PHY_OK) Error_Handler();
-    //    status = PHY_Init(&hphy3, &phy_config_3, &phy_callbacks_lan8671, &hphy3); TODO: Implement
-    //    if (status != PHY_OK) Error_Handler();
+    status = PHY_Init(&hphy3, &phy_config_3, &phy_callbacks_lan8671, &hphy3);
+    if (status != PHY_OK) Error_Handler();
 
     /* Enable interrupts TODO: Fix */
     status = PHY_88Q211X_EnableInterrupts(&hphy0);
@@ -97,6 +99,7 @@ phy_status_t phys_init() {
     if (status != PHY_OK) Error_Handler();
     status = PHY_88Q211X_EnableInterrupts(&hphy2);
     if (status != PHY_OK) Error_Handler();
+    /* TODO: Enable PHY3 interrupts */
 
     /* Enable the temperature sensors */
     status = PHY_88Q211X_EnableTemperatureSensor(&hphy0);
@@ -107,16 +110,6 @@ phy_status_t phys_init() {
     if (status != PHY_OK) Error_Handler();
 
     /* TODO: Perform other configuration */
-
-    /* TODO: Testing config */
-#ifdef DEBUG
-//    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy0);
-//    if (status != PHY_OK) Error_Handler();
-//    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy1);
-//    if (status != PHY_OK) Error_Handler();
-//    status = PHY_88Q211X_EnableIEEEPowerDown(&hphy2);
-//    if (status != PHY_OK) Error_Handler();
-#endif
 
     /* TODO: Enable End to End Transparent Clock and PTP hardware acceleration */
 

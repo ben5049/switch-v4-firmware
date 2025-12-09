@@ -35,6 +35,7 @@ extern "C" {
 #define Z_FEATURE_LINK_WS                0
 #define Z_FEATURE_LINK_SERIAL            0
 #define Z_FEATURE_LINK_SERIAL_USB        0
+#define Z_FEATURE_LINK_TLS               0
 #define Z_FEATURE_SCOUTING               1
 #define Z_FEATURE_LINK_UDP_MULTICAST     1
 #define Z_FEATURE_LINK_UDP_UNICAST       1
@@ -44,6 +45,7 @@ extern "C" {
 #define Z_FEATURE_ENCODING_VALUES        1
 #define Z_FEATURE_TCP_NODELAY            1
 #define Z_FEATURE_LOCAL_SUBSCRIBER       0
+#define Z_FEATURE_LOCAL_QUERYABLE        0
 #define Z_FEATURE_SESSION_CHECK          1
 #define Z_FEATURE_BATCHING               1
 #define Z_FEATURE_BATCH_TX_MUTEX         0
