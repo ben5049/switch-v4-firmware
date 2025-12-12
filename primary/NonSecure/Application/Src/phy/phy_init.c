@@ -63,12 +63,13 @@ phy_status_t phys_init() {
     phy_config_2.rx_clk_internal_delay = true;
     phy_config_2.fifo_size             = PHY_FIFO_SIZE_88Q211X_15KB;
 
-    phy_config_3.variant      = PHY_VARIANT_LAN8671;
-    phy_config_3.phy_addr     = 0x08;
-    phy_config_3.timeout      = PHY_TIMEOUT_MS;
-    phy_config_3.interface    = PHY_INTERFACE_RMII;
-    phy_config_3.plca_enabled = true;
-    phy_config_3.plca_id      = 0; /* PLCA Coordinator */
+    phy_config_3.variant         = PHY_VARIANT_LAN8671;
+    phy_config_3.phy_addr        = 0x08;
+    phy_config_3.timeout         = PHY_TIMEOUT_MS;
+    phy_config_3.interface       = PHY_INTERFACE_RMII;
+    phy_config_3.plca_enabled    = true;
+    phy_config_3.plca_id         = PHY_PLCA_COORDINATOR_ID;
+    phy_config_3.plca_node_count = PHY_PLCA_DEFAULT_NODE_COUNT; /* Maximum of 16 devices on the bus by default, all devices must have the same node count setting. */
 
     /* Set pins to a known state */
     HAL_GPIO_WritePin(PHY_RST_GPIO_Port, PHY_RST_Pin, SET);

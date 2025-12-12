@@ -203,44 +203,58 @@ static phy_status_t phy_callback_give_mutex(void *context) {
     return status;
 }
 
-static phy_status_t phy_callback_link_status_change(bool linkup, void *context) {
+static phy_status_t phy_callback_event(phy_event_t event, void *context) {
 
-    tx_status_t status = TX_SUCCESS;
+    phy_status_t status    = PHY_OK;
 
-    /* Don't send notification if the kernel hasn't started */
-    if (tx_thread_identify() == TX_NULL) return PHY_OK;
+    switch (event) {
+        case PHY_EVENT_LINK_UP:
+        case PHY_EVENT_LINK_DOWN:
 
-    /* Notify the STP thread */
+/* Notify the STP thread */
 #if ENABLE_STP_THREAD == true
-    if (context == &hphy0) {
-        status = tx_event_flags_set(&stp_events_handle, STP_PORT0_LINK_STATE_CHANGE_EVENT, TX_OR);
-    } else if (context == &hphy1) {
-        status = tx_event_flags_set(&stp_events_handle, STP_PORT1_LINK_STATE_CHANGE_EVENT, TX_OR);
-    } else if (context == &hphy2) {
-        status = tx_event_flags_set(&stp_events_handle, STP_PORT2_LINK_STATE_CHANGE_EVENT, TX_OR);
-    } else if (context == &hphy3) {
-        status = tx_event_flags_set(&stp_events_handle, STP_PORT3_LINK_STATE_CHANGE_EVENT, TX_OR);
-    }
+
+            /* Don't send notification if the kernel hasn't started */
+            if (tx_thread_identify() == TX_NULL) return PHY_OK;
+
+            tx_status_t  tx_status = TX_SUCCESS;
+
+            if (context == &hphy0) {
+                tx_status = tx_event_flags_set(&stp_events_handle, STP_PORT0_LINK_STATE_CHANGE_EVENT, TX_OR);
+            } else if (context == &hphy1) {
+                tx_status = tx_event_flags_set(&stp_events_handle, STP_PORT1_LINK_STATE_CHANGE_EVENT, TX_OR);
+            } else if (context == &hphy2) {
+                tx_status = tx_event_flags_set(&stp_events_handle, STP_PORT2_LINK_STATE_CHANGE_EVENT, TX_OR);
+            } else if (context == &hphy3) {
+                tx_status = tx_event_flags_set(&stp_events_handle, STP_PORT3_LINK_STATE_CHANGE_EVENT, TX_OR);
+            }
+            /* Return the tx_status */
+            if (tx_status != TX_SUCCESS) {
+                status = PHY_ERROR;
+            } else {
+                status = PHY_OK;
+            }
 #endif
 
-    /* Return the status */
-    if (status != TX_SUCCESS) {
-        return PHY_ERROR;
-    } else {
-        return PHY_OK;
+            break;
+
+        default:
+            break;
     }
+
+    return status;
 }
 
 const phy_callbacks_t phy_callbacks_88q2112 = {
-    .callback_read_reg           = &phy_88q2112_callback_read_reg,
-    .callback_write_reg          = &phy_88q2112_callback_write_reg,
-    .callback_get_time_ms        = &phy_callback_get_time_ms,
-    .callback_delay_ms           = &phy_callback_delay_ms,
-    .callback_delay_ns           = &phy_callback_delay_ns,
-    .callback_take_mutex         = &phy_callback_take_mutex,
-    .callback_give_mutex         = &phy_callback_give_mutex,
-    .callback_link_status_change = &phy_callback_link_status_change,
-    .callback_write_log          = &log_write,
+    .callback_read_reg    = &phy_88q2112_callback_read_reg,
+    .callback_write_reg   = &phy_88q2112_callback_write_reg,
+    .callback_get_time_ms = &phy_callback_get_time_ms,
+    .callback_delay_ms    = &phy_callback_delay_ms,
+    .callback_delay_ns    = &phy_callback_delay_ns,
+    .callback_take_mutex  = &phy_callback_take_mutex,
+    .callback_give_mutex  = &phy_callback_give_mutex,
+    .callback_event       = &phy_callback_event,
+    .callback_write_log   = &log_write,
 };
 
 const phy_callbacks_t phy_callbacks_lan8671 = {
