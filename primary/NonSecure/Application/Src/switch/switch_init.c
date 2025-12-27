@@ -53,7 +53,7 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     port_config.mode      = SJA1105_MODE_MAC;
     port_config.speed     = SJA1105_SPEED_DYNAMIC;
     port_config.voltage   = SJA1105_IO_1V8;
-    status                = SJA1105_PortConfigure(&sja1105_conf, &port_config);
+    status                = SJA1105_PortConfigure(&sja1105_conf, &port_config, false);
     if (status != SJA1105_OK) return status;
 
     /* Port 1 config */
@@ -62,7 +62,7 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     port_config.mode      = SJA1105_MODE_MAC;
     port_config.speed     = SJA1105_SPEED_DYNAMIC;
     port_config.voltage   = SJA1105_IO_1V8;
-    status                = SJA1105_PortConfigure(&sja1105_conf, &port_config);
+    status                = SJA1105_PortConfigure(&sja1105_conf, &port_config, false);
     if (status != SJA1105_OK) return status;
 
     /* Port 2 config */
@@ -71,7 +71,7 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     port_config.mode      = SJA1105_MODE_MAC;
     port_config.speed     = SJA1105_SPEED_DYNAMIC;
     port_config.voltage   = SJA1105_IO_1V8;
-    status                = SJA1105_PortConfigure(&sja1105_conf, &port_config);
+    status                = SJA1105_PortConfigure(&sja1105_conf, &port_config, false);
     if (status != SJA1105_OK) return status;
 
     /* Port 3 config */
@@ -82,7 +82,7 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     port_config.voltage            = SJA1105_IO_3V3;
     port_config.output_rmii_refclk = true;
     port_config.rx_error_unused    = false;
-    status                         = SJA1105_PortConfigure(&sja1105_conf, &port_config);
+    status                         = SJA1105_PortConfigure(&sja1105_conf, &port_config, false);
     if (status != SJA1105_OK) return status;
 
     /* Port 4 config */
@@ -93,7 +93,7 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     port_config.voltage            = SJA1105_IO_3V3;
     port_config.output_rmii_refclk = true;
     port_config.rx_error_unused    = true;
-    status                         = SJA1105_PortConfigure(&sja1105_conf, &port_config);
+    status                         = SJA1105_PortConfigure(&sja1105_conf, &port_config, false);
     if (status != SJA1105_OK) return status;
 
     /* Set the static config to the default */
