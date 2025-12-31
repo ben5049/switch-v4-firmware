@@ -32,15 +32,6 @@ sja1105_status_t switch_byte_pool_init() {
     return status;
 }
 
-static void sja1105_write_rst_pin(sja1105_pinstate_t state, void *context) {
-
-    if (state == SJA1105_PIN_RESET) {
-        HAL_GPIO_WritePin(SWCH_RST_GPIO_Port, SWCH_RST_Pin, RESET);
-    } else {
-        HAL_GPIO_WritePin(SWCH_RST_GPIO_Port, SWCH_RST_Pin, SET);
-    }
-}
-
 static void sja1105_write_cs_pin(sja1105_pinstate_t state, void *context) {
 
     if (state == SJA1105_PIN_RESET) {
@@ -208,7 +199,6 @@ static sja1105_status_t sja1105_crc_accumulate(const uint32_t *buffer, uint32_t 
 
 
 const sja1105_callbacks_t sja1105_callbacks = {
-    .callback_write_rst_pin        = &sja1105_write_rst_pin,
     .callback_write_cs_pin         = &sja1105_write_cs_pin,
     .callback_spi_transmit         = &sja1105_spi_transmit,
     .callback_spi_receive          = &sja1105_spi_receive,

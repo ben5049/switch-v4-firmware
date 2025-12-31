@@ -7,6 +7,7 @@
 
 #include "stdatomic.h"
 
+#include "main.h"
 #include "switch_thread.h"
 #include "switch_callbacks.h"
 #include "sja1105.h"
@@ -26,6 +27,12 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
 
     sja1105_status_t status;
     sja1105_port_t   port_config;
+
+    /* Reset the switch */
+    HAL_GPIO_WritePin(SWCH_RST_GPIO_Port, SWCH_RST_Pin, GPIO_PIN_RESET);
+    delay_ns(SJA1105_T_RST); /* 5us delay */
+    HAL_GPIO_WritePin(SWCH_RST_GPIO_Port, SWCH_RST_Pin, GPIO_PIN_SET);
+    HAL_Delay(1);            /* 329us minimum until SPI commands can be written (SJA1105_T_RST_STARTUP_HW). Must be blocking since TX kernel hasn't started */
 
     /* Check SPI parameters */
     if (SWCH_SPI.Init.DataSize != SPI_DATASIZE_32BIT) status = SJA1105_PARAMETER_ERROR;
