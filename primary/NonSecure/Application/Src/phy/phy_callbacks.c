@@ -17,7 +17,7 @@
 #include "stp_thread.h"
 #include "utils.h"
 #include "tx_app.h"
-#include "phy_mdio.h"
+#include "phy_platform.h"
 
 
 TX_MUTEX             phy_mutex_handle;
@@ -31,54 +31,10 @@ static phy_status_t phy_88q2112_callback_read_reg(uint8_t phy_addr, uint8_t mmd_
     return phy_read_reg_c45(phy_addr, mmd_addr, reg_addr, data, timeout, true, ETH_MACMDIOAR_CR_DIV26);
 }
 
-static phy_status_t phy_lan8671_callback_read_reg(uint8_t phy_addr, uint8_t mmd_addr, uint16_t reg_addr, uint16_t *data, uint32_t timeout, void *context) {
+static phy_status_t phy_lan8671_callback_read_reg(uint8_t phy_addr, uint16_t reg_addr, uint16_t *data, uint32_t timeout, void *context) {
 
-    phy_status_t status = PHY_OK;
-
-    /* Clause 22 normal access */
-    if (mmd_addr == 0) {
-
-        /* Set the clock frequency to 2.45MHz (PHY supports up to 4MHz) */
-        status = phy_read_reg_c22(phy_addr, reg_addr, data, timeout, ETH_MACMDIOAR_CR_DIV102);
-    }
-
-    /* Clause 45 indirect access */
-    else if ((mmd_addr == 1) || (mmd_addr == 3) || (mmd_addr == 31)) {
-
-        uint16_t reg_data;
-
-        /* Step 1:
-         * Write the MMD Access Control register with the MMD Function (FNCTN) field set to 00b and the
-         * Device Address (DEVAD) field with the MDIO Management Device (MMD) address. */
-        reg_data  = PHY_LAN867X_MMDCTRL_FNCTN_ADDR << PHY_LAN867X_MMDCTRL_FNCTN_SHIFT;
-        reg_data |= mmd_addr << PHY_LAN867X_MMDCTRL_DEVAD_SHIFT;
-        status    = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDCTRL, reg_data, timeout, ETH_MACMDIOAR_CR_DIV102);
-        if (status != PHY_OK) return status;
-
-        /* Step 2:
-         * Write the address of the desired register to be read into the MMD Access Address/Data register. */
-        status = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDAD, reg_addr, timeout, ETH_MACMDIOAR_CR_DIV102);
-        if (status != PHY_OK) return status;
-
-        /* Step 3:
-         * Write the MMD Access Control register with the MMD Function field set to 01b, 10b, or 11b. */
-        reg_data  = PHY_LAN867X_MMDCTRL_FNCTN_DATA << PHY_LAN867X_MMDCTRL_FNCTN_SHIFT;
-        reg_data |= mmd_addr << PHY_LAN867X_MMDCTRL_DEVAD_SHIFT;
-        status    = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDCTRL, reg_data, timeout, ETH_MACMDIOAR_CR_DIV102);
-        if (status != PHY_OK) return status;
-
-        /* Step 4:
-         * Read the contents of the MMD’s selected register from the MMD Access Address/Data register. */
-        status = phy_read_reg_c22(phy_addr, PHY_LAN867X_MMDAD, data, timeout, ETH_MACMDIOAR_CR_DIV102);
-        if (status != PHY_OK) return status;
-    }
-
-    /* Invalid MMD */
-    else {
-        status = PHY_ADDR_ERROR;
-    }
-
-    return status;
+    /* Set the clock frequency to 2.45MHz (PHY supports up to 4MHz) */
+    return phy_read_reg_c22(phy_addr, reg_addr, data, timeout, ETH_MACMDIOAR_CR_DIV102);
 }
 
 
@@ -89,54 +45,10 @@ static phy_status_t phy_88q2112_callback_write_reg(uint8_t phy_addr, uint8_t mmd
     return phy_write_reg_c45(phy_addr, mmd_addr, reg_addr, data, timeout, true, ETH_MACMDIOAR_CR_DIV26);
 }
 
-static phy_status_t phy_lan8671_callback_write_reg(uint8_t phy_addr, uint8_t mmd_addr, uint16_t reg_addr, uint16_t data, uint32_t timeout, void *context) {
+static phy_status_t phy_lan8671_callback_write_reg(uint8_t phy_addr, uint16_t reg_addr, uint16_t data, uint32_t timeout, void *context) {
 
-    phy_status_t status = PHY_OK;
-
-    /* Clause 22 normal access */
-    if (mmd_addr == 0) {
-
-        /* Set the clock frequency to 2.45MHz (PHY supports up to 4MHz) */
-        status = phy_write_reg_c22(phy_addr, reg_addr, data, timeout, ETH_MACMDIOAR_CR_DIV102);
-    }
-
-    /* Clause 45 indirect access */
-    else if ((mmd_addr == 1) || (mmd_addr == 3) || (mmd_addr == 31)) {
-
-        uint16_t reg_data;
-
-        /* Step 1:
-         * Write the MMD Access Control register with the MMD Function (FNCTN) field set to 00b and the
-         * Device Address (DEVAD) field with the MDIO Management Device (MMD) address. */
-        reg_data  = PHY_LAN867X_MMDCTRL_FNCTN_ADDR << PHY_LAN867X_MMDCTRL_FNCTN_SHIFT;
-        reg_data |= mmd_addr << PHY_LAN867X_MMDCTRL_DEVAD_SHIFT;
-        status    = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDCTRL, reg_data, timeout, ETH_MACMDIOAR_CR_DIV102);
-        if (status != PHY_OK) return status;
-
-        /* Step 2:
-         * Write the address of the desired register to be written into the MMD Access Address/Data register. */
-        status = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDAD, reg_addr, timeout, ETH_MACMDIOAR_CR_DIV102);
-        if (status != PHY_OK) return status;
-
-        /* Step 3:
-         * Write the MMD Access Control register with the MMD Function field set to 01b, 10b, or 11b. */
-        reg_data  = PHY_LAN867X_MMDCTRL_FNCTN_DATA << PHY_LAN867X_MMDCTRL_FNCTN_SHIFT;
-        reg_data |= mmd_addr << PHY_LAN867X_MMDCTRL_DEVAD_SHIFT;
-        status    = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDCTRL, reg_data, timeout, ETH_MACMDIOAR_CR_DIV102);
-        if (status != PHY_OK) return status;
-
-        /* Step 4:
-         * Write the contents of the MMD’s selected register into the MMD Access Address/Data register. */
-        status = phy_write_reg_c22(phy_addr, PHY_LAN867X_MMDAD, data, timeout, ETH_MACMDIOAR_CR_DIV102);
-        if (status != PHY_OK) return status;
-    }
-
-    /* Invalid MMD */
-    else {
-        status = PHY_ADDR_ERROR;
-    }
-
-    return status;
+    /* Set the clock frequency to 2.45MHz (PHY supports up to 4MHz) */
+    return phy_write_reg_c22(phy_addr, reg_addr, data, timeout, ETH_MACMDIOAR_CR_DIV102);
 }
 
 
@@ -205,7 +117,7 @@ static phy_status_t phy_callback_give_mutex(void *context) {
 
 static phy_status_t phy_callback_event(phy_event_t event, void *context) {
 
-    phy_status_t status    = PHY_OK;
+    phy_status_t status = PHY_OK;
 
     switch (event) {
         case PHY_EVENT_LINK_UP:
@@ -217,7 +129,7 @@ static phy_status_t phy_callback_event(phy_event_t event, void *context) {
             /* Don't send notification if the kernel hasn't started */
             if (tx_thread_identify() == TX_NULL) return PHY_OK;
 
-            tx_status_t  tx_status = TX_SUCCESS;
+            tx_status_t tx_status = TX_SUCCESS;
 
             if (context == &hphy0) {
                 tx_status = tx_event_flags_set(&stp_events_handle, STP_PORT0_LINK_STATE_CHANGE_EVENT, TX_OR);
@@ -246,26 +158,30 @@ static phy_status_t phy_callback_event(phy_event_t event, void *context) {
 }
 
 const phy_callbacks_t phy_callbacks_88q2112 = {
-    .callback_read_reg    = &phy_88q2112_callback_read_reg,
-    .callback_write_reg   = &phy_88q2112_callback_write_reg,
-    .callback_get_time_ms = &phy_callback_get_time_ms,
-    .callback_delay_ms    = &phy_callback_delay_ms,
-    .callback_delay_ns    = &phy_callback_delay_ns,
-    .callback_take_mutex  = &phy_callback_take_mutex,
-    .callback_give_mutex  = &phy_callback_give_mutex,
-    .callback_event       = &phy_callback_event,
-    .callback_write_log   = &log_write,
+    .callback_read_reg_c22  = NULL,
+    .callback_write_reg_c22 = NULL,
+    .callback_read_reg_c45  = &phy_88q2112_callback_read_reg,
+    .callback_write_reg_c45 = &phy_88q2112_callback_write_reg,
+    .callback_get_time_ms   = &phy_callback_get_time_ms,
+    .callback_delay_ms      = &phy_callback_delay_ms,
+    .callback_delay_ns      = &phy_callback_delay_ns,
+    .callback_take_mutex    = &phy_callback_take_mutex,
+    .callback_give_mutex    = &phy_callback_give_mutex,
+    .callback_event         = &phy_callback_event,
+    .callback_write_log     = &log_write,
 };
 
 const phy_callbacks_t phy_callbacks_lan8671 = {
-    .callback_read_reg    = &phy_lan8671_callback_read_reg,
-    .callback_write_reg   = &phy_lan8671_callback_write_reg,
-    .callback_get_time_ms = &phy_callback_get_time_ms,
-    .callback_delay_ms    = &phy_callback_delay_ms,
-    .callback_delay_ns    = &phy_callback_delay_ns,
-    .callback_take_mutex  = &phy_callback_take_mutex,
-    .callback_give_mutex  = &phy_callback_give_mutex,
-    .callback_write_log   = &log_write,
+    .callback_read_reg_c22  = &phy_lan8671_callback_read_reg,
+    .callback_write_reg_c22 = &phy_lan8671_callback_write_reg,
+    .callback_read_reg_c45  = NULL,
+    .callback_write_reg_c45 = NULL,
+    .callback_get_time_ms   = &phy_callback_get_time_ms,
+    .callback_delay_ms      = &phy_callback_delay_ms,
+    .callback_delay_ns      = &phy_callback_delay_ns,
+    .callback_take_mutex    = &phy_callback_take_mutex,
+    .callback_give_mutex    = &phy_callback_give_mutex,
+    .callback_write_log     = &log_write,
 };
 
 void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
