@@ -14,3 +14,6 @@
 	path = primary/NonSecure/Libraries/nanopb
 	url = https://github.com/nanopb/nanopb
     branch = master
+[submodule "primary/Secure/Libraries/fram"]
+	path = primary/Secure/Libraries/fram
+	url = https://github.com/ben5049/fram
