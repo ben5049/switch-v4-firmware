@@ -111,10 +111,6 @@ sja1105_status_t switch_init(sja1105_handle_t *dev) {
     status = SJA1105_Init(&hsja1105, &sja1105_conf, &sja1105_callbacks, NULL, fixed_length_table_buffer, sja1105_static_conf, sja1105_static_conf_size);
     if (status != SJA1105_OK) return status;
 
-    /* TODO: Remove. Disables port 3 */
-    status = SJA1105_PortSetForwarding(&hsja1105, PORT_LAN8671_PHY, false);
-    if (status != SJA1105_OK) return status;
-
     /* Set the speed of the dynamic ports. TODO: This should be after PHY auto-negotiaion */
     status = SJA1105_PortSetSpeed(&hsja1105, PORT_88Q2112_PHY0, SJA1105_SPEED_MBPS_TO_ENUM(PORT0_SPEED_MBPS));
     if (status != SJA1105_OK) return status;

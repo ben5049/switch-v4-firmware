@@ -38,7 +38,7 @@ phy_status_t phys_init() {
     phy_config_0.timeout               = PHY_TIMEOUT_MS;
     phy_config_0.interface             = PHY_INTERFACE_RGMII;
     phy_config_0.default_speed         = PHY_SPEED_MBPS_TO_ENUM(PORT0_SPEED_MBPS);
-    phy_config_0.default_role          = PHY_ROLE_SLAVE;
+    phy_config_0.default_role          = PHY_ROLE_MASTER;
     phy_config_0.tx_clk_internal_delay = true;
     phy_config_0.rx_clk_internal_delay = true;
     phy_config_0.fifo_size             = PHY_FIFO_SIZE_88Q211X_15KB;
@@ -48,7 +48,7 @@ phy_status_t phys_init() {
     phy_config_1.timeout               = PHY_TIMEOUT_MS;
     phy_config_1.interface             = PHY_INTERFACE_RGMII;
     phy_config_1.default_speed         = PHY_SPEED_MBPS_TO_ENUM(PORT1_SPEED_MBPS);
-    phy_config_1.default_role          = PHY_ROLE_SLAVE;
+    phy_config_1.default_role          = PHY_ROLE_MASTER;
     phy_config_1.tx_clk_internal_delay = true;
     phy_config_1.rx_clk_internal_delay = true;
     phy_config_1.fifo_size             = PHY_FIFO_SIZE_88Q211X_15KB;
@@ -58,7 +58,7 @@ phy_status_t phys_init() {
     phy_config_2.timeout               = PHY_TIMEOUT_MS;
     phy_config_2.interface             = PHY_INTERFACE_RGMII;
     phy_config_2.default_speed         = PHY_SPEED_MBPS_TO_ENUM(PORT2_SPEED_MBPS);
-    phy_config_2.default_role          = PHY_ROLE_SLAVE;
+    phy_config_2.default_role          = PHY_ROLE_MASTER;
     phy_config_2.tx_clk_internal_delay = true;
     phy_config_2.rx_clk_internal_delay = true;
     phy_config_2.fifo_size             = PHY_FIFO_SIZE_88Q211X_15KB;
