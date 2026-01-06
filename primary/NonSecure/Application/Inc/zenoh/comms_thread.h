@@ -24,27 +24,6 @@ extern "C" {
 #include "state_machine.h"
 
 
-// TODO: Turn into function
-#define ZENOH_CONNECTED(update_state_machine)                                                                                                                      \
-    do {                                                                                                                                                           \
-        tx_status_t _tx_status = TX_SUCCESS;                                                                                                                       \
-        _tx_status             = tx_event_flags_set(&state_machine_events_handle, ~STATE_MACHINE_ZENOH_DISCONNECTED, TX_AND);                                      \
-        if (_tx_status != TX_SUCCESS) Error_Handler();                                                                                                             \
-        _tx_status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_ZENOH_CONNECTED | ((update_state_machine) ? STATE_MACHINE_UPDATE : 0), TX_OR); \
-        if (_tx_status != TX_SUCCESS) Error_Handler();                                                                                                             \
-    } while (0)
-
-// TODO: Turn into function
-#define ZENOH_DISCONNECTED(update_state_machine)                                                                                                                      \
-    do {                                                                                                                                                              \
-        tx_status_t _tx_status = TX_SUCCESS;                                                                                                                          \
-        _tx_status             = tx_event_flags_set(&state_machine_events_handle, ~STATE_MACHINE_ZENOH_CONNECTED, TX_AND);                                            \
-        if (_tx_status != TX_SUCCESS) Error_Handler();                                                                                                                \
-        _tx_status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_ZENOH_DISCONNECTED | ((update_state_machine) ? STATE_MACHINE_UPDATE : 0), TX_OR); \
-        if (_tx_status != TX_SUCCESS) Error_Handler();                                                                                                                \
-    } while (0)
-
-
 typedef struct {
     atomic_uint_fast32_t closures;
     atomic_uint_fast32_t restarts;
@@ -68,6 +47,9 @@ extern zenoh_event_counters_t zenoh_events;
 
 extern z_owned_publisher_t stats_pub;
 
+
+tx_status_t zenoh_connected(bool update_state_machine);
+tx_status_t zenoh_disconnected(bool update_state_machine);
 
 void comms_thread_entry(uint32_t initial_input);
 

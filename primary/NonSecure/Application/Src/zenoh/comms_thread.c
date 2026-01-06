@@ -61,8 +61,32 @@ static const z_publisher_options_t heartbeat_pub_options = {
 };
 
 
+tx_status_t zenoh_connected(bool update_state_machine) {
+
+    tx_status_t status = TX_SUCCESS;
+
+    status = tx_event_flags_set(&state_machine_events_handle, ~STATE_MACHINE_ZENOH_DISCONNECTED, TX_AND);
+    if (status != TX_SUCCESS) return status;
+    status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_ZENOH_CONNECTED | ((update_state_machine) ? STATE_MACHINE_UPDATE : 0), TX_OR);
+
+    zenoh_events.connections++;
+
+    return status;
+}
+
+tx_status_t zenoh_disconnected(bool update_state_machine) {
+
+    tx_status_t status = TX_SUCCESS;
+
+    status = tx_event_flags_set(&state_machine_events_handle, ~STATE_MACHINE_ZENOH_CONNECTED, TX_AND);
+    if (status != TX_SUCCESS) return status;
+    status = tx_event_flags_set(&state_machine_events_handle, STATE_MACHINE_ZENOH_DISCONNECTED | ((update_state_machine) ? STATE_MACHINE_UPDATE : 0), TX_OR);
+
+    return status;
+}
+
 /* Called when a message is received from the topic ZENOH_SUB_HEARTBEAT_KEYEXPR */
-void heartbeat_sub_callback(z_loaned_sample_t* sample, void* ctx) {
+void heartbeat_sub_callback(z_loaned_sample_t *sample, void *ctx) {
     UNUSED(ctx);
     heartbeat_consumer_timestamp = tx_time_get_ms();
     if (heartbeat_consumer_state == HEARTBEAT_NOT_STARTED) {
@@ -118,13 +142,17 @@ void comms_thread_entry(uint32_t initial_input) {
             }
         }
 
+        /* Create the options */
+        z_open_options_t opts;
+        z_open_options_default(&opts);
+
         /* Start a session */
         log_write("Zenoh Pico: Attempting to open session\n");
         z_owned_session_t session;
         do {
 
             /* Attempt to open session */
-            z_status = z_open(&session, z_move(config), NULL);
+            z_status = z_open(&session, z_move(config), &opts);
 
             /* Session open */
             if (z_status == Z_OK) {
@@ -134,8 +162,9 @@ void comms_thread_entry(uint32_t initial_input) {
             }
 
             /* Try again */
-            else if ((z_status == _Z_ERR_SCOUT_NO_RESULTS) /* Unable to find other Zenoh devices */
-                     || (z_status == _Z_ERR_CONFIG_LOCATOR_SCHEMA_UNKNOWN) /* Can occur when the router is not configured with an incorrect transport or incorrect IP version (e.g. IPv6) */) {
+            else if ((z_status == _Z_ERR_SCOUT_NO_RESULTS)                 /* Unable to find other Zenoh devices */
+                     || (z_status == _Z_ERR_CONFIG_LOCATOR_SCHEMA_UNKNOWN) /* Can occur when the router is not configured with an incorrect transport or incorrect IP version (e.g. IPv6) */
+            ) {
                 log_write("Zenoh Pico: Failed to open session, error code %i\n", z_status);
                 failure_streak_valid = false;
                 goto retry;
@@ -160,15 +189,7 @@ void comms_thread_entry(uint32_t initial_input) {
 
         log_write("Zenoh Pico: Session opened\n");
 
-        /* Start the read, lease tasks and periodic scheduler threads */
-        z_status = zp_start_read_task(z_loan_mut(session), NULL);
-        if (z_status < Z_OK) Error_Handler();
-        z_status = zp_start_lease_task(z_loan_mut(session), NULL);
-        if (z_status < Z_OK) Error_Handler();
-        //        z_status = zp_start_periodic_scheduler_task(z_loan_mut(session), NULL);
-        //        if (z_status < Z_OK) Error_Handler();
-
-        /* Declare publisher */
+        /* Declare stats publisher */
         z_owned_keyexpr_t stats_pub_key;
         z_view_keyexpr_t  stats_pub_view_key;
         z_view_keyexpr_from_str(&stats_pub_view_key, ZENOH_PUB_STATS_KEYEXPR);
@@ -198,8 +219,8 @@ void comms_thread_entry(uint32_t initial_input) {
         if (z_status < Z_OK) Error_Handler();
 
         /* Notify the state machine that we are connected and ready to communicate */
-        ZENOH_CONNECTED(true);
-        zenoh_events.connections++;
+        tx_status = zenoh_connected(true);
+        if (tx_status != TX_SUCCESS) Error_Handler();
 
         log_write("Zenoh Pico: Entering main loop\n");
 
@@ -273,7 +294,8 @@ void comms_thread_entry(uint32_t initial_input) {
         zenoh_events.restarts++;
 
         /* Notify the state machine */
-        ZENOH_DISCONNECTED(true);
+        tx_status = zenoh_disconnected(true);
+        if (tx_status != TX_SUCCESS) Error_Handler();
 
     /* An error occured while connecting */
     retry:
