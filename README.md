@@ -1,4 +1,6 @@
-# Switch v4 Firmware (WIP)
+# This project is superseded by [unified-switch-firmware](https://github.com/ben5049/unified-switch-firmware)
+
+# Switch v4 Firmware (Depricated)
 
 STM32CubeIDE source code for the 4th iteration of my single pair Ethernet (SPE) switch, written in C. The hardware can be found in [switch-v4-hardware](https://github.com/ben5049/switch-v4-hardware).
 
